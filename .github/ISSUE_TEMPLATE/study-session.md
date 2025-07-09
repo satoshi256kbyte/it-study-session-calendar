@@ -1,7 +1,7 @@
 ---
-name: 広島の勉強会登録
-about: 広島のIT勉強会やイベントをカレンダーに登録するためのテンプレート
-title: '[広島勉強会登録] '
+name: 勉強会登録
+about: IT勉強会やイベントをカレンダーに登録するためのテンプレート
+title: '[勉強会登録] '
 labels: ['hiroshima-study-session']
 assignees: ''
 ---
