@@ -2,83 +2,134 @@
 
 広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーションです。
 
-## 特徴
+## 開発環境構築
 
-- 広島のIT勉強会・イベント情報を一元管理
-- GoogleカレンダーをWebページに埋め込んで表示
-- GitHubのIssueを使った勉強会スケジュール登録システム
-- GitHub Actionsによる自動カレンダー更新
-- GitHub Pagesでのホスティング
-- SNS共有に最適化されたメタ情報
+### 前提条件
 
-## 対象となる勉強会
+- Node.js 23.10.0以上
+- AWS CLI設定済み
+- AWSプロファイル設定（複数のAWSアカウントを使用する場合）
 
-- 広島市内で開催されるIT関連の勉強会
-- 広島のエンジニアコミュニティが主催するオンライン勉強会
-- プログラミング、インフラ、デザイン、マネジメントなどIT全般
-
-## 技術スタック
-
-- **フロントエンド**: Next.js, TypeScript, Tailwind CSS
-- **デプロイ**: GitHub Pages
-- **カレンダー**: Google Calendar
-- **自動化**: GitHub Actions
-
-## セットアップ
-
-### 1. 依存関係のインストール
+### セットアップ
 
 ```bash
-npm install
-```
+# 0. Node.js バージョン確認（推奨: nvm使用）
+node --version  # 23.10.0以上であることを確認
+# nvmを使用している場合: nvm use
 
-### 2. 環境変数の設定
+# 1. 依存関係のインストール
+npm run install:all
 
-`.env.example`を`.env.local`にコピーして、必要な値を設定してください。
+# 2. CDKパラメータファイル作成
+npm run setup:cdk
 
-```bash
+# 3. parameters.json を編集
+cd cdk
+# Google Calendar API設定を記入
+
+# 4. AWSプロファイル設定（必要に応じて）
+export AWS_PROFILE=your-profile-name
+# または
+aws configure --profile your-profile-name
+
+# 5. Calendar用環境変数設定
+cd ../calendar
 cp .env.example .env.local
+# .env.local を編集してAPI URLを設定
 ```
 
-### 3. 開発サーバーの起動
+```json:cdk/parameters.json
+{
+  "serviceName": "hiroshima-it-calendar",
+  "environment": "dev",
+  "googleCalendarId": "your-calendar-id@group.calendar.google.com",
+  "googleCalendarApiKey": "your-google-calendar-api-key"
+}
+```
+
+```bash:calendar/.env.local
+NEXT_PUBLIC_GOOGLE_CALENDAR_URL=https://calendar.google.com/calendar/embed?src=YOUR_CALENDAR_ID
+NEXT_PUBLIC_API_BASE_URL=https://your-api-gateway-url.amazonaws.com/prod
+```
+
+### 開発サーバー起動
 
 ```bash
-npm run dev
+# エンドユーザー画面（ポート3000）
+npm run dev:calendar
+
+# 管理者画面（ポート3001）
+npm run dev:admin-frontend
 ```
 
-ブラウザで [http://localhost:3000](http://localhost:3000) を開いてアプリケーションを確認できます。
+## ビルド・デプロイ
 
-## 勉強会の登録方法
+### ビルド
 
-詳しい登録方法については、[Wiki ページ](https://github.com/satoshi256kbyte/it-study-session-calendar/wiki)をご確認ください。
+```bash
+# AWS関連のビルド（GitHub Pagesは自動ビルド）
+npm run build:all
 
-## デプロイ
+# 個別ビルド
+npm run build:calendar      # 開発時のテスト用
+npm run build:admin-frontend
+npm run build:admin-backend
+npm run build:cdk
+```
 
-### GitHub Pagesへのデプロイ
+### デプロイ
 
-1. GitHubリポジトリの設定で、GitHub Pagesを有効にします
-2. GitHub Secretsに以下の環境変数を設定します：
-   - `GOOGLE_CALENDAR_URL`: GoogleカレンダーのembedURL
-   - `GOOGLE_CALENDAR_API_KEY`: Google Calendar APIキー
-   - `GOOGLE_CALENDAR_ID`: カレンダーID
+```bash
+# AWSプロファイル指定（必要に応じて）
+export AWS_PROFILE=your-profile-name
 
-3. `main`ブランチにプッシュすると自動的にデプロイされます
+# AWSインフラデプロイ
+npm run deploy:cdk:dev     # 開発環境
+npm run deploy:cdk         # 本番環境
 
-## 必要な設定
+# デプロイ後、出力されたAPI Gateway URLを calendar/.env.local に設定
 
-### Googleカレンダーの設定
+# フロントエンドデプロイ
+# Calendar: GitHub Pagesで自動デプロイ（mainブランチへのpush時）
+# GitHub Secrets設定が必要: GOOGLE_CALENDAR_URL, API_BASE_URL
+# 本番環境API URL: https://gt8vj1ria1.execute-api.ap-northeast-1.amazonaws.com/prod/
 
-1. Googleカレンダーで新しいカレンダーを作成
-2. カレンダーの共有設定で「一般公開して誰でも利用できるようにする」を有効にする
-3. カレンダーのembed URLを取得して環境変数に設定
+# Admin Frontend: 手動デプロイ
+npm run deploy:admin-frontend     # 本番環境
+npm run deploy:admin-frontend:dev # 開発環境
+# または直接スクリプト実行: ./scripts/deploy-admin-frontend.sh prod
+```
 
-### Google Calendar API の設定
+### その他のコマンド
 
-1. [Google Cloud Console](https://console.cloud.google.com/)でプロジェクトを作成
-2. Calendar APIを有効にする
-3. サービスアカウントを作成してJSONキーをダウンロード
-4. カレンダーにサービスアカウントの編集権限を付与
+```bash
+# AWSプロファイル指定（必要に応じて）
+export AWS_PROFILE=your-profile-name
 
-## ライセンス
+npm run diff:cdk          # CDK差分確認
+npm run destroy:cdk       # AWSリソース削除
+```
 
-MIT License
+## トラブルシューティング
+
+### CDKデプロイが動作しない場合
+
+```bash
+# 1. CDKブートストラップ
+cd cdk
+npx cdk bootstrap
+
+# 2. 依存関係の再インストール
+npm install
+
+# 3. ビルドとシンセサイズのテスト
+npm run build
+npx cdk synth
+
+# 4. AWS認証情報の確認
+aws sts get-caller-identity
+
+# 5. プロファイル指定でのブートストラップ
+export AWS_PROFILE=your-profile-name
+npx cdk bootstrap
+```

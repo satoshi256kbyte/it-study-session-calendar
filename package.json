@@ -1,30 +1,54 @@
 {
-  "name": "hiroshima-it-study-session-calendar",
+  "name": "hiroshima-it-study-session-calendar-monorepo",
   "version": "0.1.0",
-  "description": "広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション",
-  "keywords": ["広島", "IT", "勉強会", "カレンダー", "connpass", "エンジニア", "プログラミング"],
+  "description": "広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション（モノレポ）",
   "private": true,
+  "workspaces": [
+    "calendar",
+    "admin-frontend", 
+    "admin-backend",
+    "cdk"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "export": "next build && next export"
+    "install:all": "npm install && npm run install:calendar && npm run install:admin-frontend && npm run install:admin-backend && npm run install:cdk",
+    "install:calendar": "cd calendar && npm install",
+    "install:admin-frontend": "cd admin-frontend && npm install", 
+    "install:admin-backend": "cd admin-backend && npm install",
+    "install:cdk": "cd cdk && npm install",
+    "setup:cdk": "cd cdk && npm run setup",
+    "dev:calendar": "cd calendar && npm run dev",
+    "dev:admin-frontend": "cd admin-frontend && npm run dev",
+    "dev:admin-backend": "cd admin-backend && npm run dev",
+    "build:calendar": "cd calendar && npm run build",
+    "build:admin-frontend": "cd admin-frontend && npm run build",
+    "build:admin-backend": "cd admin-backend && npm run build",
+    "build:cdk": "cd cdk && npm run build",
+    "build:all": "npm run build:admin-backend && npm run build:cdk && npm run build:admin-frontend",
+    "deploy:cdk": "cd cdk && npm run deploy",
+    "deploy:cdk:dev": "cd cdk && npm run deploy:dev",
+    "deploy:admin-frontend": "./scripts/deploy-admin-frontend.sh prod",
+    "deploy:admin-frontend:dev": "./scripts/deploy-admin-frontend.sh dev",
+    "diff:cdk": "cd cdk && npm run diff",
+    "destroy:cdk": "cd cdk && npm run destroy",
+    "test": "echo \"No tests specified\" && exit 0"
   },
-  "dependencies": {
-    "next": "14.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^5.2.2"
+  "keywords": [
+    "広島",
+    "IT",
+    "勉強会",
+    "カレンダー",
+    "connpass",
+    "エンジニア",
+    "プログラミング",
+    "monorepo"
+  ],
+  "author": "広島IT勉強会カレンダー",
+  "license": "MIT",
+  "engines": {
+    "node": ">=23.10.0",
+    "npm": ">=10.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.8.0",
-    "@types/react": "^18.2.25",
-    "@types/react-dom": "^18.2.11",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.51.0",
-    "eslint-config-next": "14.0.0",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5"
+    "concurrently": "^8.2.2"
   }
 }
