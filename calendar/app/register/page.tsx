@@ -19,7 +19,8 @@ export default function Register() {
 
     try {
       // 管理者向けAPIにPOSTリクエストを送信
-      const response = await fetch('/api/study-sessions', {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+      const response = await fetch(`${apiBaseUrl}/api/study-sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
