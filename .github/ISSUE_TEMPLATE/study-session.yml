@@ -1,0 +1,55 @@
+name: 広島の勉強会登録
+description: 広島のIT勉強会やイベントをカレンダーに登録するためのフォーム
+title: "[広島勉強会登録] "
+labels: ["hiroshima-study-session"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 広島IT勉強会カレンダーへの登録
+
+        広島のIT関連の勉強会やイベントをカレンダーに登録します。
+        以下の項目を入力してください。
+
+  - type: input
+    id: title
+    attributes:
+      label: 勉強会タイトル
+      description: 勉強会の正式名称を入力してください
+      placeholder: 例：広島JavaScript勉強会 #42
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: 勉強会ページのリンク
+      description: connpassやDoorkeeperなどのイベントページのURLを入力してください
+      placeholder: 例：https://connpass.com/event/123456/
+    validations:
+      required: true
+
+  - type: input
+    id: datetime
+    attributes:
+      label: 開催日時
+      description: 開催日時を入力してください
+      placeholder: 例：2024年7月15日 19:00-21:00
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: 確認事項
+      description: 以下の項目を確認してチェックしてください
+      options:
+        - label: 広島で開催される（またはオンラインで広島のコミュニティが主催する）勉強会であることを確認しました
+          required: true
+        - label: 勉強会の情報に間違いがないことを確認しました
+          required: true
+        - label: 勉強会ページのリンクが正しく動作することを確認しました
+          required: true
+        - label: 開催日時が正確であることを確認しました
+          required: true

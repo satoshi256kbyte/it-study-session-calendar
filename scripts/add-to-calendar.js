@@ -14,109 +14,142 @@ const ISSUE_BODY = process.env.ISSUE_BODY;
 const ISSUE_TITLE = process.env.ISSUE_TITLE;
 
 /**
- * Issue本文から勉強会情報を解析
+ * Issue form から勉強会情報を解析
+ * GitHub Issue formsの出力形式を解析
  */
 function parseIssueBody(body) {
-  const lines = body.split('\n');
   let title = '';
   let url = '';
   let dateTime = '';
-  let location = '';
-  let description = '';
-
-  let currentSection = '';
   
-  for (const line of lines) {
-    const trimmedLine = line.trim();
+  // Issue formsの出力は以下のような形式:
+  // ### 勉強会タイトル
+  // 
+  // 広島JavaScript勉強会 #42
+  // 
+  // ### 勉強会ページのリンク
+  // 
+  // https://connpass.com/event/123456/
+  // 
+  // ### 開催日時
+  // 
+  // 2024年7月15日 19:00-21:00
+
+  const lines = body.split('\n').map(line => line.trim());
+  let currentField = '';
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     
-    if (trimmedLine.includes('### 勉強会タイトル')) {
-      currentSection = 'title';
+    // フィールドの識別（Issue formsの見出し形式）
+    if (line === '### 勉強会タイトル') {
+      currentField = 'title';
       continue;
-    } else if (trimmedLine.includes('### 勉強会ページのリンク')) {
-      currentSection = 'url';
+    } else if (line === '### 勉強会ページのリンク') {
+      currentField = 'url';
       continue;
-    } else if (trimmedLine.includes('### 開催日時')) {
-      currentSection = 'datetime';
+    } else if (line === '### 開催日時') {
+      currentField = 'datetime';
       continue;
-    } else if (trimmedLine.includes('### 開催場所')) {
-      currentSection = 'location';
-      continue;
-    } else if (trimmedLine.includes('### 概要')) {
-      currentSection = 'description';
-      continue;
-    } else if (trimmedLine.startsWith('###') || trimmedLine.startsWith('##')) {
-      currentSection = '';
+    } else if (line.startsWith('###')) {
+      currentField = '';
       continue;
     }
-
-    // コメント行や空行をスキップ
-    if (trimmedLine.startsWith('<!--') || trimmedLine === '' || trimmedLine.startsWith('---')) {
+    
+    // 空行をスキップ
+    if (line === '') {
       continue;
     }
-
-    // 各セクションの内容を取得
-    switch (currentSection) {
-      case 'title':
-        if (trimmedLine) title = trimmedLine;
-        break;
-      case 'url':
-        if (trimmedLine) url = trimmedLine;
-        break;
-      case 'datetime':
-        if (trimmedLine) dateTime = trimmedLine;
-        break;
-      case 'location':
-        if (trimmedLine) location = trimmedLine;
-        break;
-      case 'description':
-        if (trimmedLine) description += trimmedLine + '\n';
-        break;
+    
+    // 各フィールドの値を取得（空行の後の最初の非空行）
+    if (currentField && line) {
+      switch (currentField) {
+        case 'title':
+          if (!title) title = line;
+          break;
+        case 'url':
+          if (!url) url = line;
+          break;
+        case 'datetime':
+          if (!dateTime) dateTime = line;
+          break;
+      }
     }
   }
 
   return {
-    title: title || ISSUE_TITLE.replace('[勉強会登録] ', ''),
+    title: title || ISSUE_TITLE.replace('[広島勉強会登録] ', ''),
     url,
-    dateTime,
-    location,
-    description: description.trim()
+    dateTime
   };
 }
 
 /**
  * 日時文字列をISO形式に変換
- * 例: "2024年7月15日（月） 19:00-21:00" -> start/end DateTimeオブジェクト
+ * 例: "2024年7月15日 19:00-21:00" -> start/end DateTimeオブジェクト
  */
 function parseDateTimeString(dateTimeStr) {
-  // 簡単な実装例（実際はより堅牢な解析が必要）
-  const dateMatch = dateTimeStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
-  const timeMatch = dateTimeStr.match(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/);
-  
-  if (!dateMatch || !timeMatch) {
-    throw new Error('日時の形式が正しくありません');
-  }
-
-  const year = parseInt(dateMatch[1]);
-  const month = parseInt(dateMatch[2]) - 1; // JavaScriptの月は0ベース
-  const day = parseInt(dateMatch[3]);
-  const startHour = parseInt(timeMatch[1]);
-  const startMinute = parseInt(timeMatch[2]);
-  const endHour = parseInt(timeMatch[3]);
-  const endMinute = parseInt(timeMatch[4]);
-
-  const startDate = new Date(year, month, day, startHour, startMinute);
-  const endDate = new Date(year, month, day, endHour, endMinute);
-
-  return {
-    start: {
-      dateTime: startDate.toISOString(),
-      timeZone: 'Asia/Tokyo'
-    },
-    end: {
-      dateTime: endDate.toISOString(),
-      timeZone: 'Asia/Tokyo'
+  try {
+    // 日付の解析: "2024年7月15日" または "2024/7/15"
+    const dateMatch = dateTimeStr.match(/(\d{4})[年\/](\d{1,2})[月\/](\d{1,2})[日]?/);
+    if (!dateMatch) {
+      throw new Error('日付の形式が正しくありません');
     }
-  };
+
+    const year = parseInt(dateMatch[1]);
+    const month = parseInt(dateMatch[2]) - 1; // JavaScriptの月は0ベース
+    const day = parseInt(dateMatch[3]);
+
+    // 時間の解析: "19:00-21:00" または "19:00～21:00"
+    const timeMatch = dateTimeStr.match(/(\d{1,2}):(\d{2})[-～〜](\d{1,2}):(\d{2})/);
+    if (!timeMatch) {
+      // 開始時間のみの場合（終了時間は2時間後と仮定）
+      const singleTimeMatch = dateTimeStr.match(/(\d{1,2}):(\d{2})/);
+      if (singleTimeMatch) {
+        const startHour = parseInt(singleTimeMatch[1]);
+        const startMinute = parseInt(singleTimeMatch[2]);
+        const endHour = startHour + 2; // 2時間後
+        const endMinute = startMinute;
+
+        const startDate = new Date(year, month, day, startHour, startMinute);
+        const endDate = new Date(year, month, day, endHour, endMinute);
+
+        return {
+          start: {
+            dateTime: startDate.toISOString(),
+            timeZone: 'Asia/Tokyo'
+          },
+          end: {
+            dateTime: endDate.toISOString(),
+            timeZone: 'Asia/Tokyo'
+          }
+        };
+      }
+      throw new Error('時間の形式が正しくありません');
+    }
+
+    const startHour = parseInt(timeMatch[1]);
+    const startMinute = parseInt(timeMatch[2]);
+    const endHour = parseInt(timeMatch[3]);
+    const endMinute = parseInt(timeMatch[4]);
+
+    const startDate = new Date(year, month, day, startHour, startMinute);
+    const endDate = new Date(year, month, day, endHour, endMinute);
+
+    return {
+      start: {
+        dateTime: startDate.toISOString(),
+        timeZone: 'Asia/Tokyo'
+      },
+      end: {
+        dateTime: endDate.toISOString(),
+        timeZone: 'Asia/Tokyo'
+      }
+    };
+  } catch (error) {
+    console.error('日時解析エラー:', error.message);
+    throw error;
+  }
 }
 
 /**
@@ -168,6 +201,8 @@ function createCalendarEvent(eventData) {
 async function main() {
   try {
     console.log('Parsing issue content...');
+    console.log('Issue body:', ISSUE_BODY);
+    
     const issueData = parseIssueBody(ISSUE_BODY);
     console.log('Parsed data:', issueData);
 
@@ -177,14 +212,16 @@ async function main() {
 
     const dateTimeInfo = parseDateTimeString(issueData.dateTime);
     
+    // カレンダーイベントデータを作成
     const eventData = {
       summary: issueData.title,
-      description: `${issueData.description}\n\n詳細: ${issueData.url}`,
-      location: issueData.location,
+      description: issueData.url ? `詳細: ${issueData.url}` : '',
       ...dateTimeInfo
     };
 
     console.log('Creating calendar event...');
+    console.log('Event data:', JSON.stringify(eventData, null, 2));
+    
     const result = await createCalendarEvent(eventData);
     console.log('Event created successfully:', result.htmlLink);
     
@@ -200,6 +237,9 @@ async function main() {
 // 環境変数のチェック
 if (!GOOGLE_CALENDAR_API_KEY || !GOOGLE_CALENDAR_ID || !ISSUE_BODY) {
   console.error('Required environment variables are missing');
+  console.error('GOOGLE_CALENDAR_API_KEY:', !!GOOGLE_CALENDAR_API_KEY);
+  console.error('GOOGLE_CALENDAR_ID:', !!GOOGLE_CALENDAR_ID);
+  console.error('ISSUE_BODY:', !!ISSUE_BODY);
   process.exit(1);
 }
 

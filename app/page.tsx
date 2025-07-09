@@ -84,14 +84,14 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-blue-800 text-sm font-medium">
-                勉強会の登録方法は
+                勉強会の登録は
                 <a
-                  href="https://github.com/satoshi256kbyte/it-study-session-calendar/wiki"
+                  href="https://github.com/satoshi256kbyte/it-study-session-calendar/issues/new?template=study-session.yml"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-500 underline ml-1"
                 >
-                  こちらをご覧ください
+                  こちらから
                 </a>
               </span>
             </div>
