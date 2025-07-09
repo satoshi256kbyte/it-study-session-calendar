@@ -153,8 +153,7 @@ export default function Register() {
                     </h3>
                     <div className="mt-2 text-sm text-blue-700">
                       <ul className="list-disc list-inside space-y-1">
-                        <li>広島で開催されるIT関連の勉強会のみ登録してください</li>
-                        <li>登録後、管理者による承認が必要です</li>
+                        <li>登録後、管理者が登録内容を確認し、問題がなければ承認を行います</li>
                         <li>承認されるとカレンダーに自動的に追加されます</li>
                       </ul>
                     </div>
