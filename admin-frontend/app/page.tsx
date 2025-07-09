@@ -25,7 +25,7 @@ export default function AdminHome() {
     try {
       setLoading(true)
       // 管理者向けAPIから勉強会一覧を取得
-      const response = await fetch(`/api/prod/admin/study-sessions?page=${currentPage}`)
+      const response = await fetch(`/api/admin/study-sessions?page=${currentPage}`)
       const data = await response.json()
       
       setSessions(data.sessions || [])
@@ -40,7 +40,7 @@ export default function AdminHome() {
 
   const handleAction = async (id: string, action: 'approve' | 'reject' | 'delete') => {
     try {
-      const response = await fetch(`/api/prod/admin/study-sessions/${id}/${action}`, {
+      const response = await fetch(`/api/admin/study-sessions/${id}/${action}`, {
         method: 'POST'
       })
       

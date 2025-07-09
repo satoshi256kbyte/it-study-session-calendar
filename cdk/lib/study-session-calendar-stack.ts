@@ -126,12 +126,15 @@ export class StudySessionCalendarStack extends cdk.Stack {
       }
     })
 
-    // エンドユーザー向けAPI
-    const studySessionsResource = api.root.addResource('study-sessions')
+    // /api リソース
+    const apiResource = api.root.addResource('api')
+
+    // エンドユーザー向けAPI: /api/study-sessions
+    const studySessionsResource = apiResource.addResource('study-sessions')
     studySessionsResource.addMethod('POST', new apigateway.LambdaIntegration(createStudySessionFunction))
 
-    // 管理者向けAPI
-    const adminResource = api.root.addResource('admin')
+    // 管理者向けAPI: /api/admin
+    const adminResource = apiResource.addResource('admin')
     const adminStudySessionsResource = adminResource.addResource('study-sessions')
     adminStudySessionsResource.addMethod('GET', new apigateway.LambdaIntegration(getStudySessionsFunction))
 
@@ -157,7 +160,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
     })
 
     // CloudFront ディストリビューション
-    const distribution = new cloudfront.Distribution(this, 'AdminFrontendDistribution', {
+    const distribution = new cloudfront.Distribution(this, 'AdminFrontendDistributionV4', {
       defaultBehavior: {
         origin: new origins.S3Origin(adminFrontendBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -165,7 +168,9 @@ export class StudySessionCalendarStack extends cdk.Stack {
       },
       additionalBehaviors: {
         '/api/*': {
-          origin: new origins.HttpOrigin(`${api.restApiId}.execute-api.${this.region}.amazonaws.com`),
+          origin: new origins.HttpOrigin(`${api.restApiId}.execute-api.${this.region}.amazonaws.com`, {
+            originPath: '/prod'
+          }),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
@@ -175,14 +180,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         }
       },
       defaultRootObject: 'index.html',
-      errorResponses: [
-        {
-          httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: '/index.html'
-        }
-      ],
-      comment: `${serviceName}-${environment}-cloudfront-admin-frontend`
+      comment: `${serviceName}-${environment}-cloudfront-admin-frontend-v4`
     })
 
     // 管理画面のデプロイ（ビルド済みファイルがある場合）

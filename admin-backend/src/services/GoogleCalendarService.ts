@@ -49,12 +49,34 @@ export class GoogleCalendarService {
     start: { dateTime: string; timeZone: string }
     end: { dateTime: string; timeZone: string }
   } {
-    // 日付の解析: "2024年7月15日 19:00-21:00"
+    try {
+      // ISO 8601形式の場合（例: "2025-07-15T19:00:00Z"）
+      const isoDate = new Date(dateTimeStr)
+      if (!isNaN(isoDate.getTime())) {
+        // 2時間のイベントとして設定
+        const endDate = new Date(isoDate.getTime() + 2 * 60 * 60 * 1000)
+        
+        return {
+          start: {
+            dateTime: isoDate.toISOString(),
+            timeZone: 'Asia/Tokyo'
+          },
+          end: {
+            dateTime: endDate.toISOString(),
+            timeZone: 'Asia/Tokyo'
+          }
+        }
+      }
+    } catch (error) {
+      // ISO形式でない場合は従来の日本語形式を試す
+    }
+
+    // 日本語形式の解析: "2024年7月15日 19:00-21:00"
     const dateMatch = dateTimeStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
     const timeMatch = dateTimeStr.match(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/)
     
     if (!dateMatch || !timeMatch) {
-      throw new Error('日時の形式が正しくありません')
+      throw new Error(`日時の形式が正しくありません: ${dateTimeStr}`)
     }
 
     const year = parseInt(dateMatch[1])
