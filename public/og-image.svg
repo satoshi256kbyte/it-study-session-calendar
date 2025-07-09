@@ -1,0 +1,28 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#3B82F6"/>
+  <rect x="60" y="60" width="1080" height="510" rx="20" fill="white"/>
+  
+  <!-- Calendar Icon -->
+  <rect x="120" y="150" width="200" height="180" rx="10" fill="#E5E7EB"/>
+  <rect x="140" y="120" width="160" height="40" rx="20" fill="#6B7280"/>
+  <rect x="160" y="190" width="30" height="30" rx="5" fill="#3B82F6"/>
+  <rect x="210" y="190" width="30" height="30" rx="5" fill="#E5E7EB"/>
+  <rect x="260" y="190" width="30" height="30" rx="5" fill="#E5E7EB"/>
+  <rect x="160" y="240" width="30" height="30" rx="5" fill="#E5E7EB"/>
+  <rect x="210" y="240" width="30" height="30" rx="5" fill="#3B82F6"/>
+  <rect x="260" y="240" width="30" height="30" rx="5" fill="#E5E7EB"/>
+  <rect x="160" y="290" width="30" height="30" rx="5" fill="#E5E7EB"/>
+  <rect x="210" y="290" width="30" height="30" rx="5" fill="#E5E7EB"/>
+  <rect x="260" y="290" width="30" height="30" rx="5" fill="#3B82F6"/>
+  
+  <!-- Title -->
+  <text x="400" y="220" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#1F2937">広島IT勉強会</text>
+  <text x="400" y="280" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#1F2937">カレンダー</text>
+  
+  <!-- Subtitle -->
+  <text x="400" y="340" font-family="Arial, sans-serif" font-size="24" fill="#6B7280">広島のIT関連の勉強会やイベントを</text>
+  <text x="400" y="380" font-family="Arial, sans-serif" font-size="24" fill="#6B7280">カレンダー表示するウェブアプリケーション</text>
+  
+  <!-- URL -->
+  <text x="400" y="450" font-family="Arial, sans-serif" font-size="20" fill="#3B82F6">satoshi256kbyte.github.io/it-study-session-calendar</text>
+</svg>
