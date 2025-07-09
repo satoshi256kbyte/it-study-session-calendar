@@ -68,6 +68,11 @@ jobs:
           cd calendar
           ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
 
+      - name: Debug environment variables
+        run: |
+          echo "API_BASE_URL: ${{ secrets.API_BASE_URL }}"
+          echo "GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}"
+
       - name: Build with Next.js
         run: |
           cd calendar
