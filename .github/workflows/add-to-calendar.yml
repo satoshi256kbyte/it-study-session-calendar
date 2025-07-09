@@ -6,7 +6,7 @@ on:
 
 jobs:
   add-to-calendar:
-    if: github.event.issue.state == 'closed' && github.event.issue.state_reason == 'completed' && contains(github.event.issue.labels.*.name, 'hiroshima-study-session')
+    if: github.event.issue.state == 'closed' && github.event.issue.state_reason == 'completed' && contains(github.event.issue.labels.*.name, 'it-study-session')
     runs-on: ubuntu-latest
     
     steps:
