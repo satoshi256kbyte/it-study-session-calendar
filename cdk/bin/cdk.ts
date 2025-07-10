@@ -30,7 +30,7 @@ try {
 }
 
 // 必須パラメータの検証
-const requiredParams = ['serviceName', 'environment', 'googleCalendarId', 'googleCalendarApiKey']
+const requiredParams = ['serviceName', 'environment', 'googleCalendarId', 'googleServiceAccountEmail', 'googlePrivateKey', 'domainName', 'hostedZoneId', 'certificateArn']
 const missingParams = requiredParams.filter(param => !parameters[param])
 
 if (missingParams.length > 0) {
@@ -60,5 +60,9 @@ new StudySessionCalendarStack(app, stackName, {
   serviceName: parameters.serviceName,
   environment: parameters.environment,
   googleCalendarId: parameters.googleCalendarId,
-  googleCalendarApiKey: parameters.googleCalendarApiKey
+  googleServiceAccountEmail: parameters.googleServiceAccountEmail,
+  googlePrivateKey: parameters.googlePrivateKey,
+  domainName: parameters.domainName,
+  hostedZoneId: parameters.hostedZoneId,
+  certificateArn: parameters.certificateArn
 })

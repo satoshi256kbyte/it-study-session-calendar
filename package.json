@@ -5,14 +5,14 @@
   "private": true,
   "workspaces": [
     "calendar",
-    "admin-frontend", 
+    "admin-frontend",
     "admin-backend",
     "cdk"
   ],
   "scripts": {
     "install:all": "npm install && npm run install:calendar && npm run install:admin-frontend && npm run install:admin-backend && npm run install:cdk",
     "install:calendar": "cd calendar && npm install",
-    "install:admin-frontend": "cd admin-frontend && npm install", 
+    "install:admin-frontend": "cd admin-frontend && npm install",
     "install:admin-backend": "cd admin-backend && npm install",
     "install:cdk": "cd cdk && npm install",
     "setup:cdk": "cd cdk && npm run setup",
@@ -50,5 +50,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "googleapis": "^152.0.0"
   }
 }
