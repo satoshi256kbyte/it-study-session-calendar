@@ -1,10 +1,16 @@
-import type { Metadata } from 'next'
-import './globals.css'
+'use client'
 
-export const metadata: Metadata = {
-  title: '広島IT勉強会カレンダー 管理画面',
-  description: '広島IT勉強会カレンダーの管理画面',
-}
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Amplify } from 'aws-amplify'
+import awsconfig from '../src/aws-exports'
+import { AuthProvider } from '../src/contexts/AuthContext'
+import { useEffect } from 'react'
+
+const inter = Inter({ subsets: ['latin'] })
+
+// Amplifyの設定
+Amplify.configure(awsconfig)
 
 export default function RootLayout({
   children,
@@ -13,7 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <body className={inter.className}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   )
 }

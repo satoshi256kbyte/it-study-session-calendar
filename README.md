@@ -99,6 +99,14 @@ cp .env.example .env.local
 # .env.localを編集してAPI URLを設定
 ```
 
+### 6. Admin Frontend用環境変数設定
+
+```bash
+cd ../admin-frontend
+cp .env.example .env.local
+# .env.localを編集してCognito設定を追加（デプロイ後に設定値が確定）
+```
+
 ## 開発サーバー起動
 
 ```bash
@@ -127,7 +135,30 @@ export AWS_PROFILE=your-profile-name
 npm run deploy:cdk
 ```
 
-### 3. フロントエンドデプロイ
+### 3. Cognito管理者ユーザーの作成
+
+デプロイ後、AWS Consoleから管理者ユーザーを作成します：
+
+1. AWS Console → Cognito → User pools
+2. 作成されたUser Pool（`hiroshima-it-calendar-prod-admin-user-pool`）を選択
+3. 「Users」タブ → 「Create user」
+4. 管理者用のメールアドレスとパスワードを設定
+5. 「Send an invitation to this new user?」のチェックを外す
+6. 「Create user」をクリック
+
+### 4. Admin Frontend環境変数の更新
+
+デプロイ完了後、CDKの出力値を使用して環境変数を設定：
+
+```bash
+cd admin-frontend
+# .env.localを以下の値で更新
+# NEXT_PUBLIC_USER_POOL_ID=（CDK出力のUserPoolId）
+# NEXT_PUBLIC_USER_POOL_CLIENT_ID=（CDK出力のUserPoolClientId）
+# NEXT_PUBLIC_USER_POOL_DOMAIN=（CDK出力のUserPoolDomain）
+```
+
+### 5. フロントエンドデプロイ
 
 #### Calendar（エンドユーザー画面）
 GitHub Pagesで自動デプロイ（mainブランチへのpush時）
@@ -140,6 +171,12 @@ GitHub Secretsに以下を設定：
 ```bash
 npm run deploy:admin-frontend
 ```
+
+## 管理画面の使用方法
+
+1. `https://your-domain.example.com` にアクセス
+2. 作成した管理者アカウントでログイン
+3. 勉強会の承認・却下・削除を実行
 
 ## その他のコマンド
 

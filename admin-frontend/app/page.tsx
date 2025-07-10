@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '../src/contexts/AuthContext'
+import LoginForm from '../src/components/LoginForm'
 
 interface StudySession {
   id: string
@@ -13,7 +15,8 @@ interface StudySession {
   createdAt: string
 }
 
-export default function AdminHome() {
+function AdminDashboard() {
+  const { user, signOut } = useAuth()
   const [sessions, setSessions] = useState<StudySession[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
@@ -55,6 +58,14 @@ export default function AdminHome() {
     } catch (error) {
       console.error('Action failed:', error)
       alert('操作に失敗しました')
+    }
+  }
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+    } catch (error) {
+      console.error('Sign out error:', error)
     }
   }
 
@@ -129,9 +140,22 @@ export default function AdminHome() {
       {/* ヘッダー */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            広島IT勉強会カレンダー - 管理画面
-          </h1>
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-gray-900">
+              広島IT勉強会カレンダー - 管理画面
+            </h1>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                ログイン中: {user?.attributes?.email || user?.username}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                ログアウト
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -277,4 +301,25 @@ export default function AdminHome() {
       </main>
     </div>
   )
+}
+
+export default function AdminHome() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">認証状態を確認中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <LoginForm />
+  }
+
+  return <AdminDashboard />
 }
