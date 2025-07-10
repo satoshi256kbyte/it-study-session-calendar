@@ -2,57 +2,104 @@
 
 広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーションです。
 
-## 開発環境構築
-
-### 前提条件
+## 前提条件
 
 - Node.js 23.10.0以上
 - AWS CLI設定済み
 - AWSプロファイル設定（複数のAWSアカウントを使用する場合）
 
-### セットアップ
+## Google Calendar設定
+
+### 1. Google Cloud Projectの作成とサービスアカウント設定
+
+1. [Google Cloud Console](https://console.cloud.google.com/)にアクセス
+2. 新しいプロジェクトを作成または既存のプロジェクトを選択
+3. Google Calendar APIを有効化
+   - 「APIとサービス」→「ライブラリ」
+   - 「Google Calendar API」を検索して有効化
+4. サービスアカウントを作成
+   - 「IAMと管理」→「サービスアカウント」
+   - 「サービスアカウントを作成」
+   - 名前を入力（例：`it-session-calendar`）
+   - 「キーを作成」→「JSON」を選択してダウンロード
+
+### 2. Googleカレンダーの作成
+
+1. [Google Calendar](https://calendar.google.com/)にアクセス
+2. 左側の「他のカレンダー」の「+」をクリック
+3. 「新しいカレンダーを作成」を選択
+4. カレンダー名を入力（例：「広島IT勉強会カレンダー」）
+5. 作成後、カレンダーIDをメモ（設定画面で確認可能）
+
+### 3. サービスアカウントにカレンダー編集権限を付与
+
+#### 方法1: Google Calendar APIを使用（推奨）
 
 ```bash
-# 0. Node.js バージョン確認（推奨: nvm使用）
-node --version  # 23.10.0以上であることを確認
-# nvmを使用している場合: nvm use
+# プロジェクトルートで実行
+node scripts/add-calendar-acl.js
+```
 
-# 1. 依存関係のインストール
+#### 方法2: 手動設定
+
+1. 作成したカレンダーの設定画面を開く
+2. 「特定のユーザーとの共有」でサービスアカウントのメールアドレスを追加
+3. 権限を「予定の変更および共有の管理権限」に設定
+
+### 4. 自分のアカウントから編集可能にする設定
+
+1. カレンダーの設定画面で「特定のユーザーとの共有」に自分のGoogleアカウントを追加
+2. 権限を「予定の変更および共有の管理権限」に設定
+
+## セットアップ
+
+### 1. 依存関係のインストール
+
+```bash
 npm run install:all
+```
 
-# 2. CDKパラメータファイル作成
+### 2. CDKパラメータファイル作成
+
+```bash
 npm run setup:cdk
+```
 
-# 3. parameters.json を編集
+### 3. parameters.jsonの編集
+
+```bash
 cd cdk
-# Google Calendar API設定を記入
+# parameters.sample.jsonを参考にparameters.jsonを作成・編集
+cp parameters.sample.json parameters.json
+```
 
-# 4. AWSプロファイル設定（必要に応じて）
+`parameters.json`に以下の情報を設定：
+
+- `googleCalendarId`: 作成したカレンダーのID
+- `googleCalendarApiKey`: Google Calendar API キー
+- `googleServiceAccountEmail`: サービスアカウントのメールアドレス
+- `googlePrivateKey`: サービスアカウントの秘密鍵（JSONファイルから取得）
+- `domainName`: 使用するドメイン名
+- `hostedZoneId`: Route53のホストゾーンID
+- `certificateArn`: SSL証明書のARN
+
+### 4. AWSプロファイル設定（必要に応じて）
+
+```bash
 export AWS_PROFILE=your-profile-name
 # または
 aws configure --profile your-profile-name
+```
 
-# 5. Calendar用環境変数設定
+### 5. Calendar用環境変数設定
+
+```bash
 cd ../calendar
 cp .env.example .env.local
-# .env.local を編集してAPI URLを設定
+# .env.localを編集してAPI URLを設定
 ```
 
-```json:cdk/parameters.json
-{
-  "serviceName": "hiroshima-it-calendar",
-  "environment": "dev",
-  "googleCalendarId": "your-calendar-id@group.calendar.google.com",
-  "googleCalendarApiKey": "your-google-calendar-api-key"
-}
-```
-
-```bash:calendar/.env.local
-NEXT_PUBLIC_GOOGLE_CALENDAR_URL=https://calendar.google.com/calendar/embed?src=YOUR_CALENDAR_ID
-NEXT_PUBLIC_API_BASE_URL=https://your-api-gateway-url.amazonaws.com/prod
-```
-
-### 開発サーバー起動
+## 開発サーバー起動
 
 ```bash
 # エンドユーザー画面（ポート3000）
@@ -62,74 +109,44 @@ npm run dev:calendar
 npm run dev:admin-frontend
 ```
 
-## ビルド・デプロイ
+## AWSへのデプロイ
 
-### ビルド
+### 1. ビルド
 
 ```bash
-# AWS関連のビルド（GitHub Pagesは自動ビルド）
 npm run build:all
-
-# 個別ビルド
-npm run build:calendar      # 開発時のテスト用
-npm run build:admin-frontend
-npm run build:admin-backend
-npm run build:cdk
 ```
 
-### デプロイ
+### 2. AWSインフラデプロイ
 
 ```bash
 # AWSプロファイル指定（必要に応じて）
 export AWS_PROFILE=your-profile-name
 
-# AWSインフラデプロイ
-npm run deploy:cdk:dev     # 開発環境
-npm run deploy:cdk         # 本番環境
-
-# デプロイ後、出力されたAPI Gateway URLを calendar/.env.local に設定
-
-# フロントエンドデプロイ
-# Calendar: GitHub Pagesで自動デプロイ（mainブランチへのpush時）
-# GitHub Secrets設定が必要: GOOGLE_CALENDAR_URL, API_BASE_URL
-# 本番環境API URL: https://gt8vj1ria1.execute-api.ap-northeast-1.amazonaws.com/prod/
-
-# Admin Frontend: 手動デプロイ
-npm run deploy:admin-frontend     # 本番環境
-npm run deploy:admin-frontend:dev # 開発環境
-# または直接スクリプト実行: ./scripts/deploy-admin-frontend.sh prod
+# 本番環境デプロイ
+npm run deploy:cdk
 ```
 
-### その他のコマンド
+### 3. フロントエンドデプロイ
 
+#### Calendar（エンドユーザー画面）
+GitHub Pagesで自動デプロイ（mainブランチへのpush時）
+
+GitHub Secretsに以下を設定：
+- `GOOGLE_CALENDAR_URL`: GoogleカレンダーのURL
+- `API_BASE_URL`: デプロイ後のAPI Gateway URL
+
+#### Admin Frontend（管理画面）
 ```bash
-# AWSプロファイル指定（必要に応じて）
-export AWS_PROFILE=your-profile-name
-
-npm run diff:cdk          # CDK差分確認
-npm run destroy:cdk       # AWSリソース削除
+npm run deploy:admin-frontend
 ```
 
-## トラブルシューティング
-
-### CDKデプロイが動作しない場合
+## その他のコマンド
 
 ```bash
-# 1. CDKブートストラップ
-cd cdk
-npx cdk bootstrap
+# CDK差分確認
+npm run diff:cdk
 
-# 2. 依存関係の再インストール
-npm install
-
-# 3. ビルドとシンセサイズのテスト
-npm run build
-npx cdk synth
-
-# 4. AWS認証情報の確認
-aws sts get-caller-identity
-
-# 5. プロファイル指定でのブートストラップ
-export AWS_PROFILE=your-profile-name
-npx cdk bootstrap
+# AWSリソース削除
+npm run destroy:cdk
 ```
