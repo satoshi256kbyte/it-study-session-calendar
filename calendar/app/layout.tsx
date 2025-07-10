@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     site: '@hiroshima_it_cal',
     creator: '@hiroshima_it_cal',
     title: '広島IT勉強会カレンダー',
