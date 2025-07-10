@@ -1,57 +1,58 @@
 {
-  "name": "hiroshima-it-study-session-calendar-monorepo",
-  "version": "0.1.0",
-  "description": "広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション（モノレポ）",
+  "name": "it-study-session-calendar",
+  "version": "1.0.0",
+  "description": "広島IT勉強会カレンダー",
   "private": true,
   "workspaces": [
     "calendar",
     "admin-frontend",
-    "admin-backend",
     "cdk"
   ],
   "scripts": {
-    "install:all": "npm install && npm run install:calendar && npm run install:admin-frontend && npm run install:admin-backend && npm run install:cdk",
+    "install:all": "npm install && npm run install:calendar && npm run install:admin-frontend && npm run install:cdk",
     "install:calendar": "cd calendar && npm install",
     "install:admin-frontend": "cd admin-frontend && npm install",
-    "install:admin-backend": "cd admin-backend && npm install",
     "install:cdk": "cd cdk && npm install",
-    "setup:cdk": "cd cdk && npm run setup",
     "dev:calendar": "cd calendar && npm run dev",
     "dev:admin-frontend": "cd admin-frontend && npm run dev",
-    "dev:admin-backend": "cd admin-backend && npm run dev",
+    "build:all": "npm run build:calendar && npm run build:admin-frontend",
     "build:calendar": "cd calendar && npm run build",
     "build:admin-frontend": "cd admin-frontend && npm run build",
-    "build:admin-backend": "cd admin-backend && npm run build",
-    "build:cdk": "cd cdk && npm run build",
-    "build:all": "npm run build:admin-backend && npm run build:cdk && npm run build:admin-frontend",
+    "setup:cdk": "cd cdk && npm run setup",
     "deploy:cdk": "cd cdk && npm run deploy",
-    "deploy:cdk:dev": "cd cdk && npm run deploy:dev",
-    "deploy:admin-frontend": "./scripts/deploy-admin-frontend.sh prod",
-    "deploy:admin-frontend:dev": "./scripts/deploy-admin-frontend.sh dev",
+    "deploy:admin-frontend": "cd admin-frontend && npm run deploy",
     "diff:cdk": "cd cdk && npm run diff",
     "destroy:cdk": "cd cdk && npm run destroy",
-    "test": "echo \"No tests specified\" && exit 0"
-  },
-  "keywords": [
-    "広島",
-    "IT",
-    "勉強会",
-    "カレンダー",
-    "connpass",
-    "エンジニア",
-    "プログラミング",
-    "monorepo"
-  ],
-  "author": "広島IT勉強会カレンダー",
-  "license": "MIT",
-  "engines": {
-    "node": ">=23.10.0",
-    "npm": ">=10.0.0"
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --ignore-path .gitignore --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
+    "type-check": "npm run type-check:calendar && npm run type-check:admin-frontend && npm run type-check:cdk",
+    "type-check:calendar": "cd calendar && npx tsc --noEmit",
+    "type-check:admin-frontend": "cd admin-frontend && npx tsc --noEmit",
+    "type-check:cdk": "cd cdk && npx tsc --noEmit",
+    "prepare": "husky install"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
   },
-  "dependencies": {
-    "googleapis": "^152.0.0"
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }

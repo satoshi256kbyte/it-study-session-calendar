@@ -10,7 +10,7 @@ export default function Register() {
     date: '',
     startTime: '',
     endTime: '',
-    contact: ''
+    contact: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
@@ -39,20 +39,20 @@ export default function Register() {
       const dateObj = new Date(formData.date)
       const [startHour, startMinute] = formData.startTime.split(':').map(Number)
       const [endHour, endMinute] = formData.endTime.split(':').map(Number)
-      
+
       const startDateTime = new Date(dateObj)
       startDateTime.setHours(startHour, startMinute, 0, 0)
-      
+
       const endDateTime = new Date(dateObj)
       endDateTime.setHours(endHour, endMinute, 0, 0)
-      
+
       // ISO形式で送信
       const requestData = {
         title: formData.title,
         url: formData.url,
         datetime: startDateTime.toISOString(),
         endDatetime: endDateTime.toISOString(),
-        contact: formData.contact
+        contact: formData.contact,
       }
 
       // 管理者向けAPIにPOSTリクエストを送信
@@ -67,7 +67,14 @@ export default function Register() {
 
       if (response.ok) {
         setMessage('勉強会の登録が完了しました。承認をお待ちください。')
-        setFormData({ title: '', url: '', date: '', startTime: '', endTime: '', contact: '' })
+        setFormData({
+          title: '',
+          url: '',
+          date: '',
+          startTime: '',
+          endTime: '',
+          contact: '',
+        })
       } else {
         throw new Error('登録に失敗しました')
       }
@@ -78,10 +85,12 @@ export default function Register() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     })
   }
 
@@ -92,7 +101,10 @@ export default function Register() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <Link href="/" className="text-3xl font-bold text-gray-900 hover:text-blue-600">
+              <Link
+                href="/"
+                className="text-3xl font-bold text-gray-900 hover:text-blue-600"
+              >
                 広島IT勉強会カレンダー
               </Link>
             </div>
@@ -120,11 +132,14 @@ export default function Register() {
                 IT関連の勉強会やイベントを登録してください
               </p>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* 勉強会タイトル */}
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   勉強会タイトル <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -141,7 +156,10 @@ export default function Register() {
 
               {/* 勉強会ページのリンク */}
               <div>
-                <label htmlFor="url" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="url"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   勉強会ページのリンク <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -158,7 +176,10 @@ export default function Register() {
 
               {/* 開催日 */}
               <div>
-                <label htmlFor="date" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="date"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   開催日 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -175,7 +196,10 @@ export default function Register() {
               {/* 開始時刻・終了時刻 */}
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="startTime"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     開始時刻 <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -187,7 +211,7 @@ export default function Register() {
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
                   >
                     <option value="">選択してください</option>
-                    {timeOptions.map((time) => (
+                    {timeOptions.map(time => (
                       <option key={time} value={time}>
                         {time}
                       </option>
@@ -196,7 +220,10 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="endTime"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     終了時刻 <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -208,7 +235,7 @@ export default function Register() {
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
                   >
                     <option value="">選択してください</option>
-                    {timeOptions.map((time) => (
+                    {timeOptions.map(time => (
                       <option key={time} value={time}>
                         {time}
                       </option>
@@ -219,7 +246,10 @@ export default function Register() {
 
               {/* 連絡先 */}
               <div>
-                <label htmlFor="contact" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="contact"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   連絡先（任意）
                 </label>
                 <input
@@ -240,8 +270,16 @@ export default function Register() {
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5 text-blue-400"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
@@ -250,7 +288,9 @@ export default function Register() {
                     </h3>
                     <div className="mt-2 text-sm text-blue-700">
                       <ul className="list-disc list-inside space-y-1">
-                        <li>登録後、管理者が登録内容を確認し、問題がなければ承認を行います</li>
+                        <li>
+                          登録後、管理者が登録内容を確認し、問題がなければ承認を行います
+                        </li>
                         <li>承認されるとカレンダーに自動的に追加されます</li>
                         <li>時刻は15分刻みで選択できます</li>
                       </ul>
@@ -261,7 +301,9 @@ export default function Register() {
 
               {/* メッセージ表示 */}
               {message && (
-                <div className={`rounded-md p-4 ${message.includes('完了') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                <div
+                  className={`rounded-md p-4 ${message.includes('完了') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}
+                >
                   {message}
                 </div>
               )}

@@ -20,7 +20,7 @@ cp src/aws-exports.ts.sample src/aws-exports.ts
 `src/aws-exports.ts`を編集して、以下の値を設定してください：
 
 - `YOUR_USER_POOL_ID`: Cognito User Pool ID
-- `YOUR_USER_POOL_CLIENT_ID`: Cognito User Pool Client ID  
+- `YOUR_USER_POOL_CLIENT_ID`: Cognito User Pool Client ID
 - `YOUR_COGNITO_DOMAIN`: Cognito Domain
 - `https://your-domain.example.com/`: 実際のドメイン
 

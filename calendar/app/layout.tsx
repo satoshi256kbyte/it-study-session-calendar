@@ -2,10 +2,23 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://satoshi256kbyte.github.io/it-study-session-calendar/'),
+  metadataBase: new URL(
+    'https://satoshi256kbyte.github.io/it-study-session-calendar/'
+  ),
   title: '広島IT勉強会カレンダー',
-  description: '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
-  keywords: ['広島', 'IT', '勉強会', 'カレンダー', 'connpass', 'エンジニア', 'プログラミング', 'セミナー', 'イベント'],
+  description:
+    '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
+  keywords: [
+    '広島',
+    'IT',
+    '勉強会',
+    'カレンダー',
+    'connpass',
+    'エンジニア',
+    'プログラミング',
+    'セミナー',
+    'イベント',
+  ],
   authors: [{ name: '広島IT勉強会カレンダー' }],
   creator: '広島IT勉強会カレンダー',
   publisher: '広島IT勉強会カレンダー',
@@ -16,7 +29,8 @@ export const metadata: Metadata = {
     url: 'https://satoshi256kbyte.github.io/it-study-session-calendar/',
     siteName: '広島IT勉強会カレンダー',
     title: '広島IT勉強会カレンダー',
-    description: '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
+    description:
+      '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
     images: [
       {
         url: '/og-image.svg',
@@ -31,7 +45,8 @@ export const metadata: Metadata = {
     site: '@hiroshima_it_cal',
     creator: '@hiroshima_it_cal',
     title: '広島IT勉強会カレンダー',
-    description: '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
+    description:
+      '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
     images: ['/og-image.svg'],
   },
 }
@@ -48,34 +63,35 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "広島IT勉強会カレンダー",
-    "description": "広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション",
-    "url": "https://satoshi256kbyte.github.io/it-study-session-calendar/",
-    "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Web",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "JPY"
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: '広島IT勉強会カレンダー',
+    description:
+      '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション',
+    url: 'https://satoshi256kbyte.github.io/it-study-session-calendar/',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'JPY',
     },
-    "author": {
-      "@type": "Organization",
-      "name": "広島IT勉強会カレンダー"
+    author: {
+      '@type': 'Organization',
+      name: '広島IT勉強会カレンダー',
     },
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "IT Engineers",
-      "geographicArea": {
-        "@type": "City",
-        "name": "広島市",
-        "containedInPlace": {
-          "@type": "Country",
-          "name": "日本"
-        }
-      }
-    }
+    audience: {
+      '@type': 'Audience',
+      audienceType: 'IT Engineers',
+      geographicArea: {
+        '@type': 'City',
+        name: '広島市',
+        containedInPlace: {
+          '@type': 'Country',
+          name: '日本',
+        },
+      },
+    },
   }
 
   return (
@@ -91,7 +107,10 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="広島IT勉強会カレンダー" />
+        <meta
+          name="apple-mobile-web-app-title"
+          content="広島IT勉強会カレンダー"
+        />
       </head>
       <body>{children}</body>
     </html>

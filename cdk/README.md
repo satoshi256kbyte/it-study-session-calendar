@@ -71,11 +71,13 @@ npm run deploy
 `{サービス名}-{環境名}-{AWSリソース種類}-{用途}-{連番}`
 
 ### 環境名
+
 - `dev`: 開発環境
-- `stg`: ステージング環境  
+- `stg`: ステージング環境
 - `prod`: 本番環境
 
 ### リソース例
+
 - DynamoDB: `hiroshima-it-calendar-dev-table-study-sessions`
 - Lambda: `hiroshima-it-calendar-dev-lambda-create-study-session`
 - API Gateway: `hiroshima-it-calendar-dev-api-study-session`
@@ -119,14 +121,17 @@ npm run destroy
 ## 環境別設定
 
 ### 開発環境 (dev)
+
 - リソースの削除ポリシー: `DESTROY`
 - リソース名サフィックス: `-dev-`
 
 ### ステージング環境 (stg)
+
 - リソースの削除ポリシー: `RETAIN`
 - リソース名サフィックス: `-stg-`
 
 ### 本番環境 (prod)
+
 - リソースの削除ポリシー: `RETAIN`
 - リソース名サフィックス: `-prod-`
 
@@ -135,6 +140,7 @@ npm run destroy
 ### よくあるエラー
 
 1. **parameters.json が見つからない**
+
    ```bash
    npm run setup
    ```
@@ -145,23 +151,25 @@ npm run destroy
    - APIキーの制限設定を確認
 
 3. **CDK デプロイエラー**
+
    ```bash
    # CDK のブートストラップ
    cdk bootstrap
 
    # 差分を確認
    npm run diff
-   
+
    # プロファイル指定でブートストラップ
    export AWS_PROFILE=your-profile-name
    cdk bootstrap
    ```
 
 4. **AWS認証エラー**
+
    ```bash
    # 現在のAWS認証情報を確認
    aws sts get-caller-identity
-   
+
    # プロファイル指定で確認
    aws --profile your-profile-name sts get-caller-identity
    ```

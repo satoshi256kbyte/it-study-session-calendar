@@ -6,7 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 export default function AuthCallback() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing')
+  const [status, setStatus] = useState<'processing' | 'success' | 'error'>(
+    'processing'
+  )
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -55,28 +57,52 @@ export default function AuthCallback() {
             <p className="mt-2 text-sm text-gray-500">しばらくお待ちください</p>
           </>
         )}
-        
+
         {status === 'success' && (
           <>
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-green-100">
-              <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="h-8 w-8 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <p className="mt-4 text-gray-600">認証が完了しました</p>
-            <p className="mt-2 text-sm text-gray-500">管理画面に移動しています...</p>
+            <p className="mt-2 text-sm text-gray-500">
+              管理画面に移動しています...
+            </p>
           </>
         )}
-        
+
         {status === 'error' && (
           <>
             <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-red-100">
-              <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-8 w-8 text-red-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
             <p className="mt-4 text-gray-600">認証に失敗しました</p>
-            <p className="mt-2 text-sm text-gray-500">ログイン画面に戻ります...</p>
+            <p className="mt-2 text-sm text-gray-500">
+              ログイン画面に戻ります...
+            </p>
           </>
         )}
       </div>

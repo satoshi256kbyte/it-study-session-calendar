@@ -2,7 +2,15 @@
   "name": "hiroshima-it-study-session-calendar",
   "version": "0.1.0",
   "description": "広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション",
-  "keywords": ["広島", "IT", "勉強会", "カレンダー", "connpass", "エンジニア", "プログラミング"],
+  "keywords": [
+    "広島",
+    "IT",
+    "勉強会",
+    "カレンダー",
+    "connpass",
+    "エンジニア",
+    "プログラミング"
+  ],
   "private": true,
   "engines": {
     "node": ">=23.10.0",

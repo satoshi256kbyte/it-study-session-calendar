@@ -35,7 +35,7 @@
     - 勉強会の登録状況（未承認、承認済み）を表示
     - 勉強会ごとに承認/却下/削除のアクションを実行
   - 勉強会の承認
-    - Googleカレンダーのイベント登録  
+    - Googleカレンダーのイベント登録
     - Google Calendar APIを使用
     - GoogleカレンダーのカレンダーIDとAPIキーはAWS Lambdaの環境変数として設定
 
@@ -47,4 +47,3 @@
 - `admin-frontend/`: 管理者画面のフロントエンド(Amazon S3+ CloudFrontにホスト)
 - `admin backend/`: 管理者画面のバックエンド(AWS Lambda + API Gateway)
 - `cdk/`: AWS CDKを使用したインフラ構成、管理者画面のフロントエンドとバックエンドのデプロイを行う
-

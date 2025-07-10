@@ -161,13 +161,16 @@ cd admin-frontend
 ### 5. フロントエンドデプロイ
 
 #### Calendar（エンドユーザー画面）
+
 GitHub Pagesで自動デプロイ（mainブランチへのpush時）
 
 GitHub Secretsに以下を設定：
+
 - `GOOGLE_CALENDAR_URL`: GoogleカレンダーのURL
 - `API_BASE_URL`: デプロイ後のAPI Gateway URL
 
 #### Admin Frontend（管理画面）
+
 ```bash
 npm run deploy:admin-frontend
 ```

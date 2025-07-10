@@ -1,7 +1,10 @@
 import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoDBService } from '../services/DynamoDBService'
 import { GoogleCalendarService } from '../services/GoogleCalendarService'
-import { CreateStudySessionRequest, StudySessionListResponse } from '../types/StudySession'
+import {
+  CreateStudySessionRequest,
+  StudySessionListResponse,
+} from '../types/StudySession'
 
 const dynamoDBService = new DynamoDBService()
 const googleCalendarService = new GoogleCalendarService()
@@ -13,39 +16,47 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': '*',
   'Access-Control-Allow-Credentials': 'true',
   'Access-Control-Expose-Headers': '*',
-  'Access-Control-Max-Age': '3600'
+  'Access-Control-Max-Age': '3600',
 }
 
 // OPTIONSリクエストのハンドリング
 const handleOptions = (): APIGatewayProxyResult => ({
   statusCode: 200,
   headers: corsHeaders,
-  body: ''
+  body: '',
 })
 
 // エラーレスポンスの生成
-const createErrorResponse = (statusCode: number, message: string): APIGatewayProxyResult => ({
+const createErrorResponse = (
+  statusCode: number,
+  message: string
+): APIGatewayProxyResult => ({
   statusCode,
   headers: corsHeaders,
-  body: JSON.stringify({ error: message })
+  body: JSON.stringify({ error: message }),
 })
 
 // 成功レスポンスの生成
-const createSuccessResponse = (statusCode: number, data: any): APIGatewayProxyResult => ({
+const createSuccessResponse = (
+  statusCode: number,
+  data: any
+): APIGatewayProxyResult => ({
   statusCode,
   headers: corsHeaders,
-  body: JSON.stringify(data)
+  body: JSON.stringify(data),
 })
 
 // 勉強会登録（エンドユーザー向け）
-export const createStudySession: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
+export const createStudySession: APIGatewayProxyHandler = async (
+  event
+): Promise<APIGatewayProxyResult> => {
   try {
     if (event.httpMethod === 'OPTIONS') {
       return handleOptions()
     }
 
     const request: CreateStudySessionRequest = JSON.parse(event.body || '{}')
-    
+
     // バリデーション
     if (!request.title || !request.url || !request.datetime) {
       return createErrorResponse(400, '必須項目が不足しています')
@@ -60,46 +71,53 @@ export const createStudySession: APIGatewayProxyHandler = async (event): Promise
 }
 
 // 勉強会一覧取得（管理者向け）
-export const getStudySessions: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
+export const getStudySessions: APIGatewayProxyHandler = async (
+  event
+): Promise<APIGatewayProxyResult> => {
   try {
     if (event.httpMethod === 'OPTIONS') {
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: ''
+        body: '',
       }
     }
 
     const page = parseInt(event.queryStringParameters?.page || '1')
     const limit = parseInt(event.queryStringParameters?.limit || '10')
 
-    const { sessions, totalCount } = await dynamoDBService.getStudySessions(page, limit)
+    const { sessions, totalCount } = await dynamoDBService.getStudySessions(
+      page,
+      limit
+    )
     const totalPages = Math.ceil(totalCount / limit)
 
     const response: StudySessionListResponse = {
       sessions,
       totalCount,
       totalPages,
-      currentPage: page
+      currentPage: page,
     }
 
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify(response)
+      body: JSON.stringify(response),
     }
   } catch (error) {
     console.error('Error getting study sessions:', error)
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: '内部サーバーエラー' })
+      body: JSON.stringify({ error: '内部サーバーエラー' }),
     }
   }
 }
 
 // 勉強会承認（管理者向け）
-export const approveStudySession: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
+export const approveStudySession: APIGatewayProxyHandler = async (
+  event
+): Promise<APIGatewayProxyResult> => {
   try {
     if (event.httpMethod === 'OPTIONS') {
       return handleOptions()
@@ -111,8 +129,11 @@ export const approveStudySession: APIGatewayProxyHandler = async (event): Promis
     }
 
     // ステータスを承認済みに更新
-    const session = await dynamoDBService.updateStudySessionStatus(id, 'approved')
-    
+    const session = await dynamoDBService.updateStudySessionStatus(
+      id,
+      'approved'
+    )
+
     // Googleカレンダーにイベントを追加
     try {
       const eventUrl = await googleCalendarService.addEventToCalendar(session)
@@ -130,13 +151,15 @@ export const approveStudySession: APIGatewayProxyHandler = async (event): Promis
 }
 
 // 勉強会却下（管理者向け）
-export const rejectStudySession: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
+export const rejectStudySession: APIGatewayProxyHandler = async (
+  event
+): Promise<APIGatewayProxyResult> => {
   try {
     if (event.httpMethod === 'OPTIONS') {
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: ''
+        body: '',
       }
     }
 
@@ -145,35 +168,40 @@ export const rejectStudySession: APIGatewayProxyHandler = async (event): Promise
       return {
         statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'IDが指定されていません' })
+        body: JSON.stringify({ error: 'IDが指定されていません' }),
       }
     }
 
-    const session = await dynamoDBService.updateStudySessionStatus(id, 'rejected')
+    const session = await dynamoDBService.updateStudySessionStatus(
+      id,
+      'rejected'
+    )
 
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify(session)
+      body: JSON.stringify(session),
     }
   } catch (error) {
     console.error('Error rejecting study session:', error)
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: '内部サーバーエラー' })
+      body: JSON.stringify({ error: '内部サーバーエラー' }),
     }
   }
 }
 
 // 勉強会削除（管理者向け）
-export const deleteStudySession: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
+export const deleteStudySession: APIGatewayProxyHandler = async (
+  event
+): Promise<APIGatewayProxyResult> => {
   try {
     if (event.httpMethod === 'OPTIONS') {
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: ''
+        body: '',
       }
     }
 
@@ -182,7 +210,7 @@ export const deleteStudySession: APIGatewayProxyHandler = async (event): Promise
       return {
         statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'IDが指定されていません' })
+        body: JSON.stringify({ error: 'IDが指定されていません' }),
       }
     }
 
@@ -191,14 +219,14 @@ export const deleteStudySession: APIGatewayProxyHandler = async (event): Promise
     return {
       statusCode: 204,
       headers: corsHeaders,
-      body: ''
+      body: '',
     }
   } catch (error) {
     console.error('Error deleting study session:', error)
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: '内部サーバーエラー' })
+      body: JSON.stringify({ error: '内部サーバーエラー' }),
     }
   }
 }
