@@ -31,7 +31,7 @@
     "type-check:calendar": "cd calendar && npx tsc --noEmit",
     "type-check:admin-frontend": "cd admin-frontend && npx tsc --noEmit",
     "type-check:cdk": "cd cdk && npx tsc --noEmit",
-    "prepare": "husky install"
+    "prepare": "if [ \"$CI\" != \"true\" ]; then husky install; fi"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.21.0",
