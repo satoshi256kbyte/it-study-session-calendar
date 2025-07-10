@@ -22,7 +22,7 @@ export const metadata: Metadata = {
       '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
     images: [
       {
-        url: '/og-image.svg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: '広島IT勉強会カレンダー',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     title: '広島IT勉強会カレンダー',
     description:
       '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
-    images: ['/og-image.svg'],
+    images: ['/og-image.png'],
   },
 }
 
