@@ -46,13 +46,7 @@ export class DynamoDBService {
     return session
   }
 
-  async getStudySessions(
-    page: number = 1,
-    limit: number = 10
-  ): Promise<{
-    sessions: StudySession[]
-    totalCount: number
-  }> {
+  async getStudySessions(): Promise<StudySession[]> {
     // 全データを取得
     const result = await this.dynamodb.send(
       new ScanCommand({
@@ -63,20 +57,10 @@ export class DynamoDBService {
     const allSessions = (result.Items as StudySession[]) || []
 
     // 作成日時の降順でソート（新しいものが先）
-    const sortedSessions = allSessions.sort(
+    return allSessions.sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
-
-    // ページネーション計算
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
-    const paginatedSessions = sortedSessions.slice(startIndex, endIndex)
-
-    return {
-      sessions: paginatedSessions,
-      totalCount: allSessions.length,
-    }
   }
 
   async updateStudySessionStatus(

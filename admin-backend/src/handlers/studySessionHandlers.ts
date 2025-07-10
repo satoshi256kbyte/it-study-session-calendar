@@ -1,10 +1,7 @@
 import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoDBService } from '../services/DynamoDBService'
 import { GoogleCalendarService } from '../services/GoogleCalendarService'
-import {
-  CreateStudySessionRequest,
-  StudySessionListResponse,
-} from '../types/StudySession'
+import { CreateStudySessionRequest } from '../types/StudySession'
 
 const dynamoDBService = new DynamoDBService()
 const googleCalendarService = new GoogleCalendarService()
@@ -83,26 +80,12 @@ export const getStudySessions: APIGatewayProxyHandler = async (
       }
     }
 
-    const page = parseInt(event.queryStringParameters?.page || '1')
-    const limit = parseInt(event.queryStringParameters?.limit || '10')
-
-    const { sessions, totalCount } = await dynamoDBService.getStudySessions(
-      page,
-      limit
-    )
-    const totalPages = Math.ceil(totalCount / limit)
-
-    const response: StudySessionListResponse = {
-      sessions,
-      totalCount,
-      totalPages,
-      currentPage: page,
-    }
+    const sessions = await dynamoDBService.getStudySessions()
 
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify(response),
+      body: JSON.stringify({ sessions }),
     }
   } catch (error) {
     console.error('Error getting study sessions:', error)

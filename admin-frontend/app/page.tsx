@@ -19,9 +19,6 @@ export default function AdminHome() {
     useAuth()
   const [sessions, setSessions] = useState<StudySession[]>([])
   const [dataLoading, setDataLoading] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
   const [authCode, setAuthCode] = useState<string | null>(null)
 
   useEffect(() => {
@@ -36,19 +33,15 @@ export default function AdminHome() {
     if (isAuthenticated) {
       fetchSessions()
     }
-  }, [currentPage, isAuthenticated])
+  }, [isAuthenticated])
 
   const fetchSessions = async () => {
     try {
       setDataLoading(true)
-      const response = await fetch(
-        `/api/admin/study-sessions?page=${currentPage}`
-      )
+      const response = await fetch('/api/admin/study-sessions')
       const data = await response.json()
 
       setSessions(data.sessions || [])
-      setTotalPages(data.totalPages || 1)
-      setTotalCount(data.totalCount || 0)
     } catch (error) {
       console.error('Failed to fetch sessions:', error)
       alert('勉強会データの取得に失敗しました')
@@ -78,10 +71,6 @@ export default function AdminHome() {
       console.error('Action failed:', error)
       alert('操作に失敗しました')
     }
-  }
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage)
   }
 
   const formatDateTime = (datetime: string, endDatetime?: string) => {
@@ -349,9 +338,7 @@ export default function AdminHome() {
                 登録された勉強会の承認・却下・削除を行えます
               </p>
               <div className="mt-2 text-sm text-gray-600">
-                <p>
-                  ページ {currentPage} / {totalPages} （全 {totalCount} 件）
-                </p>
+                <p>全 {sessions.length} 件</p>
               </div>
             </div>
 
@@ -468,65 +455,6 @@ export default function AdminHome() {
                   </li>
                 ))}
               </ul>
-            )}
-
-            {/* ページネーション */}
-            {totalPages > 1 && (
-              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                <div className="flex-1 flex justify-between sm:hidden">
-                  <button
-                    onClick={() =>
-                      handlePageChange(Math.max(1, currentPage - 1))
-                    }
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    前へ
-                  </button>
-                  <button
-                    onClick={() =>
-                      handlePageChange(Math.min(totalPages, currentPage + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    次へ
-                  </button>
-                </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      ページ <span className="font-medium">{currentPage}</span>{' '}
-                      / <span className="font-medium">{totalPages}</span> （全{' '}
-                      <span className="font-medium">{totalCount}</span> 件）
-                    </p>
-                  </div>
-                  <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                      <button
-                        onClick={() =>
-                          handlePageChange(Math.max(1, currentPage - 1))
-                        }
-                        disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        前へ
-                      </button>
-                      <button
-                        onClick={() =>
-                          handlePageChange(
-                            Math.min(totalPages, currentPage + 1)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        次へ
-                      </button>
-                    </nav>
-                  </div>
-                </div>
-              </div>
             )}
           </div>
         </div>

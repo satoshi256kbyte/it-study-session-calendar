@@ -17,10 +17,3 @@ export interface CreateStudySessionRequest {
   endDatetime?: string
   contact?: string
 }
-
-export interface StudySessionListResponse {
-  sessions: StudySession[]
-  totalCount: number
-  totalPages: number
-  currentPage: number
-}

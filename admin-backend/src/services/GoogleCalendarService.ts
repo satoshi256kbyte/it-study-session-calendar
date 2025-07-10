@@ -81,8 +81,8 @@ export class GoogleCalendarService {
       const accessToken = await this.getAccessToken()
       console.log('Access token obtained successfully')
 
-      // イベントの説明を構築
-      let description = `詳細: ${session.url}`
+      // イベントの説明を構築（「詳細：」を削除してリンクのみ）
+      let description = session.url
       if (session.contact) {
         description += `\n連絡先: ${session.contact}`
       }
