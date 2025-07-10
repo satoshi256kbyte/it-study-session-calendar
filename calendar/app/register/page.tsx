@@ -7,10 +7,27 @@ export default function Register() {
   const [formData, setFormData] = useState({
     title: '',
     url: '',
-    datetime: ''
+    date: '',
+    startTime: '',
+    endTime: '',
+    contact: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
+
+  // 時間選択肢を15分刻みで生成
+  const generateTimeOptions = () => {
+    const options = []
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        options.push(timeString)
+      }
+    }
+    return options
+  }
+
+  const timeOptions = generateTimeOptions()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,6 +35,26 @@ export default function Register() {
     setMessage('')
 
     try {
+      // 日付と時間を組み合わせてdatetimeを作成
+      const dateObj = new Date(formData.date)
+      const [startHour, startMinute] = formData.startTime.split(':').map(Number)
+      const [endHour, endMinute] = formData.endTime.split(':').map(Number)
+      
+      const startDateTime = new Date(dateObj)
+      startDateTime.setHours(startHour, startMinute, 0, 0)
+      
+      const endDateTime = new Date(dateObj)
+      endDateTime.setHours(endHour, endMinute, 0, 0)
+      
+      // ISO形式で送信
+      const requestData = {
+        title: formData.title,
+        url: formData.url,
+        datetime: startDateTime.toISOString(),
+        endDatetime: endDateTime.toISOString(),
+        contact: formData.contact
+      }
+
       // 管理者向けAPIにPOSTリクエストを送信
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || ''
       const response = await fetch(`${apiBaseUrl}/api/study-sessions`, {
@@ -25,12 +62,12 @@ export default function Register() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(requestData),
       })
 
       if (response.ok) {
         setMessage('勉強会の登録が完了しました。承認をお待ちください。')
-        setFormData({ title: '', url: '', datetime: '' })
+        setFormData({ title: '', url: '', date: '', startTime: '', endTime: '', contact: '' })
       } else {
         throw new Error('登録に失敗しました')
       }
@@ -41,7 +78,7 @@ export default function Register() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -119,23 +156,83 @@ export default function Register() {
                 />
               </div>
 
-              {/* 開催日時 */}
+              {/* 開催日 */}
               <div>
-                <label htmlFor="datetime" className="block text-sm font-medium text-gray-700">
-                  開催日時 <span className="text-red-500">*</span>
+                <label htmlFor="date" className="block text-sm font-medium text-gray-700">
+                  開催日 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  required
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
+                />
+              </div>
+
+              {/* 開始時刻・終了時刻 */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
+                    開始時刻 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="startTime"
+                    name="startTime"
+                    required
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
+                  >
+                    <option value="">選択してください</option>
+                    {timeOptions.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
+                    終了時刻 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="endTime"
+                    name="endTime"
+                    required
+                    value={formData.endTime}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
+                  >
+                    <option value="">選択してください</option>
+                    {timeOptions.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* 連絡先 */}
+              <div>
+                <label htmlFor="contact" className="block text-sm font-medium text-gray-700">
+                  連絡先（任意）
                 </label>
                 <input
                   type="text"
-                  id="datetime"
-                  name="datetime"
-                  required
-                  value={formData.datetime}
+                  id="contact"
+                  name="contact"
+                  value={formData.contact}
                   onChange={handleChange}
-                  placeholder="例: 2024年7月15日 19:00-21:00"
+                  placeholder="例: メールアドレス、Twitter、Slackなど"
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  形式: YYYY年MM月DD日 HH:MM-HH:MM
+                  問い合わせがある場合の連絡先をご記入ください（任意）
                 </p>
               </div>
 
@@ -155,6 +252,7 @@ export default function Register() {
                       <ul className="list-disc list-inside space-y-1">
                         <li>登録後、管理者が登録内容を確認し、問題がなければ承認を行います</li>
                         <li>承認されるとカレンダーに自動的に追加されます</li>
+                        <li>時刻は15分刻みで選択できます</li>
                       </ul>
                     </div>
                   </div>

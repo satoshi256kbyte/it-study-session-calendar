@@ -66,16 +66,22 @@ export class GoogleCalendarService {
     try {
       console.log('Starting calendar event creation for session:', session.id)
       
-      const dateTimeInfo = this.parseDateTimeString(session.datetime)
+      const dateTimeInfo = this.parseDateTimeString(session.datetime, session.endDatetime)
       console.log('Parsed datetime info:', dateTimeInfo)
       
       console.log('Getting access token...')
       const accessToken = await this.getAccessToken()
       console.log('Access token obtained successfully')
       
+      // イベントの説明を構築
+      let description = `詳細: ${session.url}`
+      if (session.contact) {
+        description += `\n連絡先: ${session.contact}`
+      }
+      
       const event = {
         summary: session.title,
-        description: `詳細: ${session.url}`,
+        description: description,
         start: dateTimeInfo.start,
         end: dateTimeInfo.end,
         location: '広島'
@@ -117,20 +123,31 @@ export class GoogleCalendarService {
     }
   }
 
-  private parseDateTimeString(dateTimeStr: string): {
+  private parseDateTimeString(dateTimeStr: string, endDateTimeStr?: string): {
     start: { dateTime: string; timeZone: string }
     end: { dateTime: string; timeZone: string }
   } {
     try {
       // ISO 8601形式の場合（例: "2025-07-15T19:00:00Z"）
-      const isoDate = new Date(dateTimeStr)
-      if (!isNaN(isoDate.getTime())) {
-        // 2時間のイベントとして設定
-        const endDate = new Date(isoDate.getTime() + 2 * 60 * 60 * 1000)
+      const startDate = new Date(dateTimeStr)
+      if (!isNaN(startDate.getTime())) {
+        let endDate: Date
+        
+        if (endDateTimeStr) {
+          // 終了日時が指定されている場合
+          endDate = new Date(endDateTimeStr)
+          if (isNaN(endDate.getTime())) {
+            // 終了日時の解析に失敗した場合は2時間後をデフォルトとする
+            endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000)
+          }
+        } else {
+          // 終了日時が指定されていない場合は2時間後をデフォルトとする
+          endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000)
+        }
         
         return {
           start: {
-            dateTime: isoDate.toISOString(),
+            dateTime: startDate.toISOString(),
             timeZone: 'Asia/Tokyo'
           },
           end: {

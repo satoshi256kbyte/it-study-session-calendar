@@ -7,6 +7,8 @@ interface StudySession {
   title: string
   url: string
   datetime: string
+  endDatetime?: string
+  contact?: string
   status: 'pending' | 'approved' | 'rejected'
   createdAt: string
 }
@@ -48,17 +50,44 @@ export default function AdminHome() {
         // 成功時はリストを再取得
         fetchSessions()
       } else {
-        alert('操作に失敗しました')
+        throw new Error('操作に失敗しました')
       }
     } catch (error) {
       console.error('Action failed:', error)
-      alert('エラーが発生しました')
+      alert('操作に失敗しました')
+    }
+  }
+
+  const formatDateTime = (datetime: string, endDatetime?: string) => {
+    try {
+      const startDate = new Date(datetime)
+      const startFormatted = startDate.toLocaleString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Tokyo'
+      })
+      
+      if (endDatetime) {
+        const endDate = new Date(endDatetime)
+        const endFormatted = endDate.toLocaleString('ja-JP', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Asia/Tokyo'
+        })
+        return `${startFormatted} - ${endFormatted}`
+      }
+      
+      return startFormatted
+    } catch (error) {
+      return datetime
     }
   }
 
   const getStatusBadge = (status: string) => {
-    const baseClasses = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-    
+    const baseClasses = "px-2 py-1 text-xs font-medium rounded-full"
     switch (status) {
       case 'pending':
         return `${baseClasses} bg-yellow-100 text-yellow-800`
@@ -73,170 +102,174 @@ export default function AdminHome() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return '未承認'
-      case 'approved': return '承認済み'
-      case 'rejected': return '却下'
-      default: return '不明'
+      case 'pending':
+        return '承認待ち'
+      case 'approved':
+        return '承認済み'
+      case 'rejected':
+        return '却下'
+      default:
+        return status
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              広島IT勉強会カレンダー 管理画面
-            </h1>
-          </div>
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            広島IT勉強会カレンダー - 管理画面
+          </h1>
         </div>
       </header>
 
       {/* メインコンテンツ */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">勉強会一覧</h2>
-              <p className="mt-1 text-sm text-gray-600">
-                登録された勉強会の承認・管理を行います
+          <div className="bg-white shadow overflow-hidden sm:rounded-md">
+            <div className="px-4 py-5 sm:px-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                勉強会一覧
+              </h3>
+              <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                登録された勉強会の承認・却下・削除を行えます
               </p>
             </div>
-
-            {loading ? (
-              <div className="p-6 text-center">
-                <div className="text-gray-500">読み込み中...</div>
+            
+            {sessions.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">登録された勉強会はありません</p>
               </div>
             ) : (
-              <div className="overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        勉強会情報
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        開催日時
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        状態
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        登録日
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        操作
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {sessions.map((session) => (
-                      <tr key={session.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {session.title}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              <a 
-                                href={session.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-500"
-                              >
-                                {session.url}
-                              </a>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {session.datetime}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+              <ul className="divide-y divide-gray-200">
+                {sessions.map((session) => (
+                  <li key={session.id} className="px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-3">
+                          <h4 className="text-lg font-medium text-gray-900 truncate">
+                            {session.title}
+                          </h4>
                           <span className={getStatusBadge(session.status)}>
                             {getStatusText(session.status)}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(session.createdAt).toLocaleDateString('ja-JP')}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end space-x-2">
-                            {session.status === 'pending' && (
-                              <>
-                                <button
-                                  onClick={() => handleAction(session.id, 'approve')}
-                                  className="text-green-600 hover:text-green-900 px-2 py-1 text-xs bg-green-50 rounded"
-                                >
-                                  承認
-                                </button>
-                                <button
-                                  onClick={() => handleAction(session.id, 'reject')}
-                                  className="text-red-600 hover:text-red-900 px-2 py-1 text-xs bg-red-50 rounded"
-                                >
-                                  却下
-                                </button>
-                              </>
-                            )}
-                            <button
-                              onClick={() => handleAction(session.id, 'delete')}
-                              className="text-gray-600 hover:text-gray-900 px-2 py-1 text-xs bg-gray-50 rounded"
+                        </div>
+                        <div className="mt-2 space-y-1">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">開催日時:</span> {formatDateTime(session.datetime, session.endDatetime)}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">URL:</span>{' '}
+                            <a
+                              href={session.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
                             >
-                              削除
+                              {session.url}
+                            </a>
+                          </p>
+                          {session.contact && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">連絡先:</span> {session.contact}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-500">
+                            登録日時: {new Date(session.createdAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex space-x-2 ml-4">
+                        {session.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleAction(session.id, 'approve')}
+                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            >
+                              承認
                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {/* ページネーション */}
-                {totalPages > 1 && (
-                  <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                    <div className="flex-1 flex justify-between sm:hidden">
+                            <button
+                              onClick={() => handleAction(session.id, 'reject')}
+                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                              却下
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => {
+                            if (confirm('この勉強会を削除しますか？')) {
+                              handleAction(session.id, 'delete')
+                            }
+                          }}
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            
+            {/* ページネーション */}
+            {totalPages > 1 && (
+              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    前へ
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    次へ
+                  </button>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      ページ <span className="font-medium">{currentPage}</span> / <span className="font-medium">{totalPages}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                       <button
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         前へ
                       </button>
                       <button
                         onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
-                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         次へ
                       </button>
-                    </div>
-                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm text-gray-700">
-                          ページ <span className="font-medium">{currentPage}</span> / <span className="font-medium">{totalPages}</span>
-                        </p>
-                      </div>
-                      <div>
-                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                            <button
-                              key={page}
-                              onClick={() => setCurrentPage(page)}
-                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                page === currentPage
-                                  ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          ))}
-                        </nav>
-                      </div>
-                    </div>
+                    </nav>
                   </div>
-                )}
+                </div>
               </div>
             )}
           </div>

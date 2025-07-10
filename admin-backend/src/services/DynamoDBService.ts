@@ -21,6 +21,8 @@ export class DynamoDBService {
       title: request.title,
       url: request.url,
       datetime: request.datetime,
+      endDatetime: request.endDatetime,
+      contact: request.contact,
       status: 'pending',
       createdAt: now,
       updatedAt: now
