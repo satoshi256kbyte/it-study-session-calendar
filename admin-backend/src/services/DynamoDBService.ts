@@ -53,29 +53,29 @@ export class DynamoDBService {
     sessions: StudySession[]
     totalCount: number
   }> {
-    // 実際の実装では、DynamoDBのクエリやスキャンを使用
-    // ここではサンプル実装
+    // 全データを取得
     const result = await this.dynamodb.send(
       new ScanCommand({
         TableName: this.tableName,
       })
     )
 
-    const sessions = (result.Items as StudySession[]) || []
-    const totalCount = sessions.length
+    const allSessions = (result.Items as StudySession[]) || []
 
-    // ページネーション
+    // 作成日時の降順でソート（新しいものが先）
+    const sortedSessions = allSessions.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+
+    // ページネーション計算
     const startIndex = (page - 1) * limit
-    const paginatedSessions = sessions
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      .slice(startIndex, startIndex + limit)
+    const endIndex = startIndex + limit
+    const paginatedSessions = sortedSessions.slice(startIndex, endIndex)
 
     return {
       sessions: paginatedSessions,
-      totalCount,
+      totalCount: allSessions.length,
     }
   }
 

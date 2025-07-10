@@ -21,6 +21,7 @@ export default function AdminHome() {
   const [dataLoading, setDataLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const [authCode, setAuthCode] = useState<string | null>(null)
 
   useEffect(() => {
@@ -40,7 +41,6 @@ export default function AdminHome() {
   const fetchSessions = async () => {
     try {
       setDataLoading(true)
-      // 管理者向けAPIから勉強会一覧を取得
       const response = await fetch(
         `/api/admin/study-sessions?page=${currentPage}`
       )
@@ -48,6 +48,7 @@ export default function AdminHome() {
 
       setSessions(data.sessions || [])
       setTotalPages(data.totalPages || 1)
+      setTotalCount(data.totalCount || 0)
     } catch (error) {
       console.error('Failed to fetch sessions:', error)
       alert('勉強会データの取得に失敗しました')
@@ -69,7 +70,6 @@ export default function AdminHome() {
       )
 
       if (response.ok) {
-        // 成功時はリストを再取得
         fetchSessions()
       } else {
         throw new Error('操作に失敗しました')
@@ -78,6 +78,10 @@ export default function AdminHome() {
       console.error('Action failed:', error)
       alert('操作に失敗しました')
     }
+  }
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
   }
 
   const formatDateTime = (datetime: string, endDatetime?: string) => {
@@ -237,9 +241,9 @@ export default function AdminHome() {
                     認証について
                   </h3>
                   <div className="mt-2 text-sm text-blue-700">
-                    <p>管理者アカウントでのみログインできます。</p>
+                    <p>管理者アカウントでのみアクセスできます。</p>
                     <p className="mt-1">
-                      「ログイン」ボタンをクリックすると、Cognitoの認証画面に移動します。
+                      「ログイン」ボタンをクリックして認証を行ってください。
                     </p>
                   </div>
                 </div>
@@ -344,6 +348,11 @@ export default function AdminHome() {
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
                 登録された勉強会の承認・却下・削除を行えます
               </p>
+              <div className="mt-2 text-sm text-gray-600">
+                <p>
+                  ページ {currentPage} / {totalPages} （全 {totalCount} 件）
+                </p>
+              </div>
             </div>
 
             {dataLoading ? (
@@ -466,7 +475,9 @@ export default function AdminHome() {
               <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    onClick={() =>
+                      handlePageChange(Math.max(1, currentPage - 1))
+                    }
                     disabled={currentPage === 1}
                     className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -474,7 +485,7 @@ export default function AdminHome() {
                   </button>
                   <button
                     onClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                      handlePageChange(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
                     className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -486,14 +497,15 @@ export default function AdminHome() {
                   <div>
                     <p className="text-sm text-gray-700">
                       ページ <span className="font-medium">{currentPage}</span>{' '}
-                      / <span className="font-medium">{totalPages}</span>
+                      / <span className="font-medium">{totalPages}</span> （全{' '}
+                      <span className="font-medium">{totalCount}</span> 件）
                     </p>
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                       <button
                         onClick={() =>
-                          setCurrentPage(Math.max(1, currentPage - 1))
+                          handlePageChange(Math.max(1, currentPage - 1))
                         }
                         disabled={currentPage === 1}
                         className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -502,7 +514,9 @@ export default function AdminHome() {
                       </button>
                       <button
                         onClick={() =>
-                          setCurrentPage(Math.min(totalPages, currentPage + 1))
+                          handlePageChange(
+                            Math.min(totalPages, currentPage + 1)
+                          )
                         }
                         disabled={currentPage === totalPages}
                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"

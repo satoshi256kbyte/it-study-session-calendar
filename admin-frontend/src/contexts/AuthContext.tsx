@@ -39,7 +39,7 @@ interface AuthProviderProps {
   children: React.ReactNode
 }
 
-// Cognito設定（環境変数または設定ファイルから取得）
+// Cognito設定（環境変数から取得）
 const COGNITO_CONFIG = {
   userPoolDomain:
     process.env.NEXT_PUBLIC_USER_POOL_DOMAIN ||
@@ -63,7 +63,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuthState = async () => {
     try {
       setError(null)
-      console.log('Checking auth state...')
 
       // URLにcodeパラメータがある場合（OAuth認証後のリダイレクト）
       const urlParams = new URLSearchParams(window.location.search)
@@ -78,9 +77,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (authCode) {
-        console.log('Auth code found:', authCode)
-        console.log('Processing OAuth callback manually...')
-
         try {
           // 手動でトークン交換を実行
           await handleManualTokenExchange(authCode)
@@ -103,10 +99,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 通常の認証状態チェック
       await checkUserSession()
     } catch (error) {
-      console.log(
-        'Auth check error (this is normal for unauthenticated users):',
-        error
-      )
       setUser(null)
       setError(null) // 認証エラーは正常な状態
       setLoading(false)
@@ -114,133 +106,91 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const handleManualTokenExchange = async (authCode: string) => {
-    console.log('Starting manual token exchange...')
+    // Cognitoのトークンエンドポイントにリクエスト
+    const tokenEndpoint = `https://${COGNITO_CONFIG.userPoolDomain}/oauth2/token`
+    const redirectUri = window.location.origin + '/'
 
-    try {
-      // Cognitoのトークンエンドポイントにリクエスト
-      const tokenEndpoint = `https://${COGNITO_CONFIG.userPoolDomain}/oauth2/token`
-      const redirectUri = window.location.origin + '/'
-
-      const tokenRequest = {
-        grant_type: 'authorization_code',
-        client_id: COGNITO_CONFIG.userPoolClientId,
-        code: authCode,
-        redirect_uri: redirectUri,
-      }
-
-      console.log('Token request:', tokenRequest)
-
-      const response = await fetch(tokenEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(tokenRequest),
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Token exchange failed:', response.status, errorText)
-        throw new Error(
-          `Token exchange failed: ${response.status} ${errorText}`
-        )
-      }
-
-      const tokens = await response.json()
-      console.log('Token exchange successful:', tokens)
-
-      // トークンをAmplifyのストレージに保存
-      await storeTokensInAmplify(tokens)
-
-      // ユーザー情報を取得
-      await checkUserSession()
-    } catch (error) {
-      console.error('Manual token exchange error:', error)
-      throw error
+    const tokenRequest = {
+      grant_type: 'authorization_code',
+      client_id: COGNITO_CONFIG.userPoolClientId,
+      code: authCode,
+      redirect_uri: redirectUri,
     }
+
+    const response = await fetch(tokenEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(tokenRequest),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Token exchange failed: ${response.status} ${errorText}`)
+    }
+
+    const tokens = await response.json()
+
+    // トークンをAmplifyのストレージに保存
+    await storeTokensInAmplify(tokens)
+
+    // ユーザー情報を取得
+    await checkUserSession()
   }
 
   const storeTokensInAmplify = async (tokens: any) => {
-    console.log('Storing tokens in Amplify...')
+    // Amplifyのローカルストレージにトークンを保存
+    const tokenKey = `CognitoIdentityServiceProvider.${COGNITO_CONFIG.userPoolClientId}`
+    const userKey = `${tokenKey}.LastAuthUser`
 
-    try {
-      // Amplifyのローカルストレージにトークンを保存
-      const tokenKey = `CognitoIdentityServiceProvider.${COGNITO_CONFIG.userPoolClientId}`
-      const userKey = `${tokenKey}.LastAuthUser`
+    // ユーザー名を取得（JWTトークンから）
+    const idTokenPayload = JSON.parse(atob(tokens.id_token.split('.')[1]))
+    const username = idTokenPayload['cognito:username'] || idTokenPayload.sub
 
-      // ユーザー名を取得（JWTトークンから）
-      const idTokenPayload = JSON.parse(atob(tokens.id_token.split('.')[1]))
-      const username = idTokenPayload['cognito:username'] || idTokenPayload.sub
+    // ローカルストレージにトークンを保存
+    localStorage.setItem(userKey, username)
+    localStorage.setItem(`${tokenKey}.${username}.idToken`, tokens.id_token)
+    localStorage.setItem(
+      `${tokenKey}.${username}.accessToken`,
+      tokens.access_token
+    )
+    localStorage.setItem(
+      `${tokenKey}.${username}.refreshToken`,
+      tokens.refresh_token
+    )
+    localStorage.setItem(
+      `${tokenKey}.${username}.tokenScopesString`,
+      'email openid profile'
+    )
 
-      console.log('Username from token:', username)
-
-      // ローカルストレージにトークンを保存
-      localStorage.setItem(userKey, username)
-      localStorage.setItem(`${tokenKey}.${username}.idToken`, tokens.id_token)
-      localStorage.setItem(
-        `${tokenKey}.${username}.accessToken`,
-        tokens.access_token
-      )
-      localStorage.setItem(
-        `${tokenKey}.${username}.refreshToken`,
-        tokens.refresh_token
-      )
-      localStorage.setItem(
-        `${tokenKey}.${username}.tokenScopesString`,
-        'email openid profile'
-      )
-
-      // 有効期限を設定
-      const expiresAt = Date.now() + tokens.expires_in * 1000
-      localStorage.setItem(`${tokenKey}.${username}.clockDrift`, '0')
-
-      console.log('Tokens stored successfully')
-    } catch (error) {
-      console.error('Error storing tokens:', error)
-      throw error
-    }
+    // 有効期限を設定
+    localStorage.setItem(`${tokenKey}.${username}.clockDrift`, '0')
   }
 
   const checkUserSession = async () => {
-    try {
-      console.log('Checking existing session...')
+    // まずセッションを確認
+    const session = await fetchAuthSession()
 
-      // まずセッションを確認
-      const session = await fetchAuthSession()
-      console.log('Session:', session)
+    if (session.tokens && session.tokens.accessToken) {
+      // セッションが有効な場合のみユーザー情報を取得
+      const currentUser = await getCurrentUser()
 
-      if (session.tokens && session.tokens.accessToken) {
-        // セッションが有効な場合のみユーザー情報を取得
-        try {
-          const currentUser = await getCurrentUser()
-          console.log('Current user:', currentUser)
-
-          setUser({
-            username: currentUser.username,
-            email: currentUser.signInDetails?.loginId,
-            attributes: {
-              email: currentUser.signInDetails?.loginId,
-              email_verified: true,
-            },
-          })
-          setLoading(false)
-        } catch (userError) {
-          console.log('Error getting user info:', userError)
-          throw userError
-        }
-      } else {
-        console.log('No valid session found')
-        throw new Error('No valid session')
-      }
-    } catch (error) {
-      console.log('Session check failed:', error)
-      throw error
+      setUser({
+        username: currentUser.username,
+        email: currentUser.signInDetails?.loginId,
+        attributes: {
+          email: currentUser.signInDetails?.loginId,
+          email_verified: true,
+        },
+      })
+      setLoading(false)
+    } else {
+      throw new Error('No valid session')
     }
   }
 
   const signInWithHostedUI = () => {
-    console.log('Starting sign in with Hosted UI...')
-
     const redirectUri = encodeURIComponent(window.location.origin + '/')
 
     const authUrl =
@@ -249,9 +199,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       `response_type=code&` +
       `scope=email+openid+profile&` +
       `redirect_uri=${redirectUri}`
-
-    console.log('Auth URL:', authUrl)
-    console.log('Using Client ID:', COGNITO_CONFIG.userPoolClientId)
 
     window.location.href = authUrl
   }
