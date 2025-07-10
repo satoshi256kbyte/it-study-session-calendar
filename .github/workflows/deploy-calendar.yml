@@ -86,7 +86,7 @@ jobs:
         run: |
           cp calendar/assets/favicon.ico calendar/out/favicon.ico
           cp calendar/assets/favicon.svg calendar/out/favicon.svg
-          cp calendar/public/og-image.svg calendar/out/og-image.svg
+          cp calendar/assets/og-image.svg calendar/out/og-image.svg
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
