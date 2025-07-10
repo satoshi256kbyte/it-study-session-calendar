@@ -1,0 +1,51 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="1200" height="630" fill="#ffffff"/>
+  
+  <!-- グラデーション定義 -->
+  <defs>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景グラデーション -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- メインタイトル -->
+  <text x="600" y="280" text-anchor="middle" 
+        font-family="Meiryo, 'メイリオ', 'Hiragino Sans', 'ヒラギノ角ゴシック', sans-serif" 
+        font-size="72" 
+        font-weight="bold" 
+        fill="url(#textGradient)">
+    広島IT勉強会カレンダー
+  </text>
+  
+  <!-- サブタイトル -->
+  <text x="600" y="350" text-anchor="middle" 
+        font-family="Meiryo, 'メイリオ', 'Hiragino Sans', 'ヒラギノ角ゴシック', sans-serif" 
+        font-size="32" 
+        fill="#64748b">
+    広島のIT勉強会・イベント情報
+  </text>
+  
+  <!-- 装飾的なライン -->
+  <line x1="300" y1="400" x2="900" y2="400" stroke="#3b82f6" stroke-width="3" opacity="0.3"/>
+  
+  <!-- 装飾的な点 -->
+  <circle cx="280" cy="400" r="6" fill="#3b82f6" opacity="0.5"/>
+  <circle cx="920" cy="400" r="6" fill="#3b82f6" opacity="0.5"/>
+  
+  <!-- 背景の装飾要素 -->
+  <g opacity="0.05">
+    <circle cx="150" cy="150" r="80" fill="#3b82f6"/>
+    <circle cx="1050" cy="150" r="60" fill="#3b82f6"/>
+    <circle cx="150" cy="480" r="60" fill="#3b82f6"/>
+    <circle cx="1050" cy="480" r="80" fill="#3b82f6"/>
+  </g>
+</svg>

@@ -7,17 +7,7 @@ export const metadata: Metadata = {
   ),
   title: '広島IT勉強会カレンダー',
   description: '広島のIT関連の勉強会やイベントのカレンダーです。',
-  keywords: [
-    '広島',
-    'IT',
-    '勉強会',
-    'カレンダー',
-    'connpass',
-    'エンジニア',
-    'プログラミング',
-    'セミナー',
-    'イベント',
-  ],
+  keywords: ['広島', 'IT', '勉強会', 'エンジニア', 'セミナー', 'イベント'],
   authors: [{ name: '広島IT勉強会カレンダー' }],
   creator: '広島IT勉強会カレンダー',
   publisher: '広島IT勉強会カレンダー',
@@ -100,6 +90,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/favicon.svg" />
         <meta name="format-detection" content="telephone=no" />
