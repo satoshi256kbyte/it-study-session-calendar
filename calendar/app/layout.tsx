@@ -6,8 +6,7 @@ export const metadata: Metadata = {
     'https://satoshi256kbyte.github.io/it-study-session-calendar/'
   ),
   title: '広島IT勉強会カレンダー',
-  description:
-    '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
+  description: '広島のIT関連の勉強会やイベントのカレンダーです。',
   keywords: [
     '広島',
     'IT',
