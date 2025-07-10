@@ -117,7 +117,7 @@ export default function Register() {
                 勉強会の登録
               </h2>
               <p className="mt-1 text-sm text-gray-600">
-                広島のIT関連の勉強会やイベントを登録してください
+                IT関連の勉強会やイベントを登録してください
               </p>
             </div>
             
@@ -228,11 +228,11 @@ export default function Register() {
                   name="contact"
                   value={formData.contact}
                   onChange={handleChange}
-                  placeholder="例: メールアドレス、Twitter、Slackなど"
+                  placeholder="例: メールアドレス、SNSアカウントなど"
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  問い合わせがある場合の連絡先をご記入ください（任意）
+                  勉強会の内容について不備などが見つかった場合に、管理者が問い合わせする際に利用させていただきます（任意）
                 </p>
               </div>
 
