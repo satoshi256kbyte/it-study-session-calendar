@@ -81,6 +81,7 @@ export const getStudySessions: APIGatewayProxyHandler = async (
     }
 
     const sessions = await dynamoDBService.getStudySessions()
+    console.log('Count of study sessions:', sessions.length)
 
     return {
       statusCode: 200,
