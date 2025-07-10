@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../src/contexts/AuthContext'
-import LoginForm from '../src/components/LoginForm'
 
 interface StudySession {
   id: string
@@ -15,20 +14,31 @@ interface StudySession {
   createdAt: string
 }
 
-function AdminDashboard() {
-  const { user, signOut } = useAuth()
+export default function AdminHome() {
+  const { user, loading, signOut, signInWithHostedUI, isAuthenticated, error } = useAuth()
   const [sessions, setSessions] = useState<StudySession[]>([])
-  const [loading, setLoading] = useState(true)
+  const [dataLoading, setDataLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [authCode, setAuthCode] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchSessions()
-  }, [currentPage])
+    // クライアントサイドでのみURLパラメータを取得
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      setAuthCode(urlParams.get('code'))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchSessions()
+    }
+  }, [currentPage, isAuthenticated])
 
   const fetchSessions = async () => {
     try {
-      setLoading(true)
+      setDataLoading(true)
       // 管理者向けAPIから勉強会一覧を取得
       const response = await fetch(`/api/admin/study-sessions?page=${currentPage}`)
       const data = await response.json()
@@ -39,7 +49,7 @@ function AdminDashboard() {
       console.error('Failed to fetch sessions:', error)
       alert('勉強会データの取得に失敗しました')
     } finally {
-      setLoading(false)
+      setDataLoading(false)
     }
   }
 
@@ -58,14 +68,6 @@ function AdminDashboard() {
     } catch (error) {
       console.error('Action failed:', error)
       alert('操作に失敗しました')
-    }
-  }
-
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-    } catch (error) {
-      console.error('Sign out error:', error)
     }
   }
 
@@ -124,33 +126,134 @@ function AdminDashboard() {
     }
   }
 
+  // 認証チェック中
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">読み込み中...</p>
+        <div className="text-center max-w-md">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">
+            {authCode ? '認証処理中...' : '認証状態を確認中...'}
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            {authCode 
+              ? 'ログイン情報を処理しています。しばらくお待ちください。' 
+              : '未ログインの場合はログインフォームが表示されます。'
+            }
+          </p>
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm font-medium">エラー</p>
+              <p className="text-red-500 text-sm">{error}</p>
+            </div>
+          )}
         </div>
       </div>
     )
   }
 
+  // 未認証の場合はログインフォームを表示
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
+              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              管理画面にログイン
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              広島IT勉強会カレンダー
+            </p>
+          </div>
+          
+          <div className="mt-8 space-y-6">
+            {/* エラー表示 */}
+            {error && (
+              <div className="rounded-md bg-red-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      エラー
+                    </h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{error}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-md bg-blue-50 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-blue-800">
+                    認証について
+                  </h3>
+                  <div className="mt-2 text-sm text-blue-700">
+                    <p>管理者アカウントでのみログインできます。</p>
+                    <p className="mt-1">「ログイン」ボタンをクリックすると、Cognitoの認証画面に移動します。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                onClick={signInWithHostedUI}
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              >
+                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                  <svg className="h-5 w-5 text-blue-500 group-hover:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                ログイン
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 認証済みの場合は管理画面を表示
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">
-              広島IT勉強会カレンダー - 管理画面
-            </h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                広島IT勉強会カレンダー
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">管理画面</p>
+            </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                ログイン中: {user?.attributes?.email || user?.username}
-              </span>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">ログイン中</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {user?.username || user?.email}
+                </p>
+              </div>
               <button
-                onClick={handleSignOut}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={signOut}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
               >
                 ログアウト
               </button>
@@ -158,6 +261,27 @@ function AdminDashboard() {
           </div>
         </div>
       </header>
+
+      {/* エラー表示 */}
+      {error && (
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+          <div className="rounded-md bg-red-50 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">エラー</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* メインコンテンツ */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -172,14 +296,23 @@ function AdminDashboard() {
               </p>
             </div>
             
-            {sessions.length === 0 ? (
+            {dataLoading ? (
               <div className="text-center py-12">
-                <p className="text-gray-500">登録された勉強会はありません</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-gray-500">データを読み込み中...</p>
+              </div>
+            ) : sessions.length === 0 ? (
+              <div className="text-center py-12">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <p className="mt-2 text-gray-500">登録された勉強会はありません</p>
+                <p className="text-sm text-gray-400">新しい勉強会が登録されると、ここに表示されます。</p>
               </div>
             ) : (
               <ul className="divide-y divide-gray-200">
                 {sessions.map((session) => (
-                  <li key={session.id} className="px-4 py-4 sm:px-6">
+                  <li key={session.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-3">
@@ -221,13 +354,13 @@ function AdminDashboard() {
                           <>
                             <button
                               onClick={() => handleAction(session.id, 'approve')}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
                             >
                               承認
                             </button>
                             <button
                               onClick={() => handleAction(session.id, 'reject')}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
                             >
                               却下
                             </button>
@@ -239,7 +372,7 @@ function AdminDashboard() {
                               handleAction(session.id, 'delete')
                             }
                           }}
-                          className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                         >
                           削除
                         </button>
@@ -301,25 +434,4 @@ function AdminDashboard() {
       </main>
     </div>
   )
-}
-
-export default function AdminHome() {
-  const { user, loading } = useAuth()
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">認証状態を確認中...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return <LoginForm />
-  }
-
-  return <AdminDashboard />
 }

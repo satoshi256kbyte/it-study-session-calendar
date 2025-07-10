@@ -134,7 +134,7 @@ export default function Register() {
                   required
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder="例: 広島JavaScript勉強会 #42"
+                  placeholder="例: おもにクラウドの話してます #256"
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
                 />
               </div>

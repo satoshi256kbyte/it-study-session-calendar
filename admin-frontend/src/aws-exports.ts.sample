@@ -1,0 +1,27 @@
+import { ResourcesConfig } from 'aws-amplify'
+
+const awsconfig: ResourcesConfig = {
+  Auth: {
+    Cognito: {
+      userPoolId: 'YOUR_USER_POOL_ID', // 例: ap-northeast-1_xxxxxxxxx
+      userPoolClientId: 'YOUR_USER_POOL_CLIENT_ID', // 例: xxxxxxxxxxxxxxxxxxxxxxxxxx
+      loginWith: {
+        oauth: {
+          domain: 'YOUR_COGNITO_DOMAIN', // 例: your-app-name.auth.ap-northeast-1.amazoncognito.com
+          scopes: ['email', 'openid', 'profile'],
+          redirectSignIn: [
+            'https://your-domain.example.com/',
+            'http://localhost:3001/'
+          ],
+          redirectSignOut: [
+            'https://your-domain.example.com/',
+            'http://localhost:3001/'
+          ],
+          responseType: 'code'
+        }
+      }
+    }
+  }
+}
+
+export default awsconfig

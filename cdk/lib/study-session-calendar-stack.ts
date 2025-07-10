@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
-import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as apigateway from 'aws-cdk-lib/aws-apigateway'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as s3 from 'aws-cdk-lib/aws-s3'
@@ -124,64 +123,49 @@ export class StudySessionCalendarStack extends cdk.Stack {
     }
 
     // Lambda 関数
-    const createStudySessionFunction = new nodejs.NodejsFunction(this, 'CreateStudySessionFunction', {
+    const createStudySessionFunction = new lambda.Function(this, 'CreateStudySessionFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: '../admin-backend/src/handlers/studySessionHandlers.ts',
-      handler: 'createStudySession',
+      code: lambda.Code.fromAsset('../admin-backend/dist'),
+      handler: 'handlers/studySessionHandlers.createStudySession',
       environment: lambdaEnvironment,
       timeout: cdk.Duration.seconds(30),
-      functionName: `${serviceName}-${environment}-lambda-create-study-session`,
-      bundling: {
-        externalModules: ['aws-sdk']
-      }
+      functionName: `${serviceName}-${environment}-lambda-create-study-session`
     })
 
-    const getStudySessionsFunction = new nodejs.NodejsFunction(this, 'GetStudySessionsFunction', {
+    const getStudySessionsFunction = new lambda.Function(this, 'GetStudySessionsFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: '../admin-backend/src/handlers/studySessionHandlers.ts',
-      handler: 'getStudySessions',
+      code: lambda.Code.fromAsset('../admin-backend/dist'),
+      handler: 'handlers/studySessionHandlers.getStudySessions',
       environment: lambdaEnvironment,
       timeout: cdk.Duration.seconds(30),
-      functionName: `${serviceName}-${environment}-lambda-get-study-sessions`,
-      bundling: {
-        externalModules: ['aws-sdk']
-      }
+      functionName: `${serviceName}-${environment}-lambda-get-study-sessions`
     })
 
-    const approveStudySessionFunction = new nodejs.NodejsFunction(this, 'ApproveStudySessionFunction', {
+    const approveStudySessionFunction = new lambda.Function(this, 'ApproveStudySessionFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: '../admin-backend/src/handlers/studySessionHandlers.ts',
-      handler: 'approveStudySession',
+      code: lambda.Code.fromAsset('../admin-backend/dist'),
+      handler: 'handlers/studySessionHandlers.approveStudySession',
       environment: lambdaEnvironment,
       timeout: cdk.Duration.seconds(30),
-      functionName: `${serviceName}-${environment}-lambda-approve-study-session`,
-      bundling: {
-        externalModules: ['aws-sdk']
-      }
+      functionName: `${serviceName}-${environment}-lambda-approve-study-session`
     })
 
-    const rejectStudySessionFunction = new nodejs.NodejsFunction(this, 'RejectStudySessionFunction', {
+    const rejectStudySessionFunction = new lambda.Function(this, 'RejectStudySessionFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: '../admin-backend/src/handlers/studySessionHandlers.ts',
-      handler: 'rejectStudySession',
+      code: lambda.Code.fromAsset('../admin-backend/dist'),
+      handler: 'handlers/studySessionHandlers.rejectStudySession',
       environment: lambdaEnvironment,
       timeout: cdk.Duration.seconds(30),
-      functionName: `${serviceName}-${environment}-lambda-reject-study-session`,
-      bundling: {
-        externalModules: ['aws-sdk']
-      }
+      functionName: `${serviceName}-${environment}-lambda-reject-study-session`
     })
 
-    const deleteStudySessionFunction = new nodejs.NodejsFunction(this, 'DeleteStudySessionFunction', {
+    const deleteStudySessionFunction = new lambda.Function(this, 'DeleteStudySessionFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: '../admin-backend/src/handlers/studySessionHandlers.ts',
-      handler: 'deleteStudySession',
+      code: lambda.Code.fromAsset('../admin-backend/dist'),
+      handler: 'handlers/studySessionHandlers.deleteStudySession',
       environment: lambdaEnvironment,
       timeout: cdk.Duration.seconds(30),
-      functionName: `${serviceName}-${environment}-lambda-delete-study-session`,
-      bundling: {
-        externalModules: ['aws-sdk']
-      }
+      functionName: `${serviceName}-${environment}-lambda-delete-study-session`
     })
 
     // DynamoDB テーブルへのアクセス権限を付与
