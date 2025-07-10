@@ -1,6 +1,11 @@
 {
-  "serviceName": "hiroshima-it-calendar",
-  "environment": "dev",
-  "googleCalendarId": "your-calendar-id@group.calendar.google.com",
-  "googleCalendarApiKey": "your-google-calendar-api-key"
+    "serviceName": "hiroshima-it-calendar",
+    "environment": "prod",
+    "googleCalendarId": "your-calendar-id@group.calendar.google.com",
+    "googleCalendarApiKey": "your-google-calendar-api-key",
+    "googleServiceAccountEmail": "your-service-account@your-project.iam.gserviceaccount.com",
+    "googlePrivateKey": "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n",
+    "domainName": "your-domain.example.com",
+    "hostedZoneId": "YOUR_HOSTED_ZONE_ID",
+    "certificateArn": "arn:aws:acm:us-east-1:YOUR_ACCOUNT_ID:certificate/YOUR_CERTIFICATE_ID"
 }
