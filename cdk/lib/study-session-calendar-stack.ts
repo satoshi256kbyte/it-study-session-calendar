@@ -141,6 +141,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
       GOOGLE_SERVICE_ACCOUNT_EMAIL: googleServiceAccountEmail,
       GOOGLE_PRIVATE_KEY: googlePrivateKey,
       ENVIRONMENT: environment,
+      LOG_LEVEL: 'INFO',
     }
 
     // Lambda 関数

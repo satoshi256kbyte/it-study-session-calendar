@@ -1,5 +1,6 @@
 import { StudySession } from '../types/StudySession'
 import * as jwt from 'jsonwebtoken'
+import { logger } from '../utils/logger'
 
 // Updated: 2025-07-10 - Using jsonwebtoken library for proper JWT generation
 export class GoogleCalendarService {
@@ -18,7 +19,7 @@ export class GoogleCalendarService {
 
   private async getAccessToken(): Promise<string> {
     try {
-      console.log('Generating JWT token...')
+      logger.debug('Generating JWT token...')
       const now = Math.floor(Date.now() / 1000)
 
       const payload = {
@@ -29,16 +30,16 @@ export class GoogleCalendarService {
         iat: now,
       }
 
-      console.log('JWT payload:', JSON.stringify(payload, null, 2))
-      console.log('Service account email:', this.serviceAccountEmail)
-      console.log('Private key length:', this.privateKey.length)
+      logger.debug('JWT payload:', JSON.stringify(payload, null, 2))
+      logger.debug('Service account email:', this.serviceAccountEmail)
+      logger.debug('Private key length:', this.privateKey.length)
 
       // jsonwebtokenライブラリを使用してJWTを生成
       const token = jwt.sign(payload, this.privateKey, {
         algorithm: 'RS256',
       })
 
-      console.log('JWT token generated, requesting access token...')
+      logger.debug('JWT token generated, requesting access token...')
 
       const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -48,38 +49,38 @@ export class GoogleCalendarService {
         body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${token}`,
       })
 
-      console.log('OAuth response status:', response.status)
+      logger.debug('OAuth response status:', response.status)
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('OAuth error response:', errorText)
+        logger.error('OAuth error response:', errorText)
         throw new Error(
           `OAuth token request failed: ${response.status} - ${errorText}`
         )
       }
 
       const tokenData = (await response.json()) as { access_token: string }
-      console.log('Access token obtained successfully')
+      logger.info('Access token obtained successfully')
       return tokenData.access_token
     } catch (error) {
-      console.error('Error in getAccessToken:', error)
+      logger.error('Error in getAccessToken:', error)
       throw error
     }
   }
 
   async addEventToCalendar(session: StudySession): Promise<string> {
     try {
-      console.log('Starting calendar event creation for session:', session.id)
+      logger.info('Starting calendar event creation for session:', session.id)
 
       const dateTimeInfo = this.parseDateTimeString(
         session.datetime,
         session.endDatetime
       )
-      console.log('Parsed datetime info:', dateTimeInfo)
+      logger.debug('Parsed datetime info:', dateTimeInfo)
 
-      console.log('Getting access token...')
+      logger.debug('Getting access token...')
       const accessToken = await this.getAccessToken()
-      console.log('Access token obtained successfully')
+      logger.info('Access token obtained successfully')
 
       // イベントの説明を構築（「詳細：」を削除してリンクのみ）
       let description = session.url
@@ -95,8 +96,8 @@ export class GoogleCalendarService {
         location: '広島',
       }
 
-      console.log('Creating calendar event:', JSON.stringify(event, null, 2))
-      console.log('Calendar ID:', this.calendarId)
+      logger.debug('Creating calendar event:', JSON.stringify(event, null, 2))
+      logger.debug('Calendar ID:', this.calendarId)
 
       const response = await fetch(
         `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(this.calendarId)}/events`,
@@ -110,24 +111,24 @@ export class GoogleCalendarService {
         }
       )
 
-      console.log('Calendar API response status:', response.status)
+      logger.debug('Calendar API response status:', response.status)
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Calendar API error response:', errorText)
+        logger.error('Calendar API error response:', errorText)
         throw new Error(
           `Google Calendar API Error: ${response.status} - ${errorText}`
         )
       }
 
       const result = (await response.json()) as { htmlLink?: string }
-      console.log('Calendar event created successfully:', result.htmlLink)
+      logger.info('Calendar event created successfully:', result.htmlLink)
       return result.htmlLink || ''
     } catch (error) {
-      console.error('Failed to add event to calendar - detailed error:', error)
+      logger.error('Failed to add event to calendar - detailed error:', error)
       if (error instanceof Error) {
-        console.error('Error message:', error.message)
-        console.error('Error stack:', error.stack)
+        logger.error('Error message:', error.message)
+        logger.error('Error stack:', error.stack)
       }
       throw new Error(
         `カレンダーへの追加に失敗しました: ${error instanceof Error ? error.message : String(error)}`

@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoDBService } from '../services/DynamoDBService'
 import { GoogleCalendarService } from '../services/GoogleCalendarService'
 import { CreateStudySessionRequest } from '../types/StudySession'
+import { logger } from '../utils/logger'
 
 const dynamoDBService = new DynamoDBService()
 const googleCalendarService = new GoogleCalendarService()
@@ -62,7 +63,7 @@ export const createStudySession: APIGatewayProxyHandler = async (
     const session = await dynamoDBService.createStudySession(request)
     return createSuccessResponse(201, session)
   } catch (error) {
-    console.error('Error creating study session:', error)
+    logger.error('Error creating study session:', error)
     return createErrorResponse(500, '内部サーバーエラー')
   }
 }
@@ -81,7 +82,7 @@ export const getStudySessions: APIGatewayProxyHandler = async (
     }
 
     const sessions = await dynamoDBService.getStudySessions()
-    console.log('Count of study sessions:', sessions.length)
+    logger.info('Count of study sessions:', sessions.length)
 
     return {
       statusCode: 200,
@@ -89,7 +90,7 @@ export const getStudySessions: APIGatewayProxyHandler = async (
       body: JSON.stringify({ sessions }),
     }
   } catch (error) {
-    console.error('Error getting study sessions:', error)
+    logger.error('Error getting study sessions:', error)
     return {
       statusCode: 500,
       headers: corsHeaders,
@@ -121,15 +122,15 @@ export const approveStudySession: APIGatewayProxyHandler = async (
     // Googleカレンダーにイベントを追加
     try {
       const eventUrl = await googleCalendarService.addEventToCalendar(session)
-      console.log('Event added to calendar:', eventUrl)
+      logger.info('Event added to calendar:', eventUrl)
     } catch (calendarError) {
-      console.error('Failed to add to calendar:', calendarError)
+      logger.error('Failed to add to calendar:', calendarError)
       // カレンダー追加に失敗してもステータス更新は成功とする
     }
 
     return createSuccessResponse(200, session)
   } catch (error) {
-    console.error('Error approving study session:', error)
+    logger.error('Error approving study session:', error)
     return createErrorResponse(500, '内部サーバーエラー')
   }
 }
@@ -167,7 +168,7 @@ export const rejectStudySession: APIGatewayProxyHandler = async (
       body: JSON.stringify(session),
     }
   } catch (error) {
-    console.error('Error rejecting study session:', error)
+    logger.error('Error rejecting study session:', error)
     return {
       statusCode: 500,
       headers: corsHeaders,
@@ -206,7 +207,7 @@ export const deleteStudySession: APIGatewayProxyHandler = async (
       body: '',
     }
   } catch (error) {
-    console.error('Error deleting study session:', error)
+    logger.error('Error deleting study session:', error)
     return {
       statusCode: 500,
       headers: corsHeaders,
