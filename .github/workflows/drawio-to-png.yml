@@ -91,28 +91,13 @@ jobs:
           path: converted_images/
           retention-days: 1
 
-      - name: Commit converted PNG files to PR branch
-        if: steps.convert.outputs.has_converted == 'true'
-        run: |
-          # Configure git
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          # Add converted PNG files to git
-          git add converted_images/*.png
-          
-          # Commit the files
-          git commit -m "Add converted PNG files from DrawIO [skip ci]"
-          
-          # Push to the PR branch
-          git push origin HEAD
-
-      - name: Create PR comment with image links
+      - name: Create PR comment with converted images
         if: steps.convert.outputs.has_converted == 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
+            const path = require('path');
             
             // Read the list of converted files
             let convertedFiles = [];
@@ -129,30 +114,97 @@ jobs:
               return;
             }
             
-            // Get the current branch name
-            const branchName = context.payload.pull_request.head.ref;
-            const repoUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
+            // Create a temporary issue for image uploads
+            const tempIssue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[TEMP] Image uploads for PR #${context.issue.number} - ${new Date().toISOString()}`,
+              body: 'This is a temporary issue for uploading images. It will be closed automatically.',
+              labels: ['temp', 'auto-generated']
+            });
             
-            // Create comment body
-            let commentBody = '## 📊 DrawIO Files Converted to PNG\n\n';
+            console.log(`Created temporary issue #${tempIssue.data.number}`);
+            
+            // Upload images and collect URLs
+            let imageData = [];
             
             for (const line of convertedFiles) {
               const [drawioFile, pngPath] = line.split('|');
-              const pngName = require('path').basename(pngPath);
+              const pngName = path.basename(pngPath);
               
-              commentBody += `### \`${drawioFile}\`\n`;
-              commentBody += `**Converted to:** \`${pngName}\`\n\n`;
+              try {
+                const pngBuffer = fs.readFileSync(pngPath);
+                const base64Data = pngBuffer.toString('base64');
+                
+                // Create a comment with the image in the temporary issue
+                const imageComment = await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: tempIssue.data.number,
+                  body: `![${pngName}](data:image/png;base64,${base64Data})`
+                });
+                
+                // Wait a moment for GitHub to process the image
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Get the comment to extract the processed image URL
+                const comment = await github.rest.issues.getComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: imageComment.data.id
+                });
+                
+                // Extract image URL from the comment body
+                const imageUrlMatch = comment.data.body.match(/!\[.*?\]\((https:\/\/github\.com\/user-attachments\/assets\/[^)]+)\)/);
+                const imageUrl = imageUrlMatch ? imageUrlMatch[1] : `data:image/png;base64,${base64Data}`;
+                
+                imageData.push({
+                  drawioFile,
+                  pngName,
+                  imageUrl
+                });
+                
+                console.log(`Processed ${pngName}: ${imageUrl.substring(0, 50)}...`);
+                
+              } catch (error) {
+                console.log(`Failed to process ${pngName}: ${error.message}`);
+                imageData.push({
+                  drawioFile,
+                  pngName,
+                  imageUrl: null,
+                  error: error.message
+                });
+              }
+            }
+            
+            // Close the temporary issue
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: tempIssue.data.number,
+              state: 'closed'
+            });
+            
+            console.log(`Closed temporary issue #${tempIssue.data.number}`);
+            
+            // Create the main PR comment
+            let commentBody = '## 📊 DrawIO Files Converted to PNG\n\n';
+            
+            for (const item of imageData) {
+              commentBody += `### \`${item.drawioFile}\`\n`;
+              commentBody += `**Converted to:** \`${item.pngName}\`\n\n`;
               
-              // Create GitHub raw URL for the image
-              const imageUrl = `${repoUrl}/raw/${branchName}/converted_images/${pngName}`;
-              commentBody += `![${pngName}](${imageUrl})\n\n`;
+              if (item.imageUrl) {
+                commentBody += `![${item.pngName}](${item.imageUrl})\n\n`;
+              } else {
+                commentBody += `*Failed to display image: ${item.error || 'Unknown error'}*\n\n`;
+              }
             }
             
             commentBody += '---\n';
-            commentBody += '*This comment was automatically generated by the DrawIO to PNG conversion workflow.*\n';
-            commentBody += '*PNG files have been temporarily added to this branch and will be cleaned up after the PR is merged.*';
+            commentBody += '*This comment was automatically generated by the DrawIO to PNG conversion workflow.*';
             
-            // Post the comment
+            // Post the main comment
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -160,4 +212,4 @@ jobs:
               body: commentBody
             });
             
-            console.log('Posted PR comment with image links');
+            console.log('Posted PR comment with images');
