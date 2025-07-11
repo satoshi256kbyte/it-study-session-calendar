@@ -1,0 +1,150 @@
+name: Convert DrawIO to PNG
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'docs/**/*.drawio'
+
+jobs:
+  convert-drawio:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed DrawIO files
+        id: changed-files
+        run: |
+          # Get the list of changed DrawIO files in docs directory
+          changed_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '^docs/.*\.drawio$' || true)
+          echo "Changed DrawIO files:"
+          echo "$changed_files"
+          
+          # Convert to JSON array for matrix strategy
+          if [ -n "$changed_files" ]; then
+            files_json=$(echo "$changed_files" | jq -R -s -c 'split("\n")[:-1]')
+            echo "files=$files_json" >> $GITHUB_OUTPUT
+            echo "has_files=true" >> $GITHUB_OUTPUT
+          else
+            echo "files=[]" >> $GITHUB_OUTPUT
+            echo "has_files=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup DrawIO CLI
+        if: steps.changed-files.outputs.has_files == 'true'
+        run: |
+          # Install DrawIO desktop for headless conversion
+          wget -q https://github.com/jgraph/drawio-desktop/releases/download/v27.0.9/drawio-amd64-27.0.9.deb
+          sudo apt-get update
+          sudo apt-get install -y ./drawio-amd64-27.0.9.deb
+          
+          # Install xvfb for headless display
+          sudo apt-get install -y xvfb
+
+      - name: Convert DrawIO files to PNG
+        if: steps.changed-files.outputs.has_files == 'true'
+        id: convert
+        run: |
+          mkdir -p converted_images
+          converted_files=""
+          
+          # Process each changed DrawIO file
+          echo '${{ steps.changed-files.outputs.files }}' | jq -r '.[]' | while read -r file; do
+            if [ -f "$file" ]; then
+              echo "Converting $file"
+              
+              # Generate PNG filename: replace / with - and change extension
+              png_name=$(echo "$file" | sed 's/\//-/g' | sed 's/\.drawio$/.png/')
+              png_path="converted_images/$png_name"
+              
+              # Convert DrawIO to PNG using headless mode
+              xvfb-run -a drawio --export --format png --output "$png_path" "$file"
+              
+              if [ -f "$png_path" ]; then
+                echo "Successfully converted $file to $png_path"
+                echo "$file|$png_path" >> converted_list.txt
+              else
+                echo "Failed to convert $file"
+              fi
+            fi
+          done
+          
+          # Check if any files were converted
+          if [ -f converted_list.txt ]; then
+            echo "has_converted=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_converted=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload PNG files as artifacts
+        if: steps.convert.outputs.has_converted == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: converted-png-files
+          path: converted_images/
+          retention-days: 1
+
+      - name: Create PR comment with converted images
+        if: steps.convert.outputs.has_converted == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read the list of converted files
+            let convertedFiles = [];
+            try {
+              const listContent = fs.readFileSync('converted_list.txt', 'utf8');
+              convertedFiles = listContent.trim().split('\n').filter(line => line.length > 0);
+            } catch (error) {
+              console.log('No converted files found');
+              return;
+            }
+            
+            if (convertedFiles.length === 0) {
+              console.log('No files to process');
+              return;
+            }
+            
+            // Create comment body
+            let commentBody = '## 📊 DrawIO Files Converted to PNG\n\n';
+            commentBody += 'The following DrawIO files have been converted to PNG format:\n\n';
+            
+            for (const line of convertedFiles) {
+              const [drawioFile, pngPath] = line.split('|');
+              const pngName = path.basename(pngPath);
+              
+              commentBody += `### ${drawioFile}\n`;
+              commentBody += `**Converted to:** \`${pngName}\`\n\n`;
+              
+              // Read and encode the PNG file as base64
+              try {
+                const pngBuffer = fs.readFileSync(pngPath);
+                const base64Data = pngBuffer.toString('base64');
+                commentBody += `![${pngName}](data:image/png;base64,${base64Data})\n\n`;
+              } catch (error) {
+                console.log(`Failed to read ${pngPath}: ${error.message}`);
+                commentBody += `*Failed to load image: ${pngName}*\n\n`;
+              }
+            }
+            
+            commentBody += '---\n';
+            commentBody += '*This comment was automatically generated by the DrawIO to PNG conversion workflow.*';
+            
+            // Post the comment
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            });
+            
+            console.log('Posted comment with converted images');
