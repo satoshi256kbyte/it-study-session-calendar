@@ -10,6 +10,7 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager'
 import * as route53 from 'aws-cdk-lib/aws-route53'
 import * as targets from 'aws-cdk-lib/aws-route53-targets'
 import * as cognito from 'aws-cdk-lib/aws-cognito'
+import * as sns from 'aws-cdk-lib/aws-sns'
 import { Construct } from 'constructs'
 
 export interface StudySessionCalendarStackProps extends cdk.StackProps {
@@ -134,6 +135,16 @@ export class StudySessionCalendarStack extends cdk.Stack {
       'hiroshima-it-calendar-prod-table-study-sessions'
     )
 
+    // SNS トピック（管理者通知用）
+    const adminNotificationTopic = new sns.Topic(
+      this,
+      'AdminNotificationTopic',
+      {
+        topicName: `${serviceName}-${environment}-admin-notification`,
+        displayName: '広島IT勉強会カレンダー 管理者通知',
+      }
+    )
+
     // Lambda 関数用の環境変数
     const lambdaEnvironment = {
       STUDY_SESSIONS_TABLE_NAME: studySessionsTable.tableName,
@@ -142,6 +153,9 @@ export class StudySessionCalendarStack extends cdk.Stack {
       GOOGLE_PRIVATE_KEY: googlePrivateKey,
       ENVIRONMENT: environment,
       LOG_LEVEL: 'INFO',
+      SNS_TOPIC_ARN: adminNotificationTopic.topicArn,
+      NOTIFICATION_ENABLED: 'true',
+      ADMIN_URL: `https://${domainName}`,
     }
 
     // Lambda 関数
@@ -216,6 +230,9 @@ export class StudySessionCalendarStack extends cdk.Stack {
     studySessionsTable.grantReadWriteData(approveStudySessionFunction)
     studySessionsTable.grantReadWriteData(rejectStudySessionFunction)
     studySessionsTable.grantReadWriteData(deleteStudySessionFunction)
+
+    // SNS トピックへの発行権限を付与（createStudySessionFunction のみ）
+    adminNotificationTopic.grantPublish(createStudySessionFunction)
 
     // API Gateway
     const api = new apigateway.RestApi(this, 'StudySessionApi', {
@@ -497,6 +514,13 @@ export class StudySessionCalendarStack extends cdk.Stack {
       value: `https://${userPoolDomain.domainName}.auth.${this.region}.amazoncognito.com`,
       description: 'Cognito User Pool Domain',
       exportName: `${serviceName}-${environment}-user-pool-domain`,
+    })
+
+    // SNS関連の出力
+    new cdk.CfnOutput(this, 'AdminNotificationTopicArn', {
+      value: adminNotificationTopic.topicArn,
+      description: '管理者通知用SNSトピックARN',
+      exportName: `${serviceName}-${environment}-sns-topic-arn`,
     })
   }
 }
