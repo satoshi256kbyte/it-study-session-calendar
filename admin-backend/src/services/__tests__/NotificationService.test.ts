@@ -399,6 +399,35 @@ describe('NotificationService', () => {
       )
     })
 
+    it('should handle edge case with NaN date components', async () => {
+      const { logger } = require('../../utils/logger')
+
+      // Create a date string that will result in NaN when parsed in certain edge cases
+      // This tests the specific branch where formatted date components are NaN
+      const sessionWithNaNDate = {
+        ...mockStudySession,
+        datetime: '2024-02-30T25:70:00.000Z', // Invalid date components
+      }
+
+      await notificationService.sendNewStudySessionNotification(
+        sessionWithNaNDate
+      )
+
+      const publishCall = mockPublishCommand.mock.calls[0][0]
+      const messageBody = publishCall.Message
+
+      // Should fall back to original string when formatting fails
+      expect(messageBody).toContain('開催日時: 2024-02-30T25:70:00.000Z')
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        'Failed to format datetime, using original string',
+        {
+          isoString: '2024-02-30T25:70:00.000Z',
+          error: expect.any(String),
+        }
+      )
+    })
+
     it('should use default admin URL when not configured', async () => {
       delete process.env.ADMIN_URL
       notificationService = new NotificationService()
@@ -428,6 +457,65 @@ describe('NotificationService', () => {
       // The message should be a formatted text, not JSON
       expect(() => JSON.parse(messageBody)).toThrow()
       expect(typeof messageBody).toBe('string')
+    })
+
+    it('should handle session without contact field', async () => {
+      const sessionWithoutContact = {
+        ...mockStudySession,
+        contact: undefined,
+      }
+
+      await notificationService.sendNewStudySessionNotification(
+        sessionWithoutContact
+      )
+
+      const publishCall = mockPublishCommand.mock.calls[0][0]
+      const messageBody = publishCall.Message
+
+      // Should still format the message properly without contact
+      expect(messageBody).toContain('タイトル: Test Study Session')
+      expect(messageBody).toContain('URL: https://example.com')
+      expect(messageBody).toContain('管理画面: https://test-admin.example.com')
+    })
+
+    it('should handle very long session titles', async () => {
+      const sessionWithLongTitle = {
+        ...mockStudySession,
+        title: 'A'.repeat(500), // Very long title
+      }
+
+      await notificationService.sendNewStudySessionNotification(
+        sessionWithLongTitle
+      )
+
+      const publishCall = mockPublishCommand.mock.calls[0][0]
+      const messageBody = publishCall.Message
+
+      expect(messageBody).toContain(`タイトル: ${'A'.repeat(500)}`)
+      expect(mockSend).toHaveBeenCalled()
+    })
+
+    it('should handle special characters in session data', async () => {
+      const sessionWithSpecialChars = {
+        ...mockStudySession,
+        title: 'Test & <Script> "Session" 特殊文字テスト',
+        url: 'https://example.com/event?param=value&other=test',
+      }
+
+      await notificationService.sendNewStudySessionNotification(
+        sessionWithSpecialChars
+      )
+
+      const publishCall = mockPublishCommand.mock.calls[0][0]
+      const messageBody = publishCall.Message
+
+      expect(messageBody).toContain(
+        'タイトル: Test & <Script> "Session" 特殊文字テスト'
+      )
+      expect(messageBody).toContain(
+        'URL: https://example.com/event?param=value&other=test'
+      )
+      expect(mockSend).toHaveBeenCalled()
     })
   })
 })

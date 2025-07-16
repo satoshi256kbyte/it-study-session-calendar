@@ -13,6 +13,9 @@
     "start": "next start -p 3001",
     "lint": "next lint",
     "export": "next build && next export",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "setup": "npm run setup:aws-config && npm run setup:env",
     "setup:aws-config": "cp src/aws-exports.ts.sample src/aws-exports.ts && echo 'AWS設定ファイルを作成しました。src/aws-exports.tsを編集してください。'",
     "setup:env": "cp .env.example .env.local && echo '環境変数ファイルを作成しました。.env.localを編集してください。'"
@@ -26,12 +29,17 @@
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
     "@types/node": "^22.0.0",
     "@types/react": "^18.2.25",
     "@types/react-dom": "^18.2.11",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.51.0",
     "eslint-config-next": "14.0.0",
+    "jest": "^30.0.4",
+    "jest-environment-jsdom": "^30.0.4",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.5"
   }

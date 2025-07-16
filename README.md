@@ -146,7 +146,37 @@ npm run deploy:cdk
 5. 「Send an invitation to this new user?」のチェックを外す
 6. 「Create user」をクリック
 
-### 4. Admin Frontend環境変数の更新
+### 4. 管理者通知設定（オプション）
+
+デプロイ後、新しい勉強会が登録された際に管理者に自動通知を送信する機能が利用できます。
+
+#### SNS通知の設定
+
+1. AWS Console → SNS → Topics
+2. 作成されたトピック（`hiroshima-it-calendar-prod-admin-notification`）を選択
+3. 「Subscriptions」タブ → 「Create subscription」
+4. 通知方法を選択：
+   - **Email**: 管理者のメールアドレスを入力
+   - **SMS**: 管理者の電話番号を入力（+81形式）
+   - **HTTPS**: Slack WebhookやDiscord WebhookのURLを入力
+5. 「Create subscription」をクリック
+6. メール/SMS通知の場合は確認メッセージに従って承認
+
+#### 通知内容
+
+通知には以下の情報が含まれます：
+
+- 勉強会のタイトル
+- 開催日時
+- 登録日時
+- 管理画面へのリンク
+
+#### 通知の無効化
+
+通知機能を無効にしたい場合は、CDKスタックの環境変数 `NOTIFICATION_ENABLED` を `false`
+に変更してデプロイしてください。
+
+### 5. Admin Frontend環境変数の更新
 
 デプロイ完了後、CDKの出力値を使用して環境変数を設定：
 
@@ -158,7 +188,7 @@ cd admin-frontend
 # NEXT_PUBLIC_USER_POOL_DOMAIN=（CDK出力のUserPoolDomain）
 ```
 
-### 5. フロントエンドデプロイ
+### 6. フロントエンドデプロイ
 
 #### Calendar（エンドユーザー画面）
 

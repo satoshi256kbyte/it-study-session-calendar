@@ -117,6 +117,10 @@ npm run destroy
 - **S3バケット名**: 管理画面用のS3バケット名
 - **DynamoDB テーブル名**: 勉強会データを格納するテーブル名
 - **CloudFront ディストリビューション ID**: キャッシュクリア用
+- **Cognito User Pool ID**: 管理者認証用のUser Pool ID
+- **Cognito User Pool Client ID**: 管理者認証用のClient ID
+- **Cognito User Pool Domain**: 管理者認証用のドメイン
+- **SNS Topic ARN**: 管理者通知用のSNSトピックARN
 
 ## 環境別設定
 
@@ -184,9 +188,40 @@ aws logs tail /aws/lambda/hiroshima-it-calendar-dev-lambda-create-study-session 
 aws cloudformation describe-stacks --stack-name hiroshima-it-calendar-dev-stack
 ```
 
+## 管理者通知機能
+
+デプロイ後、新しい勉強会が登録された際に管理者に自動通知を送信する機能が利用できます。
+
+### 環境変数
+
+以下の環境変数が自動的に設定されます：
+
+- `SNS_TOPIC_ARN`: 管理者通知用SNSトピックのARN
+- `NOTIFICATION_ENABLED`: 通知機能の有効/無効フラグ（デフォルト: true）
+- `ADMIN_URL`: 管理画面のURL（domainNameパラメータから自動生成）
+
+### 通知設定
+
+1. **SNS通知の設定**
+   - AWS Console → SNS → Topics
+   - 作成されたトピック（`{serviceName}-{environment}-admin-notification`）を選択
+   - 「Subscriptions」タブで通知方法を設定（Email、SMS、HTTPS等）
+
+2. **通知の無効化**
+   - CDKスタックの `NOTIFICATION_ENABLED` 環境変数を `false` に変更
+   - 再デプロイで設定が反映されます
+
+### 通知内容
+
+- 勉強会のタイトル
+- 開催日時
+- 登録日時
+- 管理画面へのリンク
+
 ## セキュリティ
 
 - `parameters.json` は Git 管理対象外です
 - Google Calendar APIキーは適切に管理してください
 - 本番環境では最小権限の原則に従ってください
 - APIキーには適切な制限を設定してください
+- SNS通知には個人情報を含めない設計になっています
