@@ -1,11 +1,13 @@
 import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoDBService } from '../services/DynamoDBService'
 import { GoogleCalendarService } from '../services/GoogleCalendarService'
+import { NotificationService } from '../services/NotificationService'
 import { CreateStudySessionRequest } from '../types/StudySession'
 import { logger } from '../utils/logger'
 
 const dynamoDBService = new DynamoDBService()
 const googleCalendarService = new GoogleCalendarService()
+const notificationService = new NotificationService()
 
 // CORS ヘッダー（緩い設定）
 const corsHeaders = {
@@ -61,6 +63,18 @@ export const createStudySession: APIGatewayProxyHandler = async (
     }
 
     const session = await dynamoDBService.createStudySession(request)
+
+    // 勉強会作成成功後に通知を送信（非同期で実行し、エラーが発生しても登録処理には影響させない）
+    notificationService
+      .sendNewStudySessionNotification(session)
+      .catch(error => {
+        // NotificationService内でエラーハンドリングは完了しているが、念のためここでもキャッチ
+        logger.error('Unexpected error in notification service:', {
+          sessionId: session.id,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
+      })
+
     return createSuccessResponse(201, session)
   } catch (error) {
     logger.error('Error creating study session:', error)

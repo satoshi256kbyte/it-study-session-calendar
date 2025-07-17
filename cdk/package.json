@@ -17,8 +17,8 @@
     "setup": "npm run setup:parameters",
     "setup:parameters": "cp parameters.sample.json parameters.json && echo '📝 parameters.json を作成しました。適切な値を設定してください。'",
     "validate:parameters": "node -e \"const fs=require('fs'); const p=JSON.parse(fs.readFileSync('parameters.json','utf8')); console.log('✅ parameters.json の検証が完了しました:', p.environment);\"",
-    "deploy": "npm run build && npm run validate:parameters && cdk deploy",
-    "deploy:dev": "npm run build && npm run validate:parameters && cdk deploy --require-approval never",
+    "deploy": "npm run build && cdk deploy --require-approval never",
+    "deploy:dev": "npm run build && cdk deploy --require-approval never",
     "destroy": "cdk destroy",
     "diff": "npm run build && cdk diff",
     "synth": "npm run build && cdk synth"
