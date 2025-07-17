@@ -144,6 +144,33 @@ export class StudySessionCalendarStack extends cdk.Stack {
       LOG_LEVEL: 'INFO',
     }
 
+    // Lambda Layer for dependencies
+    const dependenciesLayer = new lambda.LayerVersion(
+      this,
+      'DependenciesLayer',
+      {
+        code: lambda.Code.fromAsset('../admin-backend', {
+          bundling: {
+            image: lambda.Runtime.NODEJS_20_X.bundlingImage,
+            command: [
+              'bash',
+              '-c',
+              [
+                'npm ci --production',
+                'mkdir -p /asset-output/nodejs',
+                'cp -r node_modules /asset-output/nodejs/',
+                'cp package.json /asset-output/nodejs/',
+              ].join(' && '),
+            ],
+            user: 'root', // Docker内でroot権限を使用
+          },
+        }),
+        compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
+        description: 'Dependencies layer for study session functions',
+        layerVersionName: `${serviceName}-${environment}-layer-dependencies`,
+      }
+    )
+
     // Lambda 関数
     const createStudySessionFunction = new lambda.Function(
       this,
@@ -155,6 +182,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-create-study-session`,
+        layers: [dependenciesLayer],
       }
     )
 
@@ -168,6 +196,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-get-study-sessions`,
+        layers: [dependenciesLayer],
       }
     )
 
@@ -181,6 +210,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-approve-study-session`,
+        layers: [dependenciesLayer],
       }
     )
 
@@ -194,6 +224,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-reject-study-session`,
+        layers: [dependenciesLayer],
       }
     )
 
@@ -207,6 +238,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-delete-study-session`,
+        layers: [dependenciesLayer],
       }
     )
 
