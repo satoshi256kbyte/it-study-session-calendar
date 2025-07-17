@@ -11,6 +11,7 @@ import * as route53 from 'aws-cdk-lib/aws-route53'
 import * as targets from 'aws-cdk-lib/aws-route53-targets'
 import * as cognito from 'aws-cdk-lib/aws-cognito'
 import * as sns from 'aws-cdk-lib/aws-sns'
+import * as iam from 'aws-cdk-lib/aws-iam'
 import { Construct } from 'constructs'
 
 export interface StudySessionCalendarStackProps extends cdk.StackProps {
@@ -43,33 +44,12 @@ export class StudySessionCalendarStack extends cdk.Stack {
       certificateArn,
     } = props
 
-    // Cognito User Pool
-    const userPool = new cognito.UserPool(this, 'AdminUserPool', {
-      userPoolName: `${serviceName}-${environment}-admin-user-pool`,
-      selfSignUpEnabled: false, // 管理者のみなので自己登録は無効
-      signInAliases: {
-        email: true,
-        username: true,
-      },
-      autoVerify: {
-        email: true,
-      },
-      standardAttributes: {
-        email: {
-          required: true,
-          mutable: true,
-        },
-      },
-      passwordPolicy: {
-        minLength: 8,
-        requireLowercase: true,
-        requireUppercase: true,
-        requireDigits: true,
-        requireSymbols: false,
-      },
-      accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // 開発環境用
-    })
+    // 既存のCognito User Poolをインポート
+    const userPool = cognito.UserPool.fromUserPoolId(
+      this,
+      'AdminUserPool',
+      'ap-northeast-1_80yvGw2Xg'
+    )
 
     // Cognito User Pool Client
     const userPoolClient = new cognito.UserPoolClient(
@@ -116,17 +96,12 @@ export class StudySessionCalendarStack extends cdk.Stack {
       }
     )
 
-    // Cognito User Pool Domain
-    const userPoolDomain = new cognito.UserPoolDomain(
-      this,
-      'AdminUserPoolDomain',
-      {
-        userPool,
-        cognitoDomain: {
-          domainPrefix: `${serviceName}-${environment}-admin`,
-        },
-      }
-    )
+    // 既存のCognito User Pool Domainをインポート
+    const userPoolDomain = {
+      domainName: `${serviceName}-${environment}-admin`,
+      baseUrl: () =>
+        `https://${serviceName}-${environment}-admin.auth.${this.region}.amazoncognito.com`,
+    }
 
     // DynamoDB テーブル（既存のテーブルを参照）
     const studySessionsTable = dynamodb.Table.fromTableName(
@@ -135,14 +110,11 @@ export class StudySessionCalendarStack extends cdk.Stack {
       'hiroshima-it-calendar-prod-table-study-sessions'
     )
 
-    // SNS トピック（管理者通知用）
-    const adminNotificationTopic = new sns.Topic(
+    // 既存のSNSトピックをインポート
+    const adminNotificationTopic = sns.Topic.fromTopicArn(
       this,
       'AdminNotificationTopic',
-      {
-        topicName: `${serviceName}-${environment}-admin-notification`,
-        displayName: '広島IT勉強会カレンダー 管理者通知',
-      }
+      `arn:aws:sns:${this.region}:${this.account}:${serviceName}-${environment}-admin-notification`
     )
 
     // Lambda 関数用の環境変数
@@ -169,6 +141,11 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-create-study-session`,
+        reservedConcurrentExecutions: 10, // 同時実行数制限でスケーリング制御
+        retryAttempts: 2,
+        currentVersionOptions: {
+          removalPolicy: cdk.RemovalPolicy.RETAIN, // 常に維持
+        },
       }
     )
 
@@ -182,6 +159,11 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-get-study-sessions`,
+        reservedConcurrentExecutions: 10,
+        retryAttempts: 2,
+        currentVersionOptions: {
+          removalPolicy: cdk.RemovalPolicy.RETAIN, // 常に維持
+        },
       }
     )
 
@@ -195,6 +177,11 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-approve-study-session`,
+        reservedConcurrentExecutions: 5,
+        retryAttempts: 2,
+        currentVersionOptions: {
+          removalPolicy: cdk.RemovalPolicy.RETAIN, // 常に維持
+        },
       }
     )
 
@@ -208,6 +195,11 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-reject-study-session`,
+        reservedConcurrentExecutions: 5,
+        retryAttempts: 2,
+        currentVersionOptions: {
+          removalPolicy: cdk.RemovalPolicy.RETAIN, // 常に維持
+        },
       }
     )
 
@@ -221,6 +213,11 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-delete-study-session`,
+        reservedConcurrentExecutions: 5,
+        retryAttempts: 2,
+        currentVersionOptions: {
+          removalPolicy: cdk.RemovalPolicy.RETAIN, // 常に維持
+        },
       }
     )
 
@@ -234,150 +231,27 @@ export class StudySessionCalendarStack extends cdk.Stack {
     // SNS トピックへの発行権限を付与（createStudySessionFunction のみ）
     adminNotificationTopic.grantPublish(createStudySessionFunction)
 
-    // API Gateway
-    const api = new apigateway.RestApi(this, 'StudySessionApi', {
-      restApiName: `${serviceName}-${environment}-api-study-session`,
-      description: `広島IT勉強会カレンダー API (${environment})`,
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: [
-          'Content-Type',
-          'Authorization',
-          'X-Amz-Date',
-          'X-Api-Key',
-          'X-Amz-Security-Token',
-          'X-Amz-User-Agent',
-          'X-Requested-With',
-          'Accept',
-          'Accept-Language',
-          'Accept-Encoding',
-          'Origin',
-          'Referer',
-          'User-Agent',
-        ],
-        exposeHeaders: [
-          'Access-Control-Allow-Origin',
-          'Access-Control-Allow-Headers',
-          'Access-Control-Allow-Methods',
-        ],
-        maxAge: cdk.Duration.hours(1),
-      },
-    })
-
-    // /api リソース
-    const apiResource = api.root.addResource('api')
-
-    // エンドユーザー向けAPI: /api/study-sessions
-    const studySessionsResource = apiResource.addResource('study-sessions', {
-      defaultCorsPreflightOptions: {
-        allowOrigins: [
-          'https://satoshi256kbyte.github.io',
-          'http://localhost:3000',
-        ],
-        allowMethods: ['GET', 'POST', 'OPTIONS'],
-        allowHeaders: [
-          'Content-Type',
-          'Authorization',
-          'X-Amz-Date',
-          'X-Api-Key',
-          'X-Requested-With',
-          'Accept',
-          'Origin',
-        ],
-      },
-    })
-    studySessionsResource.addMethod(
-      'POST',
-      new apigateway.LambdaIntegration(createStudySessionFunction)
-    )
-
-    // 管理者向けAPI: /api/admin
-    const adminResource = apiResource.addResource('admin', {
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: [
-          'Content-Type',
-          'Authorization',
-          'X-Amz-Date',
-          'X-Api-Key',
-          'X-Requested-With',
-          'Accept',
-          'Origin',
-        ],
-      },
-    })
-    const adminStudySessionsResource = adminResource.addResource(
-      'study-sessions',
+    // 既存のAPI Gatewayをインポート
+    const api = apigateway.RestApi.fromRestApiAttributes(
+      this,
+      'StudySessionApi',
       {
-        defaultCorsPreflightOptions: {
-          allowOrigins: apigateway.Cors.ALL_ORIGINS,
-          allowMethods: apigateway.Cors.ALL_METHODS,
-          allowHeaders: [
-            'Content-Type',
-            'Authorization',
-            'X-Amz-Date',
-            'X-Api-Key',
-            'X-Requested-With',
-            'Accept',
-            'Origin',
-          ],
-        },
+        restApiId: 'ldtw3g3bs1',
+        rootResourceId: 'api', // APIのルートリソースID
       }
     )
-    adminStudySessionsResource.addMethod(
-      'GET',
-      new apigateway.LambdaIntegration(getStudySessionsFunction)
-    )
 
-    const adminStudySessionResource =
-      adminStudySessionsResource.addResource('{id}')
-    const approveResource = adminStudySessionResource.addResource('approve')
-    const rejectResource = adminStudySessionResource.addResource('reject')
-    const deleteResource = adminStudySessionResource.addResource('delete')
+    // APIリソースは直接操作しない
 
-    approveResource.addMethod(
-      'POST',
-      new apigateway.LambdaIntegration(approveStudySessionFunction)
-    )
-    rejectResource.addMethod(
-      'POST',
-      new apigateway.LambdaIntegration(rejectStudySessionFunction)
-    )
-    deleteResource.addMethod(
-      'POST',
-      new apigateway.LambdaIntegration(deleteStudySessionFunction)
-    )
+    // 既存のAPIリソースは操作しない
+    // Lambda関数のみデプロイ
 
-    // S3 バケット（既存のバケットを参照）
+    // 既存のS3バケットをインポート
     const adminFrontendBucket = s3.Bucket.fromBucketName(
       this,
       'AdminFrontendBucket',
-      'hiroshima-it-calendar-prod-s3-admin-frontend'
+      `${serviceName}-${environment}-s3-admin-frontend`
     )
-
-    // Origin Access Identity for CloudFront
-    const originAccessIdentity = new cloudfront.OriginAccessIdentity(
-      this,
-      'OriginAccessIdentity',
-      {
-        comment: `OAI for ${serviceName}-${environment}-admin-frontend`,
-      }
-    )
-
-    // S3バケットポリシーを追加（CloudFrontからのアクセスを許可）
-    const bucketPolicyStatement = new cdk.aws_iam.PolicyStatement({
-      actions: ['s3:GetObject'],
-      resources: [`${adminFrontendBucket.bucketArn}/*`],
-      principals: [
-        new cdk.aws_iam.CanonicalUserPrincipal(
-          originAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId
-        ),
-      ],
-    })
-
-    adminFrontendBucket.addToResourcePolicy(bucketPolicyStatement)
 
     // Route53 ホストゾーンの参照
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
@@ -396,18 +270,33 @@ export class StudySessionCalendarStack extends cdk.Stack {
       certificateArn
     )
 
+    // Origin Access Control (OAC) for CloudFront
+    const originAccessControl = new cloudfront.CfnOriginAccessControl(
+      this,
+      'OriginAccessControl',
+      {
+        originAccessControlConfig: {
+          name: `${serviceName}-${environment}-oac`,
+          originAccessControlOriginType: 's3',
+          signingBehavior: 'always',
+          signingProtocol: 'sigv4',
+          description: `OAC for ${serviceName}-${environment}-admin-frontend`,
+        },
+      }
+    )
+
     // CloudFront ディストリビューション
     const distribution = new cloudfront.Distribution(
       this,
       'AdminFrontendDistributionV4',
       {
         defaultBehavior: {
-          origin: new origins.S3Origin(adminFrontendBucket, {
-            originAccessIdentity: originAccessIdentity,
-          }),
+          origin:
+            origins.S3BucketOrigin.withOriginAccessControl(adminFrontendBucket),
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          compress: true,
         },
         additionalBehaviors: {
           '/api/*': {
@@ -424,7 +313,6 @@ export class StudySessionCalendarStack extends cdk.Stack {
             responseHeadersPolicy:
               cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
             allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-            cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
             compress: true,
           },
         },
@@ -440,8 +328,64 @@ export class StudySessionCalendarStack extends cdk.Stack {
           },
         ],
         comment: `${serviceName}-${environment}-cloudfront-admin-frontend-v4`,
+        priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+        enableIpv6: true,
       }
     )
+    //         compress: true,
+    //       },
+    //     },
+    //     domainNames: [domainName],
+    //     certificate: certificate,
+    //     defaultRootObject: 'index.html',
+    //     errorResponses: [
+    //       {
+    //         httpStatus: 404,
+    //         responseHttpStatus: 200,
+    //         responsePagePath: '/index.html',
+    //         ttl: cdk.Duration.minutes(5), // SPAのため短めに設定
+    //       },
+    //       {
+    //         httpStatus: 403,
+    //         responseHttpStatus: 200,
+    //         responsePagePath: '/index.html',
+    //         ttl: cdk.Duration.minutes(5),
+    //       },
+    //     ],
+    //     comment: `${serviceName}-${environment}-cloudfront-admin-frontend`,
+    //     priceClass: cloudfront.PriceClass.PRICE_CLASS_100, // コスト最適化
+    //     enableIpv6: true,
+    //   }
+    // )
+
+    // S3バケットポリシーを追加（OACからのアクセスを許可）
+    // 注意: インポートしたバケットにはポリシーを直接追加できないため、
+    // AWS Management Consoleで手動で設定する必要があります
+
+    // バケットポリシーの内容を出力（手動設定用）
+    new cdk.CfnOutput(this, 'S3BucketPolicyJson', {
+      value: JSON.stringify(
+        {
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: { Service: 'cloudfront.amazonaws.com' },
+              Action: 's3:GetObject',
+              Resource: `arn:aws:s3:::${adminFrontendBucket.bucketName}/*`,
+              Condition: {
+                StringEquals: {
+                  'AWS:SourceArn': `arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`,
+                },
+              },
+            },
+          ],
+        },
+        null,
+        2
+      ),
+      description: 'S3バケットポリシーJSON（手動設定用）',
+    })
 
     // Route53 Aレコードの作成
     new route53.ARecord(this, 'AliasRecord', {
@@ -462,7 +406,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
 
     // 出力
     new cdk.CfnOutput(this, 'ApiUrl', {
-      value: api.url,
+      value: `https://${api.restApiId}.execute-api.${this.region}.amazonaws.com/prod/`,
       description: 'API Gateway URL',
       exportName: `${serviceName}-${environment}-api-url`,
     })
@@ -479,6 +423,12 @@ export class StudySessionCalendarStack extends cdk.Stack {
       exportName: `${serviceName}-${environment}-admin-cloudfront-url`,
     })
 
+    new cdk.CfnOutput(this, 'CloudFrontDistributionId', {
+      value: distribution.distributionId,
+      description: 'CloudFront ディストリビューション ID',
+      exportName: `${serviceName}-${environment}-cloudfront-id`,
+    })
+
     new cdk.CfnOutput(this, 'AdminFrontendBucketName', {
       value: adminFrontendBucket.bucketName,
       description: '管理画面用S3バケット名',
@@ -489,12 +439,6 @@ export class StudySessionCalendarStack extends cdk.Stack {
       value: studySessionsTable.tableName,
       description: 'DynamoDB テーブル名',
       exportName: `${serviceName}-${environment}-table-name`,
-    })
-
-    new cdk.CfnOutput(this, 'CloudFrontDistributionId', {
-      value: distribution.distributionId,
-      description: 'CloudFront ディストリビューション ID',
-      exportName: `${serviceName}-${environment}-cloudfront-id`,
     })
 
     // Cognito関連の出力

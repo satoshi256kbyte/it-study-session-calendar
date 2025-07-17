@@ -19,7 +19,7 @@
     "build:calendar": "cd calendar && npm run build",
     "build:admin-frontend": "cd admin-frontend && npm run build",
     "setup:cdk": "cd cdk && npm run setup",
-    "deploy:cdk": "cd cdk && npm run deploy",
+    "deploy:cdk": "cd cdk && cdk deploy --require-approval never",
     "deploy:admin-frontend": "cd admin-frontend && npm run deploy",
     "diff:cdk": "cd cdk && npm run diff",
     "destroy:cdk": "cd cdk && npm run destroy",

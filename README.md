@@ -91,7 +91,22 @@ export AWS_PROFILE=your-profile-name
 aws configure --profile your-profile-name
 ```
 
-### 5. Calendar用環境変数設定
+### 5. CDK Bootstrap
+
+初回デプロイ前に、CDKのbootstrapを実行する必要があります：
+
+```bash
+# AWSプロファイル指定（必要に応じて）
+export AWS_PROFILE=your-profile-name
+
+# CDK Bootstrap実行
+cd cdk
+cdk bootstrap
+```
+
+**注意**: Bootstrapは各AWSアカウント・リージョンの組み合わせで一度だけ実行する必要があります。
+
+### 6. Calendar用環境変数設定
 
 ```bash
 cd ../calendar
@@ -131,8 +146,12 @@ npm run build:all
 # AWSプロファイル指定（必要に応じて）
 export AWS_PROFILE=your-profile-name
 
-# 本番環境デプロイ
-npm run deploy:cdk
+# CDKデプロイ
+cd cdk
+cdk deploy --require-approval never
+
+# または npm scriptを使用
+npm run deploy
 ```
 
 ### 3. Cognito管理者ユーザーの作成
@@ -182,15 +201,29 @@ npm run deploy:cdk
 
 ```bash
 cd admin-frontend
-# .env.localを以下の値で更新
-# NEXT_PUBLIC_USER_POOL_ID=（CDK出力のUserPoolId）
-# NEXT_PUBLIC_USER_POOL_CLIENT_ID=（CDK出力のUserPoolClientId）
-# NEXT_PUBLIC_USER_POOL_DOMAIN=（CDK出力のUserPoolDomain）
+# .env.localを以下の値で更新（CDK出力から取得）
+# NEXT_PUBLIC_USER_POOL_ID=ap-northeast-1_3YFUBA1HS
+# NEXT_PUBLIC_USER_POOL_CLIENT_ID=5ai6dq169gvl8kmth4iq52b7mj
+# NEXT_PUBLIC_USER_POOL_DOMAIN=hiroshima-it-calendar-prod-admin.auth.ap-northeast-1.amazoncognito.com
 ```
 
-### 6. フロントエンドデプロイ
+### 6. Admin Frontend（管理画面）デプロイ
 
-#### Calendar（エンドユーザー画面）
+```bash
+# admin-frontendディレクトリに移動
+cd admin-frontend
+
+# デプロイ実行（ビルド + S3同期 + CloudFront無効化）
+npm run deploy
+```
+
+**デプロイ内容:**
+
+1. Next.jsアプリケーションのビルド（静的エクスポート）
+2. S3バケットへのファイル同期
+3. CloudFrontキャッシュの無効化
+
+### 7. Calendar（エンドユーザー画面）デプロイ
 
 GitHub Pagesで自動デプロイ（mainブランチへのpush時）
 
@@ -198,12 +231,6 @@ GitHub Secretsに以下を設定：
 
 - `GOOGLE_CALENDAR_URL`: GoogleカレンダーのURL
 - `API_BASE_URL`: デプロイ後のAPI Gateway URL
-
-#### Admin Frontend（管理画面）
-
-```bash
-npm run deploy:admin-frontend
-```
 
 ## 管理画面の使用方法
 
