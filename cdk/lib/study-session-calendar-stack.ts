@@ -10,6 +10,7 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager'
 import * as route53 from 'aws-cdk-lib/aws-route53'
 import * as targets from 'aws-cdk-lib/aws-route53-targets'
 import * as cognito from 'aws-cdk-lib/aws-cognito'
+import * as iam from 'aws-cdk-lib/aws-iam'
 import { Construct } from 'constructs'
 
 export interface StudySessionCalendarStackProps extends cdk.StackProps {
@@ -127,12 +128,38 @@ export class StudySessionCalendarStack extends cdk.Stack {
       }
     )
 
-    // DynamoDB テーブル（既存のテーブルを参照）
-    const studySessionsTable = dynamodb.Table.fromTableName(
-      this,
-      'StudySessionsTable',
-      'hiroshima-it-calendar-prod-table-study-sessions'
-    )
+    // DynamoDB テーブル
+    const studySessionsTable = new dynamodb.Table(this, 'StudySessionsTable', {
+      tableName: `${serviceName}-${environment}-table-study-sessions`,
+      partitionKey: {
+        name: 'id',
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'createdAt',
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy:
+        environment === 'prod'
+          ? cdk.RemovalPolicy.RETAIN
+          : cdk.RemovalPolicy.DESTROY,
+      pointInTimeRecovery: environment === 'prod',
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+    })
+
+    // GSI for status-based queries
+    studySessionsTable.addGlobalSecondaryIndex({
+      indexName: 'StatusIndex',
+      partitionKey: {
+        name: 'status',
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'createdAt',
+        type: dynamodb.AttributeType.STRING,
+      },
+    })
 
     // Lambda 関数用の環境変数
     const lambdaEnvironment = {
@@ -365,12 +392,21 @@ export class StudySessionCalendarStack extends cdk.Stack {
       new apigateway.LambdaIntegration(deleteStudySessionFunction)
     )
 
-    // S3 バケット（既存のバケットを参照）
-    const adminFrontendBucket = s3.Bucket.fromBucketName(
-      this,
-      'AdminFrontendBucket',
-      'hiroshima-it-calendar-prod-s3-admin-frontend'
-    )
+    // S3 バケット（管理画面用）
+    const adminFrontendBucket = new s3.Bucket(this, 'AdminFrontendBucket', {
+      bucketName: `${serviceName}-${environment}-s3-admin-frontend`,
+      websiteIndexDocument: 'index.html',
+      websiteErrorDocument: 'index.html',
+      publicReadAccess: false, // CloudFront経由でのみアクセス
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      removalPolicy:
+        environment === 'prod'
+          ? cdk.RemovalPolicy.RETAIN
+          : cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: environment !== 'prod', // 本番以外では自動削除
+      versioned: environment === 'prod',
+      encryption: s3.BucketEncryption.S3_MANAGED,
+    })
 
     // Origin Access Identity for CloudFront
     const originAccessIdentity = new cloudfront.OriginAccessIdentity(
@@ -382,17 +418,17 @@ export class StudySessionCalendarStack extends cdk.Stack {
     )
 
     // S3バケットポリシーを追加（CloudFrontからのアクセスを許可）
-    const bucketPolicyStatement = new cdk.aws_iam.PolicyStatement({
-      actions: ['s3:GetObject'],
-      resources: [`${adminFrontendBucket.bucketArn}/*`],
-      principals: [
-        new cdk.aws_iam.CanonicalUserPrincipal(
-          originAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId
-        ),
-      ],
-    })
-
-    adminFrontendBucket.addToResourcePolicy(bucketPolicyStatement)
+    adminFrontendBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ['s3:GetObject'],
+        resources: [adminFrontendBucket.arnForObjects('*')],
+        principals: [
+          new iam.CanonicalUserPrincipal(
+            originAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId
+          ),
+        ],
+      })
+    )
 
     // Route53 ホストゾーンの参照
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(
