@@ -91,7 +91,22 @@ export AWS_PROFILE=your-profile-name
 aws configure --profile your-profile-name
 ```
 
-### 5. Calendar用環境変数設定
+### 5. CDK Bootstrap
+
+初回デプロイ前に、CDKのbootstrapを実行する必要があります：
+
+```bash
+# AWSプロファイル指定（必要に応じて）
+export AWS_PROFILE=your-profile-name
+
+# CDK Bootstrap実行
+cd cdk
+cdk bootstrap
+```
+
+**注意**: Bootstrapは各AWSアカウント・リージョンの組み合わせで一度だけ実行する必要があります。
+
+### 6. Calendar用環境変数設定
 
 ```bash
 cd ../calendar
@@ -129,10 +144,13 @@ npm run build:all
 
 ```bash
 # AWSプロファイル指定（必要に応じて）
-export AWS_PROFILE=your-profile-name
+export AWS_PROFILE=private
 
-# 本番環境デプロイ
-npm run deploy:cdk
+# CDKデプロイ
+cd cdk && cdk deploy --require-approval never
+
+# または npm scriptを使用
+npm run deploy
 ```
 
 ### 3. Cognito管理者ユーザーの作成
@@ -146,21 +164,65 @@ npm run deploy:cdk
 5. 「Send an invitation to this new user?」のチェックを外す
 6. 「Create user」をクリック
 
-### 4. Admin Frontend環境変数の更新
+### 4. 管理者通知設定（オプション）
+
+デプロイ後、新しい勉強会が登録された際に管理者に自動通知を送信する機能が利用できます。
+
+#### SNS通知の設定
+
+1. AWS Console → SNS → Topics
+2. 作成されたトピック（`hiroshima-it-calendar-prod-admin-notification`）を選択
+3. 「Subscriptions」タブ → 「Create subscription」
+4. 通知方法を選択：
+   - **Email**: 管理者のメールアドレスを入力
+   - **SMS**: 管理者の電話番号を入力（+81形式）
+   - **HTTPS**: Slack WebhookやDiscord WebhookのURLを入力
+5. 「Create subscription」をクリック
+6. メール/SMS通知の場合は確認メッセージに従って承認
+
+#### 通知内容
+
+通知には以下の情報が含まれます：
+
+- 勉強会のタイトル
+- 開催日時
+- 登録日時
+- 管理画面へのリンク
+
+#### 通知の無効化
+
+通知機能を無効にしたい場合は、CDKスタックの環境変数 `NOTIFICATION_ENABLED` を `false`
+に変更してデプロイしてください。
+
+### 5. Admin Frontend環境変数の更新
 
 デプロイ完了後、CDKの出力値を使用して環境変数を設定：
 
 ```bash
 cd admin-frontend
-# .env.localを以下の値で更新
-# NEXT_PUBLIC_USER_POOL_ID=（CDK出力のUserPoolId）
-# NEXT_PUBLIC_USER_POOL_CLIENT_ID=（CDK出力のUserPoolClientId）
-# NEXT_PUBLIC_USER_POOL_DOMAIN=（CDK出力のUserPoolDomain）
+# .env.localを以下の値で更新（CDK出力から取得）
+# NEXT_PUBLIC_USER_POOL_ID=ap-northeast-1_3YFUBA1HS
+# NEXT_PUBLIC_USER_POOL_CLIENT_ID=5ai6dq169gvl8kmth4iq52b7mj
+# NEXT_PUBLIC_USER_POOL_DOMAIN=hiroshima-it-calendar-prod-admin.auth.ap-northeast-1.amazoncognito.com
 ```
 
-### 5. フロントエンドデプロイ
+### 6. Admin Frontend（管理画面）デプロイ
 
-#### Calendar（エンドユーザー画面）
+```bash
+# admin-frontendディレクトリに移動
+cd admin-frontend
+
+# デプロイ実行（ビルド + S3同期 + CloudFront無効化）
+npm run deploy
+```
+
+**デプロイ内容:**
+
+1. Next.jsアプリケーションのビルド（静的エクスポート）
+2. S3バケットへのファイル同期
+3. CloudFrontキャッシュの無効化
+
+### 7. Calendar（エンドユーザー画面）デプロイ
 
 GitHub Pagesで自動デプロイ（mainブランチへのpush時）
 
@@ -168,12 +230,6 @@ GitHub Secretsに以下を設定：
 
 - `GOOGLE_CALENDAR_URL`: GoogleカレンダーのURL
 - `API_BASE_URL`: デプロイ後のAPI Gateway URL
-
-#### Admin Frontend（管理画面）
-
-```bash
-npm run deploy:admin-frontend
-```
 
 ## 管理画面の使用方法
 

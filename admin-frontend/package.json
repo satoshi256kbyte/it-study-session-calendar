@@ -9,13 +9,11 @@
   },
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "next build",
+    "build": "next build && next export",
     "start": "next start -p 3001",
     "lint": "next lint",
-    "export": "next build && next export",
-    "setup": "npm run setup:aws-config && npm run setup:env",
-    "setup:aws-config": "cp src/aws-exports.ts.sample src/aws-exports.ts && echo 'AWS設定ファイルを作成しました。src/aws-exports.tsを編集してください。'",
-    "setup:env": "cp .env.example .env.local && echo '環境変数ファイルを作成しました。.env.localを編集してください。'"
+    "setup": "cp .env.example .env.local && echo '📝 .env.local を作成しました。適切な値を設定してください。'",
+    "deploy": "../scripts/deploy-frontend.sh"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.11.2",
