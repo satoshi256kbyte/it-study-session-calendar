@@ -1,6 +1,7 @@
 {
   "serviceName": "hiroshima-it-calendar",
   "environment": "prod",
+  "logLevel": "INFO",
   "googleCalendarId": "your-calendar-id@group.calendar.google.com",
   "googleCalendarApiKey": "your-google-calendar-api-key",
   "googleServiceAccountEmail": "your-service-account@your-project.iam.gserviceaccount.com",

@@ -74,6 +74,7 @@ new StudySessionCalendarStack(app, stackName, {
   },
   serviceName: parameters.serviceName,
   environment: parameters.environment,
+  logLevel: parameters.logLevel || 'INFO',
   googleCalendarId: parameters.googleCalendarId,
   googleServiceAccountEmail: parameters.googleServiceAccountEmail,
   googlePrivateKey: parameters.googlePrivateKey,

@@ -16,6 +16,7 @@ import { Construct } from 'constructs'
 export interface StudySessionCalendarStackProps extends cdk.StackProps {
   serviceName: string
   environment: string
+  logLevel: string
   googleCalendarId: string
   googleServiceAccountEmail: string
   googlePrivateKey: string
@@ -35,6 +36,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
     const {
       serviceName,
       environment,
+      logLevel,
       googleCalendarId,
       googleServiceAccountEmail,
       googlePrivateKey,
@@ -168,7 +170,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
       GOOGLE_SERVICE_ACCOUNT_EMAIL: googleServiceAccountEmail,
       GOOGLE_PRIVATE_KEY: googlePrivateKey,
       ENVIRONMENT: environment,
-      LOG_LEVEL: 'INFO',
+      LOG_LEVEL: logLevel,
     }
 
     // Lambda Layer for dependencies

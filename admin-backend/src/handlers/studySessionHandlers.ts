@@ -73,7 +73,11 @@ export const getStudySessions: APIGatewayProxyHandler = async (
   event
 ): Promise<APIGatewayProxyResult> => {
   try {
+    logger.debug('getStudySessions handler started')
+    logger.debug('Event:', JSON.stringify(event, null, 2))
+
     if (event.httpMethod === 'OPTIONS') {
+      logger.debug('OPTIONS request received, returning CORS headers')
       return {
         statusCode: 200,
         headers: corsHeaders,
@@ -81,13 +85,24 @@ export const getStudySessions: APIGatewayProxyHandler = async (
       }
     }
 
+    logger.debug('Calling DynamoDBService.getStudySessions()')
     const sessions = await dynamoDBService.getStudySessions()
-    logger.info('Count of study sessions:', sessions.length)
+
+    logger.info(`Retrieved ${sessions.length} study sessions from database`)
+    logger.debug('Sessions data:', JSON.stringify(sessions, null, 2))
+
+    // レスポンス前の最終チェック
+    const responseBody = { sessions }
+    logger.debug(
+      'Response body before sending:',
+      JSON.stringify(responseBody, null, 2)
+    )
+    logger.debug(`Final count before response: ${sessions.length} sessions`)
 
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify({ sessions }),
+      body: JSON.stringify(responseBody),
     }
   } catch (error) {
     logger.error('Error getting study sessions:', error)
