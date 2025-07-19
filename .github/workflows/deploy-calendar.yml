@@ -82,12 +82,6 @@ jobs:
           NEXT_PUBLIC_GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}
 
-      - name: Copy static assets to output directory
-        run: |
-          cp calendar/assets/favicon.ico calendar/out/favicon.ico
-          cp calendar/assets/favicon.svg calendar/out/favicon.svg
-          cp calendar/assets/og-image.png calendar/out/og-image.png
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

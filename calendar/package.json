@@ -18,6 +18,8 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "mkdir -p public && cp -r assets/* public/ 2>/dev/null || true",
+    "postbuild": "mkdir -p out && cp -r assets/* out/ 2>/dev/null || true",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
