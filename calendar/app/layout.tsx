@@ -48,17 +48,19 @@ export default function RootLayout({
     }
 
     // ファビコンを設定
+    const basePath =
+      process.env.NODE_ENV === 'production' ? '/it-study-session-calendar' : ''
     const existingFavicon = document.querySelector(
       "link[rel*='icon']"
     ) as HTMLLinkElement
     if (existingFavicon) {
-      existingFavicon.href = '/favicon.svg'
+      existingFavicon.href = `${basePath}/favicon.svg`
       existingFavicon.type = 'image/svg+xml'
     } else {
       const newFavicon = document.createElement('link')
       newFavicon.rel = 'icon'
       newFavicon.type = 'image/svg+xml'
-      newFavicon.href = '/favicon.svg'
+      newFavicon.href = `${basePath}/favicon.svg`
       document.head.appendChild(newFavicon)
     }
 
@@ -87,7 +89,7 @@ export default function RootLayout({
       'og:description',
       '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。'
     )
-    setOgMeta('og:image', '/og-image.png')
+    setOgMeta('og:image', `${basePath}/og-image.png`)
 
     // Twitter Card設定
     const setTwitterMeta = (name: string, content: string) => {
@@ -110,7 +112,7 @@ export default function RootLayout({
       'twitter:description',
       '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。'
     )
-    setTwitterMeta('twitter:image', '/og-image.png')
+    setTwitterMeta('twitter:image', `${basePath}/og-image.png`)
 
     // 構造化データを設定
     const structuredData = {
@@ -170,8 +172,15 @@ export default function RootLayout({
           name="keywords"
           content="広島,IT,勉強会,エンジニア,セミナー,イベント"
         />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/favicon.svg" />
+        <link
+          rel="icon"
+          href={`${process.env.NODE_ENV === 'production' ? '/it-study-session-calendar' : ''}/favicon.svg`}
+          type="image/svg+xml"
+        />
+        <link
+          rel="apple-touch-icon"
+          href={`${process.env.NODE_ENV === 'production' ? '/it-study-session-calendar' : ''}/favicon.svg`}
+        />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
