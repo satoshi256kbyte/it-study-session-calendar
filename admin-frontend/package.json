@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "next dev -p 3001",
+    "prebuild": "mkdir -p public && cp -r src/assets/* public/ 2>/dev/null || true",
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint",
