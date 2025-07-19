@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "next build && next export",
+    "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint",
     "setup": "cp .env.example .env.local && echo '📝 .env.local を作成しました。適切な値を設定してください。'",
