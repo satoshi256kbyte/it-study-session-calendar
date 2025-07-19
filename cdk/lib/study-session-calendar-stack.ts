@@ -11,6 +11,7 @@ import * as route53 from 'aws-cdk-lib/aws-route53'
 import * as targets from 'aws-cdk-lib/aws-route53-targets'
 import * as cognito from 'aws-cdk-lib/aws-cognito'
 import * as iam from 'aws-cdk-lib/aws-iam'
+import * as sns from 'aws-cdk-lib/aws-sns'
 import { Construct } from 'constructs'
 
 export interface StudySessionCalendarStackProps extends cdk.StackProps {
@@ -163,6 +164,16 @@ export class StudySessionCalendarStack extends cdk.Stack {
       },
     })
 
+    // SNS トピック（勉強会登録通知用）
+    const studySessionNotificationTopic = new sns.Topic(
+      this,
+      'StudySessionNotificationTopic',
+      {
+        topicName: `${serviceName}-${environment}-sns-study-session-notification`,
+        displayName: '勉強会登録通知',
+      }
+    )
+
     // Lambda 関数用の環境変数
     const lambdaEnvironment = {
       STUDY_SESSIONS_TABLE_NAME: studySessionsTable.tableName,
@@ -171,6 +182,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
       GOOGLE_PRIVATE_KEY: googlePrivateKey,
       ENVIRONMENT: environment,
       LOG_LEVEL: logLevel,
+      SNS_TOPIC_ARN: studySessionNotificationTopic.topicArn,
     }
 
     // Lambda Layer for dependencies
@@ -287,6 +299,9 @@ export class StudySessionCalendarStack extends cdk.Stack {
     studySessionsTable.grantReadWriteData(approveStudySessionFunction)
     studySessionsTable.grantReadWriteData(rejectStudySessionFunction)
     studySessionsTable.grantReadWriteData(deleteStudySessionFunction)
+
+    // SNS トピックへの発行権限を付与
+    studySessionNotificationTopic.grantPublish(createStudySessionFunction)
 
     // API Gateway
     const api = new apigateway.RestApi(this, 'StudySessionApi', {
@@ -581,6 +596,12 @@ export class StudySessionCalendarStack extends cdk.Stack {
       value: `https://${userPoolDomain.domainName}.auth.${this.region}.amazoncognito.com`,
       description: 'Cognito User Pool Domain',
       exportName: `${serviceName}-${environment}-user-pool-domain`,
+    })
+
+    new cdk.CfnOutput(this, 'StudySessionNotificationTopicArn', {
+      value: studySessionNotificationTopic.topicArn,
+      description: '勉強会通知SNSトピックARN',
+      exportName: `${serviceName}-${environment}-sns-topic-arn`,
     })
   }
 }

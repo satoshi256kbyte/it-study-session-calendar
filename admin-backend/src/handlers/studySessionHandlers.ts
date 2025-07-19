@@ -1,11 +1,13 @@
 import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { DynamoDBService } from '../services/DynamoDBService'
 import { GoogleCalendarService } from '../services/GoogleCalendarService'
+import { NotificationService } from '../services/NotificationService'
 import { CreateStudySessionRequest } from '../types/StudySession'
 import { logger } from '../utils/logger'
 
 const dynamoDBService = new DynamoDBService()
 const googleCalendarService = new GoogleCalendarService()
+const notificationService = new NotificationService()
 
 // CORS ヘッダー（緩い設定）
 const corsHeaders = {
@@ -60,7 +62,40 @@ export const createStudySession: APIGatewayProxyHandler = async (
       return createErrorResponse(400, '必須項目が不足しています')
     }
 
+    // 勉強会をDynamoDBに登録
     const session = await dynamoDBService.createStudySession(request)
+
+    // 非同期でSNS通知を送信（エラーが発生しても登録処理は継続）
+    const sessionForNotification = { ...session } // セッションデータをコピー
+    setImmediate(async () => {
+      try {
+        await notificationService.publishStudySessionNotification(
+          sessionForNotification
+        )
+        logger.info('Study session notification process completed', {
+          sessionId: sessionForNotification.id,
+        })
+      } catch (notificationError) {
+        logger.error('Study session notification process failed', {
+          sessionId: sessionForNotification.id,
+          error:
+            notificationError instanceof Error
+              ? notificationError.message
+              : 'Unknown error',
+          stack:
+            notificationError instanceof Error
+              ? notificationError.stack
+              : undefined,
+        })
+      }
+    })
+
+    logger.info('Study session created successfully', {
+      sessionId: session.id,
+      title: session.title,
+      datetime: session.datetime,
+    })
+
     return createSuccessResponse(201, session)
   } catch (error) {
     logger.error('Error creating study session:', error)
