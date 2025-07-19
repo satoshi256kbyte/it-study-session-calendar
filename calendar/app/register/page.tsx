@@ -1,13 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export default function Register() {
+  // 今日の日付を取得してYYYY-MM-DD形式にフォーマット
+  const getTodayDate = () => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = (today.getMonth() + 1).toString().padStart(2, '0')
+    const day = today.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   const [formData, setFormData] = useState({
     title: '',
     url: '',
-    date: '',
+    date: getTodayDate(), // 初期値を今日の日付に設定
     startTime: '',
     endTime: '',
     contact: '',
@@ -28,6 +37,22 @@ export default function Register() {
   }
 
   const timeOptions = generateTimeOptions()
+
+  // 開始時刻から2時間後の時刻を計算する関数
+  const calculateEndTime = (startTime: string) => {
+    if (!startTime) return ''
+
+    const [hour, minute] = startTime.split(':').map(Number)
+    let endHour = hour + 2
+    let endMinute = minute
+
+    // 24時を超える場合は翌日扱いとして24時間制で表示
+    if (endHour >= 24) {
+      endHour = endHour - 24
+    }
+
+    return `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -70,7 +95,7 @@ export default function Register() {
         setFormData({
           title: '',
           url: '',
-          date: '',
+          date: getTodayDate(), // リセット時も今日の日付を設定
           startTime: '',
           endTime: '',
           contact: '',
@@ -88,10 +113,22 @@ export default function Register() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
+    const { name, value } = e.target
+
+    // 開始時刻が変更された場合、終了時刻を自動計算
+    if (name === 'startTime') {
+      const calculatedEndTime = calculateEndTime(value)
+      setFormData({
+        ...formData,
+        [name]: value,
+        endTime: calculatedEndTime,
+      })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      })
+    }
   }
 
   return (
@@ -293,6 +330,9 @@ export default function Register() {
                         </li>
                         <li>承認されるとカレンダーに自動的に追加されます</li>
                         <li>時刻は15分刻みで選択できます</li>
+                        <li>
+                          開始時刻を選択すると、終了時刻が自動的に2時間後に設定されます
+                        </li>
                       </ul>
                     </div>
                   </div>
