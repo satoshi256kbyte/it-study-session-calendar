@@ -115,6 +115,42 @@ EOF
 
 echo "✅ .env.local ファイルを作成しました！"
 echo "📁 場所: admin-frontend/.env.local"
+
+# aws-exports.tsファイルも更新
+echo "📝 aws-exports.ts ファイルを更新中..."
+
+cat > src/aws-exports.ts << EOF
+import { ResourcesConfig } from 'aws-amplify'
+
+const awsconfig: ResourcesConfig = {
+  Auth: {
+    Cognito: {
+      userPoolId: '${USER_POOL_ID:-your-user-pool-id}',
+      userPoolClientId: '${USER_POOL_CLIENT_ID:-your-user-pool-client-id}',
+      loginWith: {
+        oauth: {
+          domain: '${USER_POOL_DOMAIN:-your-domain}',
+          scopes: ['email', 'openid', 'profile'],
+          redirectSignIn: [
+            '$REDIRECT_URI/',
+            'http://localhost:3001/',
+          ],
+          redirectSignOut: [
+            '$REDIRECT_URI/',
+            'http://localhost:3001/',
+          ],
+          responseType: 'code',
+        },
+      },
+    },
+  },
+}
+
+export default awsconfig
+EOF
+
+echo "✅ aws-exports.ts ファイルを更新しました！"
+echo "📁 場所: admin-frontend/src/aws-exports.ts"
 echo ""
 echo "🔧 設定された環境変数:"
 echo "   NEXT_PUBLIC_AWS_REGION=$AWS_REGION"
@@ -122,5 +158,9 @@ echo "   NEXT_PUBLIC_USER_POOL_ID=${USER_POOL_ID:-your-user-pool-id}"
 echo "   NEXT_PUBLIC_USER_POOL_CLIENT_ID=${USER_POOL_CLIENT_ID:-your-user-pool-client-id}"
 echo "   NEXT_PUBLIC_USER_POOL_DOMAIN=${USER_POOL_DOMAIN:-'未取得'}"
 echo "   NEXT_PUBLIC_REDIRECT_URI=$REDIRECT_URI"
+echo ""
+echo "🔧 更新されたファイル:"
+echo "   - admin-frontend/.env.local"
+echo "   - admin-frontend/src/aws-exports.ts"
 echo ""
 echo "🚀 フロントエンドの開発を開始できます！"
