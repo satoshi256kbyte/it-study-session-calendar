@@ -67,12 +67,21 @@ export class DynamoDBService {
     id: string,
     status: 'approved' | 'rejected'
   ): Promise<StudySession> {
+    // まず対象のアイテムを取得してcreatedAtを取得
+    const session = await this.getStudySession(id)
+    if (!session) {
+      throw new Error(`Study session with id ${id} not found`)
+    }
+
     const now = new Date().toISOString()
 
     const result = await this.dynamodb.send(
       new UpdateCommand({
         TableName: this.tableName,
-        Key: { id },
+        Key: {
+          id: session.id,
+          createdAt: session.createdAt,
+        },
         UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt',
         ExpressionAttributeNames: {
           '#status': 'status',
@@ -89,10 +98,20 @@ export class DynamoDBService {
   }
 
   async deleteStudySession(id: string): Promise<void> {
+    // まず対象のアイテムを取得してcreatedAtを取得
+    const session = await this.getStudySession(id)
+    if (!session) {
+      throw new Error(`Study session with id ${id} not found`)
+    }
+
+    // 複合キー（id + createdAt）で削除
     await this.dynamodb.send(
       new DeleteCommand({
         TableName: this.tableName,
-        Key: { id },
+        Key: {
+          id: session.id,
+          createdAt: session.createdAt,
+        },
       })
     )
   }
