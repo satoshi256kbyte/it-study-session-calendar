@@ -65,8 +65,14 @@ ADMIN_URL=$(aws cloudformation describe-stacks \
     --query "Stacks[0].Outputs[?OutputKey=='AdminFrontendUrl'].OutputValue" \
     --output text 2>/dev/null || echo "")
 
-# User Pool Domainを構築
-USER_POOL_DOMAIN="${SERVICE_NAME}-${ENVIRONMENT}.auth.${AWS_REGION}.amazoncognito.com"
+# User Pool DomainをCloudFormationの出力から取得
+USER_POOL_DOMAIN_URL=$(aws cloudformation describe-stacks \
+    --stack-name "$STACK_NAME" \
+    --query "Stacks[0].Outputs[?OutputKey=='UserPoolDomain'].OutputValue" \
+    --output text 2>/dev/null || echo "")
+
+# URLからドメイン部分のみを抽出（https://を除去）
+USER_POOL_DOMAIN=$(echo "$USER_POOL_DOMAIN_URL" | sed 's|https://||')
 
 # リダイレクトURLを設定
 if [ -n "$ADMIN_URL" ] && [ "$ADMIN_URL" != "None" ] && [ "$ADMIN_URL" != "" ]; then
@@ -79,7 +85,7 @@ echo "✅ リソース情報を取得しました:"
 echo "   AWS Region: $AWS_REGION"
 echo "   User Pool ID: ${USER_POOL_ID:-'未取得'}"
 echo "   User Pool Client ID: ${USER_POOL_CLIENT_ID:-'未取得'}"
-echo "   User Pool Domain: $USER_POOL_DOMAIN"
+echo "   User Pool Domain: ${USER_POOL_DOMAIN:-'未取得'}"
 echo "   管理画面URL: ${ADMIN_URL:-'未設定'}"
 echo "   Redirect URI: $REDIRECT_URI"
 
@@ -114,7 +120,7 @@ echo "🔧 設定された環境変数:"
 echo "   NEXT_PUBLIC_AWS_REGION=$AWS_REGION"
 echo "   NEXT_PUBLIC_USER_POOL_ID=${USER_POOL_ID:-your-user-pool-id}"
 echo "   NEXT_PUBLIC_USER_POOL_CLIENT_ID=${USER_POOL_CLIENT_ID:-your-user-pool-client-id}"
-echo "   NEXT_PUBLIC_USER_POOL_DOMAIN=$USER_POOL_DOMAIN"
+echo "   NEXT_PUBLIC_USER_POOL_DOMAIN=${USER_POOL_DOMAIN:-'未取得'}"
 echo "   NEXT_PUBLIC_REDIRECT_URI=$REDIRECT_URI"
 echo ""
 echo "🚀 フロントエンドの開発を開始できます！"
