@@ -183,10 +183,20 @@ export class StudySessionCalendarStack extends cdk.Stack {
               'bash',
               '-c',
               [
-                'npm ci --production',
+                'echo "Starting bundling process..."',
+                'ls -la',
+                'echo "Installing dependencies..."',
+                'npm ci --production --ignore-engines || npm install --production --ignore-engines',
+                'echo "Creating output directory..."',
                 'mkdir -p /asset-output/nodejs',
-                'cp -r node_modules /asset-output/nodejs/',
-                'cp package.json /asset-output/nodejs/',
+                'echo "Copying node_modules..."',
+                'cp -r node_modules /asset-output/nodejs/ || echo "No node_modules found"',
+                'echo "Copying package.json..."',
+                'cp package.json /asset-output/nodejs/ || echo "No package.json found"',
+                'echo "Listing output directory..."',
+                'ls -la /asset-output/',
+                'ls -la /asset-output/nodejs/ || echo "nodejs directory not found"',
+                'echo "Bundling complete"',
               ].join(' && '),
             ],
             user: 'root', // Docker内でroot権限を使用
@@ -395,8 +405,6 @@ export class StudySessionCalendarStack extends cdk.Stack {
     // S3 バケット（管理画面用）
     const adminFrontendBucket = new s3.Bucket(this, 'AdminFrontendBucket', {
       bucketName: `${serviceName}-${environment}-s3-admin-frontend`,
-      websiteIndexDocument: 'index.html',
-      websiteErrorDocument: 'index.html',
       publicReadAccess: false, // CloudFront経由でのみアクセス
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy:
@@ -483,6 +491,12 @@ export class StudySessionCalendarStack extends cdk.Stack {
         certificate: certificate,
         defaultRootObject: 'index.html',
         errorResponses: [
+          {
+            httpStatus: 403,
+            responseHttpStatus: 200,
+            responsePagePath: '/index.html',
+            ttl: cdk.Duration.minutes(5),
+          },
           {
             httpStatus: 404,
             responseHttpStatus: 200,
