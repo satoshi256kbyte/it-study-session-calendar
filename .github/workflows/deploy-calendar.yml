@@ -82,6 +82,13 @@ jobs:
           NEXT_PUBLIC_GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}
 
+      - name: Copy static assets to output directory
+        run: |
+          cd calendar
+          cp -r assets/* out/ 2>/dev/null || true
+          echo "Copied assets to out directory:"
+          ls -la out/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
