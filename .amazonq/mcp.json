@@ -23,13 +23,6 @@
       "disabled": false,
       "autoApprove": []
     },
-    "awslabs.cfn-mcp-server": {
-      "command": "docker",
-      "args": ["run", "--rm", "--interactive", "awslabs/cfn-mcp-server:latest"],
-      "env": {},
-      "disabled": false,
-      "autoApprove": []
-    },
     "awslabs.cdk-mcp-server": {
       "command": "docker",
       "args": ["run", "--rm", "--interactive", "--env", "FASTMCP_LOG_LEVEL=ERROR", "awslabs/cdk-mcp-server:latest"],
