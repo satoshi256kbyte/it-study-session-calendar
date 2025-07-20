@@ -9,11 +9,22 @@ set -e
 # 引数の処理
 PROFILE=${1:-default}
 
-echo "🚀 バックエンドのデプロイを開始します..."
+echo "🚀 バックエンド全体のデプロイを開始します..."
 echo "📋 プロファイル: $PROFILE"
 
-# CDKディレクトリに移動してデプロイスクリプトを実行
+# 1. admin-backendのデプロイ
+echo ""
+echo "=== 1. admin-backendのデプロイ ==="
+cd admin-backend
+./scripts/deploy.sh
+cd ..
+
+# 2. CDKのデプロイ
+echo ""
+echo "=== 2. CDK（インフラ）のデプロイ ==="
 cd cdk
 ./scripts/deploy.sh "$PROFILE"
+cd ..
 
-echo "✅ バックエンドのデプロイが完了しました！"
+echo ""
+echo "✅ バックエンド全体のデプロイが完了しました！"
