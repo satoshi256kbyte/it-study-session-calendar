@@ -51,10 +51,10 @@ export class NotificationService implements NotificationServiceInterface {
     }
 
     try {
-      const message = this.formatNotificationMessage(session)
+      const humanReadableMessage = this.formatHumanReadableMessage(session)
       const command = new PublishCommand({
         TopicArn: this.topicArn,
-        Message: JSON.stringify(message),
+        Message: humanReadableMessage,
         Subject: `新しい勉強会が登録されました: ${session.title}`,
       })
 
@@ -74,6 +74,68 @@ export class NotificationService implements NotificationServiceInterface {
       })
       // エラーが発生してもthrowしない（勉強会登録処理を妨げないため）
     }
+  }
+
+  private formatHumanReadableMessage(session: StudySession): string {
+    const sessionDate = new Date(session.datetime)
+    const endDate = session.endDatetime ? new Date(session.endDatetime) : null
+    const registeredDate = new Date(session.createdAt)
+
+    const dateStr = sessionDate.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long',
+      timeZone: 'Asia/Tokyo',
+    })
+
+    const timeStr = sessionDate.toLocaleTimeString('ja-JP', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Tokyo',
+    })
+
+    const endTimeStr = endDate
+      ? endDate.toLocaleTimeString('ja-JP', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Asia/Tokyo',
+        })
+      : null
+
+    const registeredTimeStr = registeredDate.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Tokyo',
+    })
+
+    let message = `新しい勉強会が登録されました！\n\n`
+    message += `【勉強会情報】\n`
+    message += `タイトル: ${session.title}\n`
+    message += `開催日時: ${dateStr} ${timeStr}`
+
+    if (endTimeStr) {
+      message += ` - ${endTimeStr}`
+    }
+    message += `\n`
+
+    message += `URL: ${session.url}\n`
+
+    if (session.contact) {
+      message += `連絡先: ${session.contact}\n`
+    }
+
+    message += `\n【管理情報】\n`
+    message += `登録ID: ${session.id}\n`
+    message += `登録日時: ${registeredTimeStr}\n`
+    message += `ステータス: 承認待ち\n`
+    message += `\n管理画面で承認・却下の操作を行ってください。\n`
+    message += `管理画面: https://it-study-session.satoshi256kbyte.net/`
+
+    return message
   }
 
   private formatNotificationMessage(
@@ -109,11 +171,13 @@ export class NotificationService implements NotificationServiceInterface {
       month: 'long',
       day: 'numeric',
       weekday: 'long',
+      timeZone: 'Asia/Tokyo',
     })
 
     const timeStr = sessionDate.toLocaleTimeString('ja-JP', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Tokyo',
     })
 
     let summary = `新しい勉強会「${session.title}」が登録されました。\n`
@@ -124,6 +188,7 @@ export class NotificationService implements NotificationServiceInterface {
       const endTimeStr = endDate.toLocaleTimeString('ja-JP', {
         hour: '2-digit',
         minute: '2-digit',
+        timeZone: 'Asia/Tokyo',
       })
       summary += ` - ${endTimeStr}`
     }
