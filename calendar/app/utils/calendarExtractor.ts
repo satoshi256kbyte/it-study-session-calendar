@@ -232,16 +232,6 @@ export class CalendarExtractor {
    * フォールバック用のサンプルデータを生成する
    */
   static generateSampleMarkdown(): string {
-    const currentDate = new Date()
-    const currentMonth = currentDate.getMonth() + 1
-
-    const sampleEvents = [
-      `${currentMonth}/23 オープンセミナー2025@広島 − 君はどこで動かすか？`,
-      `${currentMonth}/27 「生成AI × リアル事例で業務改革」DXセミナー`,
-      `${currentMonth}/27 すごい広島 with Python[101]`,
-      `${currentMonth}/30 PyLadies Caravan in 広島 2nd`,
-    ]
-
-    return sampleEvents.join('\n')
+    return ''
   }
 }
