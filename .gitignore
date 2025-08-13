@@ -103,3 +103,4 @@ Thumbs.db
 
 # Documentation images
 docs/*.png
+calendar/tsconfig.tsbuildinfo
