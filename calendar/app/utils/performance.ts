@@ -122,10 +122,13 @@ export class PerformanceMonitor {
       if (
         typeof window !== 'undefined' &&
         'performance' in window &&
-        window.performance?.mark
+        typeof window.performance?.mark === 'function'
       ) {
         window.performance.mark(`${name}-start`)
-      } else if (typeof performance !== 'undefined' && performance?.mark) {
+      } else if (
+        typeof performance !== 'undefined' &&
+        typeof performance?.mark === 'function'
+      ) {
         performance.mark(`${name}-start`)
       }
     } catch (error) {
@@ -143,10 +146,13 @@ export class PerformanceMonitor {
       if (
         typeof window !== 'undefined' &&
         'performance' in window &&
-        window.performance?.mark
+        typeof window.performance?.mark === 'function'
       ) {
         perf = window.performance
-      } else if (typeof performance !== 'undefined' && performance?.mark) {
+      } else if (
+        typeof performance !== 'undefined' &&
+        typeof performance?.mark === 'function'
+      ) {
         perf = performance
       }
 
