@@ -2,6 +2,9 @@
 const nextConfig = {
   output: 'export',
   trailingSlash: true,
+  experimental: {
+    forceSwcTransforms: false,
+  },
   images: {
     unoptimized: true,
   },

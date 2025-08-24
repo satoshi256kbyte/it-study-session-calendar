@@ -5,14 +5,12 @@ module.exports = {
     browser: true,
     es2022: true,
   },
-  extends: ['eslint:recommended', 'prettier'],
-  plugins: ['prettier'],
+  extends: ['eslint:recommended'],
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
   },
   rules: {
-    'prettier/prettier': 'error',
     'no-unused-vars': 'off',
     'no-undef': 'off',
   },
@@ -27,10 +25,8 @@ module.exports = {
           jsx: true,
         },
       },
-      extends: ['eslint:recommended', 'prettier'],
-      plugins: ['prettier'],
+      extends: ['eslint:recommended'],
       rules: {
-        'prettier/prettier': 'error',
         'no-unused-vars': 'off',
         'no-undef': 'off',
       },
