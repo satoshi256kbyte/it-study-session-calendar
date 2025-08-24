@@ -12,8 +12,8 @@ PROFILE=${1:-default}
 echo "⚠️  バックエンドリソースの削除を開始します..."
 echo "📋 プロファイル: $PROFILE"
 
-# AWSプロファイルを設定
 export AWS_PROFILE=$PROFILE
+export AWS_DEFAULT_REGION=ap-northeast-1
 
 # プロファイルの確認
 echo "🔍 AWS認証情報を確認中..."

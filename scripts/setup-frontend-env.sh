@@ -45,7 +45,7 @@ echo "📦 スタック名: $STACK_NAME"
 echo "🔍 デプロイされたリソース情報を取得中..."
 
 # AWS リージョンを取得
-AWS_REGION=$(aws configure get region --profile $PROFILE || echo "ap-northeast-1")
+AWS_REGION="ap-northeast-1"
 
 # Cognito User Pool IDを取得
 USER_POOL_ID=$(aws cloudformation describe-stacks \
