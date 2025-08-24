@@ -23,31 +23,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Detect package manager
-        id: detect-package-manager
-        run: |
-          if [ -f "${{ github.workspace }}/calendar/yarn.lock" ]; then
-            echo "manager=yarn" >> $GITHUB_OUTPUT
-            echo "command=install" >> $GITHUB_OUTPUT
-            echo "runner=yarn" >> $GITHUB_OUTPUT
-            echo "cache-path=calendar" >> $GITHUB_OUTPUT
-            exit 0
-          elif [ -f "${{ github.workspace }}/calendar/package.json" ]; then
-            echo "manager=npm" >> $GITHUB_OUTPUT
-            echo "command=ci" >> $GITHUB_OUTPUT
-            echo "runner=npx --no-install" >> $GITHUB_OUTPUT
-            echo "cache-path=calendar" >> $GITHUB_OUTPUT
-            exit 0
-          else
-            echo "Unable to determine package manager"
-            exit 1
-          fi
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "23.10.0"
-          cache: ${{ steps.detect-package-manager.outputs.manager }}
+          cache: 'npm'
           cache-dependency-path: 'calendar/package-lock.json'
 
       - name: Setup Pages
@@ -60,14 +40,14 @@ jobs:
         with:
           path: |
             calendar/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('calendar/package-lock.json', 'calendar/yarn.lock') }}-${{ hashFiles('calendar/**.[jt]s', 'calendar/**.[jt]sx') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('calendar/package-lock.json') }}-${{ hashFiles('calendar/**.[jt]s', 'calendar/**.[jt]sx') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('calendar/package-lock.json', 'calendar/yarn.lock') }}-
+            ${{ runner.os }}-nextjs-${{ hashFiles('calendar/package-lock.json') }}-
 
       - name: Install dependencies
         run: |
           cd calendar
-          ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+          npm ci
 
       - name: Debug environment variables
         run: |
@@ -77,17 +57,10 @@ jobs:
       - name: Build with Next.js
         run: |
           cd calendar
-          ${{ steps.detect-package-manager.outputs.runner }} next build
+          npm run build
         env:
           NEXT_PUBLIC_GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}
-
-      - name: Copy static assets to output directory
-        run: |
-          cd calendar
-          cp -r assets/* out/ 2>/dev/null || true
-          echo "Copied assets to out directory:"
-          ls -la out/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
