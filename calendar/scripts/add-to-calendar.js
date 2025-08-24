@@ -219,7 +219,7 @@ async function main() {
     // カレンダーイベントデータを作成
     const eventData = {
       summary: issueData.title,
-      description: issueData.url ? `詳細: ${issueData.url}` : '',
+      description: issueData.url ? `${issueData.url}` : '',
       ...dateTimeInfo,
     }
 

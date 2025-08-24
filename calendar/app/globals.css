@@ -23,3 +23,28 @@ body {
   height: 100%;
   border: none;
 }
+
+/* Performance optimizations */
+@layer utilities {
+  /* Improve scrolling performance */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Optimize animations */
+  .will-change-transform {
+    will-change: transform;
+  }
+  
+  /* Reduce layout thrashing */
+  .contain-layout {
+    contain: layout;
+  }
+  
+  /* Optimize image loading */
+  .optimize-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}

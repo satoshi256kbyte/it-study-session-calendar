@@ -5,19 +5,29 @@ import {
   ScanCommand,
   UpdateCommand,
   DeleteCommand,
+  QueryCommand,
 } from '@aws-sdk/lib-dynamodb'
 import { StudySession, CreateStudySessionRequest } from '../types/StudySession'
+import {
+  EventRecord,
+  EventWithMaterials,
+  Material,
+} from '../types/EventMaterial'
 import { logger } from '../utils/logger'
 
 export class DynamoDBService {
   private dynamodb: DynamoDBDocumentClient
   private tableName: string
+  private eventsTableName: string
 
   constructor() {
     const client = new DynamoDBClient({})
     this.dynamodb = DynamoDBDocumentClient.from(client)
     this.tableName = process.env.STUDY_SESSIONS_TABLE_NAME || 'StudySessions'
-    logger.debug(`DynamoDBService initialized with table: ${this.tableName}`)
+    this.eventsTableName = process.env.EVENTS_TABLE_NAME || 'Events'
+    logger.debug(
+      `DynamoDBService initialized with tables: ${this.tableName}, ${this.eventsTableName}`
+    )
   }
 
   async createStudySession(
@@ -198,5 +208,174 @@ export class DynamoDBService {
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
     logger.debug(`Generated new ID: ${id}`)
     return id
+  }
+
+  /**
+   * connpassイベントで資料があるもののみを日付範囲で取得
+   * 要件1.2, 6.1, 6.2に対応
+   */
+  async queryEventsByDateRange(
+    status: 'approved' | 'pending' | 'rejected',
+    startDate: string,
+    endDate: string
+  ): Promise<EventWithMaterials[]> {
+    logger.debug(
+      `Querying events by date range: status=${status}, startDate=${startDate}, endDate=${endDate}`
+    )
+
+    try {
+      // GSI: EventsByDate を使用してクエリ
+      const result = await this.dynamodb.send(
+        new QueryCommand({
+          TableName: this.eventsTableName,
+          IndexName: 'EventsByDate',
+          KeyConditionExpression:
+            '#status = :status AND eventDate BETWEEN :startDate AND :endDate',
+          ExpressionAttributeNames: {
+            '#status': 'status',
+          },
+          ExpressionAttributeValues: {
+            ':status': status,
+            ':startDate': startDate,
+            ':endDate': endDate,
+          },
+          ScanIndexForward: false, // 降順（最新が最初）
+        })
+      )
+
+      logger.debug('Events query result:', {
+        Count: result.Count,
+        ScannedCount: result.ScannedCount,
+        ItemsLength: result.Items?.length || 0,
+      })
+
+      const events = (result.Items as EventRecord[]) || []
+
+      // connpassイベントで資料があるもののみをフィルタリング
+      const filteredEvents = events.filter(
+        event =>
+          event.connpassUrl && event.materials && event.materials.length > 0
+      )
+
+      logger.debug(
+        `Filtered ${filteredEvents.length} events with connpass URL and materials from ${events.length} total events`
+      )
+
+      // EventWithMaterials形式に変換
+      const eventsWithMaterials: EventWithMaterials[] = filteredEvents.map(
+        event => ({
+          id: event.eventId,
+          title: event.title,
+          eventDate: event.eventDate,
+          eventUrl: event.eventUrl,
+          materials: event.materials,
+          connpassUrl: event.connpassUrl,
+          createdAt: event.createdAt,
+          updatedAt: event.updatedAt,
+        })
+      )
+
+      logger.debug(
+        `Converted ${eventsWithMaterials.length} events to EventWithMaterials format`
+      )
+
+      return eventsWithMaterials
+    } catch (error) {
+      logger.error('Error querying events by date range:', error)
+      throw error
+    }
+  }
+
+  /**
+   * connpassイベントで資料があるもののみを取得（過去N ヶ月分）
+   * 要件1.2に対応
+   */
+  async getEventsWithMaterials(
+    months: number = 6
+  ): Promise<EventWithMaterials[]> {
+    logger.debug(`Getting events with materials for past ${months} months`)
+
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setMonth(startDate.getMonth() - months)
+
+    const startDateISO = startDate.toISOString()
+    const endDateISO = endDate.toISOString()
+
+    logger.debug(`Date range: ${startDateISO} to ${endDateISO}`)
+
+    return await this.queryEventsByDateRange(
+      'approved',
+      startDateISO,
+      endDateISO
+    )
+  }
+
+  /**
+   * イベントレコードを作成または更新
+   * 要件6.1, 6.2に対応
+   */
+  async upsertEventRecord(eventRecord: EventRecord): Promise<EventRecord> {
+    logger.debug('Upserting event record:', {
+      eventId: eventRecord.eventId,
+      title: eventRecord.title,
+    })
+
+    try {
+      await this.dynamodb.send(
+        new PutCommand({
+          TableName: this.eventsTableName,
+          Item: eventRecord,
+        })
+      )
+
+      logger.debug('Event record upserted successfully:', eventRecord.eventId)
+      return eventRecord
+    } catch (error) {
+      logger.error('Error upserting event record:', error)
+      throw error
+    }
+  }
+
+  /**
+   * connpass URLを持つ承認済みイベントを取得（バッチ処理用）
+   * 要件6.1に対応
+   */
+  async getApprovedEventsWithConnpassUrl(): Promise<EventRecord[]> {
+    logger.debug(
+      'Getting approved events with connpass URL for batch processing'
+    )
+
+    try {
+      const result = await this.dynamodb.send(
+        new ScanCommand({
+          TableName: this.eventsTableName,
+          FilterExpression:
+            '#status = :status AND attribute_exists(connpassUrl)',
+          ExpressionAttributeNames: {
+            '#status': 'status',
+          },
+          ExpressionAttributeValues: {
+            ':status': 'approved',
+          },
+        })
+      )
+
+      logger.debug('Connpass events scan result:', {
+        Count: result.Count,
+        ScannedCount: result.ScannedCount,
+        ItemsLength: result.Items?.length || 0,
+      })
+
+      const events = (result.Items as EventRecord[]) || []
+      logger.debug(
+        `Retrieved ${events.length} approved events with connpass URL`
+      )
+
+      return events
+    } catch (error) {
+      logger.error('Error getting approved events with connpass URL:', error)
+      throw error
+    }
   }
 }

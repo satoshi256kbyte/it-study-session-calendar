@@ -51,10 +51,10 @@ export class NotificationService implements NotificationServiceInterface {
     }
 
     try {
-      const humanReadableMessage = this.formatHumanReadableMessage(session)
+      const notificationMessage = this.formatNotificationMessage(session)
       const command = new PublishCommand({
         TopicArn: this.topicArn,
-        Message: humanReadableMessage,
+        Message: JSON.stringify(notificationMessage),
         Subject: `新しい勉強会が登録されました: ${session.title}`,
       })
 
