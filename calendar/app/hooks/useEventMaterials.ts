@@ -27,7 +27,9 @@ interface UseEventMaterialsOptions {
  * APIからイベント資料データを取得するfetcher関数
  */
 const fetcher = async (url: string): Promise<EventWithMaterials[]> => {
-  const response = await fetch(url)
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+  const fullUrl = `${apiBaseUrl}${url}`
+  const response = await fetch(fullUrl)
 
   if (!response.ok) {
     // HTTPステータスコードに応じた詳細なエラーメッセージ
@@ -135,7 +137,8 @@ export function useEventMaterials(options: UseEventMaterialsOptions = {}) {
  */
 export function preloadEventMaterials(months: number = 6) {
   // SWRのキャッシュにデータをプリロード
-  return fetch(`/api/events/materials?months=${months}`)
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+  return fetch(`${apiBaseUrl}/api/events/materials?months=${months}`)
     .then(response => response.json())
     .catch(() => {
       // プリロードのエラーは無視（実際の使用時にエラーハンドリングされる）
