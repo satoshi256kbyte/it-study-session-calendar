@@ -99,7 +99,6 @@ GitHub Secretsに以下を設定：
 
 - `GOOGLE_CALENDAR_URL`: GoogleカレンダーのURL
 - `API_BASE_URL`: デプロイ後のAPI Gateway URL
-- `CONNPASS_API_KEY`: connpass API
   v2のAPIキー（[connpass API利用申請](https://help.connpass.com/api/)で取得）
 
 ## 管理者ユーザーの作成
@@ -135,10 +134,6 @@ npm run dev:admin-frontend
 **バックエンド（AWS Lambda）**:
 
 - CDKデプロイ時に`cdk/parameters.json`の`connpassApiKey`に設定
-
-**GitHub Actions（エンドユーザー画面）**:
-
-- GitHub Secretsの`CONNPASS_API_KEY`に設定
 
 ## 通知設定（オプション）
 

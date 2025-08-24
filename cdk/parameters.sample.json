@@ -8,5 +8,6 @@
   "googlePrivateKey": "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n",
   "domainName": "your-domain.example.com",
   "hostedZoneId": "YOUR_HOSTED_ZONE_ID",
-  "certificateArn": "arn:aws:acm:us-east-1:YOUR_ACCOUNT_ID:certificate/YOUR_CERTIFICATE_ID"
+  "certificateArn": "arn:aws:acm:us-east-1:YOUR_ACCOUNT_ID:certificate/YOUR_CERTIFICATE_ID",
+  "connpassApiKey": "your-conpass-api-key"
 }
