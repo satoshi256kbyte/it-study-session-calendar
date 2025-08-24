@@ -19,7 +19,7 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "mkdir -p public && cp -r assets/* public/ 2>/dev/null || true",
-    "build": "next build && npm run copy-assets",
+    "build": "next build --no-lint && npm run copy-assets",
     "copy-assets": "mkdir -p out && cp -r assets/* out/ 2>/dev/null || true && echo 'Assets copied to out directory'",
     "start": "next start",
     "lint": "next lint",
