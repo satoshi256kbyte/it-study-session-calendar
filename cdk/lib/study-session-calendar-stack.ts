@@ -5,13 +5,15 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as s3 from 'aws-cdk-lib/aws-s3'
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront'
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'
-import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment'
 import * as acm from 'aws-cdk-lib/aws-certificatemanager'
 import * as route53 from 'aws-cdk-lib/aws-route53'
 import * as targets from 'aws-cdk-lib/aws-route53-targets'
 import * as cognito from 'aws-cdk-lib/aws-cognito'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import * as sns from 'aws-cdk-lib/aws-sns'
+import * as events from 'aws-cdk-lib/aws-events'
+import * as eventsTargets from 'aws-cdk-lib/aws-events-targets'
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager'
 import { Construct } from 'constructs'
 
 export interface StudySessionCalendarStackProps extends cdk.StackProps {
@@ -24,6 +26,7 @@ export interface StudySessionCalendarStackProps extends cdk.StackProps {
   domainName: string
   hostedZoneId: string
   certificateArn: string
+  connpassApiKey: string
 }
 
 export class StudySessionCalendarStack extends cdk.Stack {
@@ -44,6 +47,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
       domainName,
       hostedZoneId,
       certificateArn,
+      connpassApiKey,
     } = props
 
     // Cognito User Pool
@@ -147,7 +151,9 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment === 'prod'
           ? cdk.RemovalPolicy.RETAIN
           : cdk.RemovalPolicy.DESTROY,
-      pointInTimeRecovery: environment === 'prod',
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: environment === 'prod',
+      },
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
     })
 
@@ -174,6 +180,20 @@ export class StudySessionCalendarStack extends cdk.Stack {
       }
     )
 
+    // Secrets Manager for connpass API key
+    const connpassApiSecret = new secretsmanager.Secret(
+      this,
+      'ConnpassApiSecret',
+      {
+        secretName: `${serviceName}-${environment}-secret-connpass-api-key`,
+        description: 'connpass API key for batch materials update',
+        removalPolicy:
+          environment === 'prod'
+            ? cdk.RemovalPolicy.RETAIN
+            : cdk.RemovalPolicy.DESTROY,
+      }
+    )
+
     // Lambda 関数用の環境変数
     const lambdaEnvironment = {
       STUDY_SESSIONS_TABLE_NAME: studySessionsTable.tableName,
@@ -185,42 +205,44 @@ export class StudySessionCalendarStack extends cdk.Stack {
       SNS_TOPIC_ARN: studySessionNotificationTopic.topicArn,
     }
 
-    // Lambda Layer for dependencies
-    const dependenciesLayer = new lambda.LayerVersion(
-      this,
-      'DependenciesLayer',
-      {
-        code: lambda.Code.fromAsset('../admin-backend', {
-          bundling: {
-            image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-            command: [
-              'bash',
-              '-c',
-              [
-                'echo "Starting bundling process..."',
-                'ls -la',
-                'echo "Installing dependencies..."',
-                'npm ci --production --ignore-engines || npm install --production --ignore-engines',
-                'echo "Creating output directory..."',
-                'mkdir -p /asset-output/nodejs',
-                'echo "Copying node_modules..."',
-                'cp -r node_modules /asset-output/nodejs/ || echo "No node_modules found"',
-                'echo "Copying package.json..."',
-                'cp package.json /asset-output/nodejs/ || echo "No package.json found"',
-                'echo "Listing output directory..."',
-                'ls -la /asset-output/',
-                'ls -la /asset-output/nodejs/ || echo "nodejs directory not found"',
-                'echo "Bundling complete"',
-              ].join(' && '),
-            ],
-            user: 'root', // Docker内でroot権限を使用
-          },
-        }),
-        compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
-        description: 'Dependencies layer for study session functions',
-        layerVersionName: `${serviceName}-${environment}-layer-dependencies`,
-      }
-    )
+    // Lambda Layer for dependencies (temporarily disabled for testing)
+    // const dependenciesLayer = new lambda.LayerVersion(
+    //     this,
+    //     'DependenciesLayer',
+    //     {
+    //         code: lambda.Code.fromAsset('../admin-backend', {
+    //             bundling: {
+    //                 image: lambda.Runtime.NODEJS_20_X.bundlingImage,
+    //                 command: [
+    //                     'bash',
+    //                     '-c',
+    //                     [
+    //                         'echo "Starting bundling process..."',
+    //                         'ls -la',
+    //                         'echo "Installing dependencies..."',
+    //                         'npm ci --production --ignore-engines || npm install --production --ignore-engines',
+    //                         'echo "Creating output directory..."',
+    //                         'mkdir -p /asset-output/nodejs',
+    //                         'echo "Copying node_modules..."',
+    //                         'if [ -d "node_modules" ]; then cp -r node_modules /asset-output/nodejs/; else echo "No node_modules found"; fi',
+    //                         'echo "Copying package.json..."',
+    //                         'if [ -f "package.json" ]; then cp package.json /asset-output/nodejs/; else echo "No package.json found"; fi',
+    //                         'echo "Ensuring output directory exists..."',
+    //                         'touch /asset-output/nodejs/.keep',
+    //                         'echo "Listing output directory..."',
+    //                         'ls -la /asset-output/',
+    //                         'ls -la /asset-output/nodejs/ || echo "nodejs directory not found"',
+    //                         'echo "Bundling complete"',
+    //                     ].join(' && '),
+    //                 ],
+    //                 user: 'root', // Docker内でroot権限を使用
+    //             },
+    //         }),
+    //         compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
+    //         description: 'Dependencies layer for study session functions',
+    //         layerVersionName: `${serviceName}-${environment}-layer-dependencies`,
+    //     }
+    // )
 
     // Lambda 関数
     const createStudySessionFunction = new lambda.Function(
@@ -233,7 +255,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-create-study-session`,
-        layers: [dependenciesLayer],
+        // layers: [dependenciesLayer], // temporarily disabled
       }
     )
 
@@ -247,7 +269,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-get-study-sessions`,
-        layers: [dependenciesLayer],
+        // layers: [dependenciesLayer], // temporarily disabled
       }
     )
 
@@ -261,7 +283,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-approve-study-session`,
-        layers: [dependenciesLayer],
+        // layers: [dependenciesLayer], // temporarily disabled
       }
     )
 
@@ -275,7 +297,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-reject-study-session`,
-        layers: [dependenciesLayer],
+        // layers: [dependenciesLayer], // temporarily disabled
       }
     )
 
@@ -289,7 +311,40 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-delete-study-session`,
-        layers: [dependenciesLayer],
+        // layers: [dependenciesLayer], // temporarily disabled
+      }
+    )
+
+    // Event Materials API Lambda Functions
+    const getEventMaterialsFunction = new lambda.Function(
+      this,
+      'GetEventMaterialsFunction',
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        code: lambda.Code.fromAsset('../admin-backend/dist'),
+        handler: 'handlers/eventMaterialsHandlers.getEventMaterials',
+        environment: lambdaEnvironment,
+        timeout: cdk.Duration.seconds(30),
+        functionName: `${serviceName}-${environment}-lambda-get-event-materials`,
+        // layers: [dependenciesLayer], // temporarily disabled
+      }
+    )
+
+    // Batch Materials Update Lambda Function
+    const batchMaterialsFunction = new lambda.Function(
+      this,
+      'BatchMaterialsFunction',
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        code: lambda.Code.fromAsset('../admin-backend/dist'),
+        handler: 'handlers/batchMaterialsHandler.batchUpdateMaterials',
+        environment: {
+          ...lambdaEnvironment,
+          CONNPASS_API_SECRET_NAME: `${serviceName}-${environment}-secret-connpass-api-key`,
+        },
+        timeout: cdk.Duration.minutes(15), // バッチ処理は長時間実行される可能性がある
+        functionName: `${serviceName}-${environment}-lambda-batch-materials`,
+        // layers: [dependenciesLayer], // temporarily disabled
       }
     )
 
@@ -299,9 +354,45 @@ export class StudySessionCalendarStack extends cdk.Stack {
     studySessionsTable.grantReadWriteData(approveStudySessionFunction)
     studySessionsTable.grantReadWriteData(rejectStudySessionFunction)
     studySessionsTable.grantReadWriteData(deleteStudySessionFunction)
+    studySessionsTable.grantReadWriteData(getEventMaterialsFunction)
+    studySessionsTable.grantReadWriteData(batchMaterialsFunction)
 
     // SNS トピックへの発行権限を付与
     studySessionNotificationTopic.grantPublish(createStudySessionFunction)
+
+    // Secrets Manager への読み取り権限を付与
+    connpassApiSecret.grantRead(batchMaterialsFunction)
+
+    // CloudWatch Logs への書き込み権限を明示的に付与（Lambda関数は自動的に付与されるが、明示的に記載）
+    // Note: Lambda functions automatically get CloudWatch Logs permissions, but we document it here for clarity
+    // (temporarily disabled to resolve circular dependency)
+    // batchMaterialsFunction.addToRolePolicy(
+    //     new iam.PolicyStatement({
+    //         effect: iam.Effect.ALLOW,
+    //         actions: [
+    //             'logs:CreateLogGroup',
+    //             'logs:CreateLogStream',
+    //             'logs:PutLogEvents',
+    //         ],
+    //         resources: [
+    //             `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/lambda/${batchMaterialsFunction.functionName}:*`,
+    //         ],
+    //     })
+    // )
+
+    // getEventMaterialsFunction.addToRolePolicy(
+    //     new iam.PolicyStatement({
+    //         effect: iam.Effect.ALLOW,
+    //         actions: [
+    //             'logs:CreateLogGroup',
+    //             'logs:CreateLogStream',
+    //             'logs:PutLogEvents',
+    //         ],
+    //         resources: [
+    //             `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/lambda/${getEventMaterialsFunction.functionName}:*`,
+    //         ],
+    //     })
+    // )
 
     // API Gateway
     const api = new apigateway.RestApi(this, 'StudySessionApi', {
@@ -359,6 +450,33 @@ export class StudySessionCalendarStack extends cdk.Stack {
     studySessionsResource.addMethod(
       'POST',
       new apigateway.LambdaIntegration(createStudySessionFunction)
+    )
+
+    // エンドユーザー向けAPI: /api/events
+    const eventsResource = apiResource.addResource('events', {
+      defaultCorsPreflightOptions: {
+        allowOrigins: [
+          'https://satoshi256kbyte.github.io',
+          'http://localhost:3000',
+        ],
+        allowMethods: ['GET', 'OPTIONS'],
+        allowHeaders: [
+          'Content-Type',
+          'Authorization',
+          'X-Amz-Date',
+          'X-Api-Key',
+          'X-Requested-With',
+          'Accept',
+          'Origin',
+        ],
+      },
+    })
+
+    // /api/events/materials エンドポイント
+    const materialsResource = eventsResource.addResource('materials')
+    materialsResource.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getEventMaterialsFunction)
     )
 
     // 管理者向けAPI: /api/admin
@@ -542,6 +660,28 @@ export class StudySessionCalendarStack extends cdk.Stack {
     //   distributionPaths: ['/*']
     // })
 
+    // EventBridge Rule for daily batch execution (JST 24:00 = UTC 15:00)
+    // This is placed after all other resources to avoid circular dependencies
+    const batchMaterialsRule = new events.Rule(this, 'BatchMaterialsRule', {
+      ruleName: `${serviceName}-${environment}-rule-batch-materials`,
+      description:
+        'Daily execution of connpass materials batch update at JST 24:00',
+      schedule: events.Schedule.cron({
+        minute: '0',
+        hour: '15', // UTC 15:00 = JST 24:00
+        day: '*',
+        month: '*',
+        year: '*',
+      }),
+    })
+
+    // Add Lambda function as target for EventBridge rule
+    batchMaterialsRule.addTarget(
+      new eventsTargets.LambdaFunction(batchMaterialsFunction, {
+        retryAttempts: 2,
+      })
+    )
+
     // 出力
     new cdk.CfnOutput(this, 'ApiUrl', {
       value: api.url,
@@ -602,6 +742,24 @@ export class StudySessionCalendarStack extends cdk.Stack {
       value: studySessionNotificationTopic.topicArn,
       description: '勉強会通知SNSトピックARN',
       exportName: `${serviceName}-${environment}-sns-topic-arn`,
+    })
+
+    new cdk.CfnOutput(this, 'ConnpassApiSecretArn', {
+      value: connpassApiSecret.secretArn,
+      description: 'connpass API key secret ARN',
+      exportName: `${serviceName}-${environment}-connpass-secret-arn`,
+    })
+
+    new cdk.CfnOutput(this, 'BatchMaterialsRuleName', {
+      value: batchMaterialsRule.ruleName,
+      description: 'EventBridge rule name for batch materials update',
+      exportName: `${serviceName}-${environment}-batch-rule-name`,
+    })
+
+    new cdk.CfnOutput(this, 'BatchMaterialsFunctionName', {
+      value: batchMaterialsFunction.functionName,
+      description: 'Batch materials Lambda function name',
+      exportName: `${serviceName}-${environment}-batch-function-name`,
     })
   }
 }

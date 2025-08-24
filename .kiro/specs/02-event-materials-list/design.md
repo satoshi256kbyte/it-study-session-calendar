@@ -22,7 +22,8 @@
 
 1. **表示時**: カレンダーページ → 管理者API → DynamoDB
    → レスポンス（connpassイベントで資料があるもののみ）
-2. **資料収集**: EventBridge → バッチLambda → connpass API → DynamoDB（日次実行）
+2. **資料収集**: EventBridge → バッチLambda → Secrets Manager（APIキー取得） → connpass API →
+   DynamoDB（日次実行）
 
 ## コンポーネント設計
 
@@ -53,6 +54,14 @@
 - **責任**: 過去6ヶ月分のconnpassイベントで資料があるもののみを返す
 - **場所**: `admin-backend/src/handlers/eventMaterialsHandlers.ts`
 - **レスポンス**: `EventWithMaterials[]`（connpassイベントかつ資料ありのもののみ）
+
+#### バッチ処理: connpass資料取得
+
+- **責任**: connpass API v2から資料データを取得してDynamoDBに保存
+- **場所**: `admin-backend/src/handlers/batchMaterialsHandler.ts`
+- **実行頻度**: 日次（EventBridge経由）
+- **認証**: Secrets Managerから取得済みconnpass APIキーを使用
+- **レート制限**: 1秒あたり1リクエストを遵守
 
 ## データモデル
 
@@ -144,6 +153,34 @@ export const getEventMaterials = async (event: APIGatewayProxyEvent) => {
 }
 ```
 
+#### Lambda関数: batchUpdateMaterials（バッチ処理）
+
+```typescript
+export const batchUpdateMaterials = async (event: ScheduledEvent) => {
+  // Secrets Managerからconnpass APIキーを取得
+  const apiKey = await secretsManager.getSecret('connpass-api-key')
+
+  // 過去6ヶ月分のconnpassイベントを取得
+  const events = await dynamoDBService.getConnpassEvents(6)
+
+  for (const eventItem of events) {
+    try {
+      // レート制限を遵守（1秒あたり1リクエスト）
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // connpass API v2から資料データを取得
+      const materials = await connpassApiClient.getPresentations(eventItem.connpassEventId, apiKey)
+
+      // DynamoDBに資料データを保存
+      await dynamoDBService.updateEventMaterials(eventItem.id, materials)
+    } catch (error) {
+      logger.error(`Failed to update materials for event ${eventItem.id}:`, error)
+      // エラーが発生してもバッチ処理は継続
+    }
+  }
+}
+```
+
 ## エラーハンドリング
 
 ### フロントエンド エラー処理
@@ -206,6 +243,13 @@ export const getEventMaterials = async (event: APIGatewayProxyEvent) => {
 - 許可オリジン: GitHub Pagesドメインのみ
 - 許可メソッド: GET のみ
 - 許可ヘッダー: Content-Type, Authorization
+
+### connpass APIキー管理
+
+- **保存場所**: AWS Secrets Manager
+- **アクセス権限**: バッチLambda関数のみがAPIキーにアクセス可能
+- **取得方法**: バッチ実行時にSecrets Managerから動的に取得
+- **ローテーション**: 必要に応じてSecrets Manager経由でAPIキーを更新可能
 
 ### データ検証
 

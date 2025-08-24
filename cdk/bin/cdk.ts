@@ -41,6 +41,7 @@ const requiredParams = [
   'domainName',
   'hostedZoneId',
   'certificateArn',
+  'connpassApiKey',
 ]
 const missingParams = requiredParams.filter(param => !parameters[param])
 
@@ -81,4 +82,5 @@ new StudySessionCalendarStack(app, stackName, {
   domainName: parameters.domainName,
   hostedZoneId: parameters.hostedZoneId,
   certificateArn: parameters.certificateArn,
+  connpassApiKey: parameters.connpassApiKey,
 })
