@@ -184,7 +184,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
       this,
       'ConnpassApiSecret',
       {
-        secretName: `${serviceName}-${environment}-secret-connpass-api-key`,
+        secretName: `${serviceName}-${environment}-secret-connpass-api`,
         description: 'connpass API key for batch materials update',
         removalPolicy:
           environment === 'prod'
@@ -337,7 +337,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         handler: 'handlers/batchMaterialsHandler.batchUpdateMaterials',
         environment: {
           ...lambdaEnvironment,
-          CONNPASS_API_SECRET_NAME: `${serviceName}-${environment}-secret-connpass-api-key`,
+          CONNPASS_API_SECRET_NAME: `${serviceName}-${environment}-secret-connpass-api`,
         },
         timeout: cdk.Duration.minutes(15), // バッチ処理は長時間実行される可能性がある
         functionName: `${serviceName}-${environment}-lambda-batch-materials`,

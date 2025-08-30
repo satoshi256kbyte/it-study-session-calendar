@@ -158,7 +158,8 @@ export const getEventMaterials = async (event: APIGatewayProxyEvent) => {
 ```typescript
 export const batchUpdateMaterials = async (event: ScheduledEvent) => {
   // Secrets Managerからconnpass APIキーを取得
-  const apiKey = await secretsManager.getSecret('connpass-api-key')
+  const secretName = process.env.CONNPASS_API_SECRET_NAME
+  const apiKey = await secretsManager.getSecret(secretName)
 
   // 過去6ヶ月分のconnpassイベントを取得
   const events = await dynamoDBService.getConnpassEvents(6)

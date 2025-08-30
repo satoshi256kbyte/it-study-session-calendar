@@ -31,7 +31,7 @@ export const batchUpdateMaterials = async (
   try {
     // 1. connpass APIキーを取得
     logger.info('Retrieving connpass API key from Secrets Manager')
-    const apiKey = await secretsManagerService.getConnpassApiKeyWithFallback()
+    const apiKey = await secretsManagerService.getConnpassApiKey()
     logger.info('connpass API key retrieved successfully')
 
     // 2. connpass APIサービスを初期化

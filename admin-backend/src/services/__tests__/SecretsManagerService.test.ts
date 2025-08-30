@@ -40,11 +40,11 @@ describe('SecretsManagerService', () => {
     const mockSecretName = 'test-connpass-api-key'
 
     beforeEach(() => {
-      process.env.CONNPASS_API_KEY_SECRET_NAME = mockSecretName
+      process.env.CONNPASS_API_SECRET_NAME = mockSecretName
     })
 
     afterEach(() => {
-      delete process.env.CONNPASS_API_KEY_SECRET_NAME
+      delete process.env.CONNPASS_API_SECRET_NAME
     })
 
     it('should get API key from plain text secret', async () => {
@@ -250,11 +250,11 @@ describe('SecretsManagerService', () => {
 
   describe('validateConnpassApiKey', () => {
     beforeEach(() => {
-      process.env.CONNPASS_API_KEY_SECRET_NAME = 'test-secret'
+      process.env.CONNPASS_API_SECRET_NAME = 'test-secret'
     })
 
     afterEach(() => {
-      delete process.env.CONNPASS_API_KEY_SECRET_NAME
+      delete process.env.CONNPASS_API_SECRET_NAME
     })
 
     it('should return true for valid API key', async () => {
@@ -299,11 +299,11 @@ describe('SecretsManagerService', () => {
 
   describe('getConnpassApiKeyWithFallback', () => {
     beforeEach(() => {
-      process.env.CONNPASS_API_KEY_SECRET_NAME = 'primary-secret'
+      process.env.CONNPASS_API_SECRET_NAME = 'primary-secret'
     })
 
     afterEach(() => {
-      delete process.env.CONNPASS_API_KEY_SECRET_NAME
+      delete process.env.CONNPASS_API_SECRET_NAME
     })
 
     it('should get API key from primary secret', async () => {
