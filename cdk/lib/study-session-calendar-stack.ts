@@ -11,8 +11,7 @@ import * as targets from 'aws-cdk-lib/aws-route53-targets'
 import * as cognito from 'aws-cdk-lib/aws-cognito'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import * as sns from 'aws-cdk-lib/aws-sns'
-import * as events from 'aws-cdk-lib/aws-events'
-import * as eventsTargets from 'aws-cdk-lib/aws-events-targets'
+import * as scheduler from 'aws-cdk-lib/aws-scheduler'
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager'
 import { Construct } from 'constructs'
 
@@ -658,26 +657,43 @@ export class StudySessionCalendarStack extends cdk.Stack {
     //   distributionPaths: ['/*']
     // })
 
-    // EventBridge Rule for daily batch execution (JST 24:00 = UTC 15:00)
-    // This is placed after all other resources to avoid circular dependencies
-    const batchMaterialsRule = new events.Rule(this, 'BatchMaterialsRule', {
-      ruleName: `${serviceName}-${environment}-rule-batch-materials`,
-      description:
-        'Daily execution of connpass materials batch update at JST 24:00',
-      schedule: events.Schedule.cron({
-        minute: '0',
-        hour: '15', // UTC 15:00 = JST 24:00
-        day: '*',
-        month: '*',
-        year: '*',
-      }),
+    // EventBridge Scheduler for daily batch execution (JST 24:00 = UTC 15:00)
+    // IAM Role for EventBridge Scheduler
+    const schedulerRole = new iam.Role(this, 'BatchMaterialsSchedulerRole', {
+      assumedBy: new iam.ServicePrincipal('scheduler.amazonaws.com'),
+      inlinePolicies: {
+        LambdaInvokePolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['lambda:InvokeFunction'],
+              resources: [batchMaterialsFunction.functionArn],
+            }),
+          ],
+        }),
+      },
     })
 
-    // Add Lambda function as target for EventBridge rule
-    batchMaterialsRule.addTarget(
-      new eventsTargets.LambdaFunction(batchMaterialsFunction, {
-        retryAttempts: 2,
-      })
+    const batchMaterialsSchedule = new scheduler.CfnSchedule(
+      this,
+      'BatchMaterialsSchedule',
+      {
+        name: `${serviceName}-${environment}-schedule-batch-materials`,
+        description:
+          'Daily execution of connpass materials batch update at JST 24:00',
+        scheduleExpression: 'cron(0 15 * * ? *)', // UTC 15:00 = JST 24:00
+        scheduleExpressionTimezone: 'UTC',
+        flexibleTimeWindow: {
+          mode: 'OFF',
+        },
+        target: {
+          arn: batchMaterialsFunction.functionArn,
+          roleArn: schedulerRole.roleArn,
+          retryPolicy: {
+            maximumRetryAttempts: 2,
+          },
+        },
+      }
     )
 
     // 出力
@@ -748,16 +764,24 @@ export class StudySessionCalendarStack extends cdk.Stack {
       exportName: `${serviceName}-${environment}-connpass-secret-arn`,
     })
 
-    new cdk.CfnOutput(this, 'BatchMaterialsRuleName', {
-      value: batchMaterialsRule.ruleName,
-      description: 'EventBridge rule name for batch materials update',
-      exportName: `${serviceName}-${environment}-batch-rule-name`,
+    new cdk.CfnOutput(this, 'BatchMaterialsScheduleName', {
+      value:
+        batchMaterialsSchedule.name ||
+        `${serviceName}-${environment}-schedule-batch-materials`,
+      description: 'EventBridge schedule name for batch materials update',
+      exportName: `${serviceName}-${environment}-batch-schedule-name`,
     })
 
     new cdk.CfnOutput(this, 'BatchMaterialsFunctionName', {
       value: batchMaterialsFunction.functionName,
       description: 'Batch materials Lambda function name',
       exportName: `${serviceName}-${environment}-batch-function-name`,
+    })
+
+    new cdk.CfnOutput(this, 'BatchMaterialsScheduleArn', {
+      value: batchMaterialsSchedule.attrArn,
+      description: 'EventBridge schedule ARN for batch materials update',
+      exportName: `${serviceName}-${environment}-batch-schedule-arn`,
     })
   }
 }
