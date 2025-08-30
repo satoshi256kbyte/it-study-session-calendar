@@ -7,7 +7,7 @@
 /**
  * 資料の種類
  */
-export type MaterialType = 'slide' | 'document' | 'video' | 'other'
+export type MaterialType = 'slide' | 'document' | 'video' | 'blog' | 'other'
 
 /**
  * 個別の資料情報
@@ -214,7 +214,7 @@ export function isValidMaterial(material: any): material is Material {
     typeof material.id === 'string' &&
     typeof material.title === 'string' &&
     typeof material.url === 'string' &&
-    ['slide', 'document', 'video', 'other'].includes(material.type) &&
+    ['slide', 'document', 'video', 'blog', 'other'].includes(material.type) &&
     typeof material.createdAt === 'string' &&
     (material.thumbnailUrl === undefined ||
       typeof material.thumbnailUrl === 'string')
