@@ -41,14 +41,30 @@ interface AuthProviderProps {
 
 // Cognito設定（環境変数から取得）
 const COGNITO_CONFIG = {
-  userPoolDomain:
-    process.env.NEXT_PUBLIC_USER_POOL_DOMAIN ||
-    'hiroshima-it-calendar-prod-admin.auth.ap-northeast-1.amazoncognito.com',
-  userPoolClientId:
-    process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID || '3gfmarg4m7c4r513pmipdc6tbc',
-  redirectUri:
-    process.env.NEXT_PUBLIC_REDIRECT_URI ||
-    'https://it-study-session.satoshi256kbyte.net/',
+  userPoolDomain: process.env.NEXT_PUBLIC_USER_POOL_DOMAIN,
+  userPoolClientId: process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID,
+  redirectUri: process.env.NEXT_PUBLIC_REDIRECT_URI,
+}
+
+// 必須環境変数のチェック
+const validateEnvironmentVariables = () => {
+  const missing = []
+
+  if (!COGNITO_CONFIG.userPoolDomain) {
+    missing.push('NEXT_PUBLIC_USER_POOL_DOMAIN')
+  }
+  if (!COGNITO_CONFIG.userPoolClientId) {
+    missing.push('NEXT_PUBLIC_USER_POOL_CLIENT_ID')
+  }
+  if (!COGNITO_CONFIG.redirectUri) {
+    missing.push('NEXT_PUBLIC_REDIRECT_URI')
+  }
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}`
+    )
+  }
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -57,7 +73,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    checkAuthState()
+    try {
+      validateEnvironmentVariables()
+      checkAuthState()
+    } catch (error) {
+      console.error('Environment validation failed:', error)
+      setError(
+        error instanceof Error ? error.message : '設定エラーが発生しました'
+      )
+      setLoading(false)
+    }
   }, [])
 
   const checkAuthState = async () => {
@@ -77,23 +102,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (authCode) {
-        try {
-          // 手動でトークン交換を実行
-          await handleManualTokenExchange(authCode)
+        // URLからcodeパラメータを削除（Amplifyが自動的に処理するため）
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, document.title, newUrl)
 
-          // URLからcodeパラメータを削除
-          const newUrl = window.location.pathname
-          window.history.replaceState({}, document.title, newUrl)
-        } catch (error) {
-          console.error('Manual token exchange failed:', error)
-          setError('認証処理に失敗しました。再度ログインしてください。')
-          setLoading(false)
-
-          // URLからcodeパラメータを削除
-          const newUrl = window.location.pathname
-          window.history.replaceState({}, document.title, newUrl)
-          return
-        }
+        // 少し待ってからセッションをチェック（Amplifyの処理完了を待つ）
+        setTimeout(async () => {
+          try {
+            await checkUserSession()
+          } catch (error) {
+            console.error('Session check after OAuth failed:', error)
+            setError('認証処理に失敗しました。再度ログインしてください。')
+            setLoading(false)
+          }
+        }, 1000)
+        return
       }
 
       // 通常の認証状態チェック
@@ -103,69 +126,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(null) // 認証エラーは正常な状態
       setLoading(false)
     }
-  }
-
-  const handleManualTokenExchange = async (authCode: string) => {
-    // Cognitoのトークンエンドポイントにリクエスト
-    const tokenEndpoint = `https://${COGNITO_CONFIG.userPoolDomain}/oauth2/token`
-    const redirectUri = window.location.origin + '/'
-
-    const tokenRequest = {
-      grant_type: 'authorization_code',
-      client_id: COGNITO_CONFIG.userPoolClientId,
-      code: authCode,
-      redirect_uri: redirectUri,
-    }
-
-    const response = await fetch(tokenEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams(tokenRequest),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Token exchange failed: ${response.status} ${errorText}`)
-    }
-
-    const tokens = await response.json()
-
-    // トークンをAmplifyのストレージに保存
-    await storeTokensInAmplify(tokens)
-
-    // ユーザー情報を取得
-    await checkUserSession()
-  }
-
-  const storeTokensInAmplify = async (tokens: any) => {
-    // Amplifyのローカルストレージにトークンを保存
-    const tokenKey = `CognitoIdentityServiceProvider.${COGNITO_CONFIG.userPoolClientId}`
-    const userKey = `${tokenKey}.LastAuthUser`
-
-    // ユーザー名を取得（JWTトークンから）
-    const idTokenPayload = JSON.parse(atob(tokens.id_token.split('.')[1]))
-    const username = idTokenPayload['cognito:username'] || idTokenPayload.sub
-
-    // ローカルストレージにトークンを保存
-    localStorage.setItem(userKey, username)
-    localStorage.setItem(`${tokenKey}.${username}.idToken`, tokens.id_token)
-    localStorage.setItem(
-      `${tokenKey}.${username}.accessToken`,
-      tokens.access_token
-    )
-    localStorage.setItem(
-      `${tokenKey}.${username}.refreshToken`,
-      tokens.refresh_token
-    )
-    localStorage.setItem(
-      `${tokenKey}.${username}.tokenScopesString`,
-      'email openid profile'
-    )
-
-    // 有効期限を設定
-    localStorage.setItem(`${tokenKey}.${username}.clockDrift`, '0')
   }
 
   const checkUserSession = async () => {
@@ -191,7 +151,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const signInWithHostedUI = () => {
-    const redirectUri = encodeURIComponent(window.location.origin + '/')
+    // 環境変数のバリデーションは既に実行済みなので、非null演算子を使用
+    const redirectUri = encodeURIComponent(COGNITO_CONFIG.redirectUri!)
 
     const authUrl =
       `https://${COGNITO_CONFIG.userPoolDomain}/oauth2/authorize?` +
@@ -208,7 +169,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(null)
 
       // ローカルストレージからトークンを削除
-      const tokenKey = `CognitoIdentityServiceProvider.${COGNITO_CONFIG.userPoolClientId}`
+      const tokenKey = `CognitoIdentityServiceProvider.${COGNITO_CONFIG.userPoolClientId!}`
       const userKey = `${tokenKey}.LastAuthUser`
       const username = localStorage.getItem(userKey)
 
@@ -225,7 +186,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null)
 
       // Cognito Hosted UIからもサインアウト
-      const logoutUri = encodeURIComponent(window.location.origin + '/')
+      const logoutUri = encodeURIComponent(COGNITO_CONFIG.redirectUri!)
 
       const logoutUrl =
         `https://${COGNITO_CONFIG.userPoolDomain}/logout?` +
