@@ -99,7 +99,7 @@ export class ConnpassApiService {
       // connpass API v2の/events/{id}/presentationsエンドポイントを使用
       const response =
         await this.makeAuthenticatedRequest<ConnpassPresentationsResponse>(
-          `/events/${eventId}/presentations`
+          `/events/${eventId}/presentations?count=100`
         )
 
       logger.debug(
