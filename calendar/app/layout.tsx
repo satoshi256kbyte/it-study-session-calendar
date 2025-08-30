@@ -1,8 +1,5 @@
-'use client'
-
-import type { Viewport } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import { useEffect } from 'react'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -10,196 +7,120 @@ export const viewport: Viewport = {
   themeColor: '#3B82F6',
 }
 
+const basePath =
+  process.env.NODE_ENV === 'production' ? '/it-study-session-calendar' : ''
+const baseUrl = 'https://satoshi256kbyte.github.io/it-study-session-calendar'
+
+export const metadata: Metadata = {
+  title: '広島IT勉強会カレンダー',
+  description:
+    '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
+  keywords: [
+    '広島',
+    'IT',
+    '勉強会',
+    'エンジニア',
+    'セミナー',
+    'イベント',
+    'connpass',
+    'Doorkeeper',
+  ],
+  authors: [{ name: '広島IT勉強会カレンダー' }],
+  creator: '広島IT勉強会カレンダー',
+  publisher: '広島IT勉強会カレンダー',
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: `${basePath}/favicon.svg`,
+    apple: `${basePath}/favicon.svg`,
+  },
+  manifest: `${basePath}/manifest.json`,
+  openGraph: {
+    type: 'website',
+    locale: 'ja_JP',
+    url: baseUrl,
+    siteName: '広島IT勉強会カレンダー',
+    title: '広島IT勉強会カレンダー',
+    description:
+      '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
+    images: [
+      {
+        url: `${baseUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: '広島IT勉強会カレンダー',
+        type: 'image/png',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@hiroshima_it_cal',
+    creator: '@hiroshima_it_cal',
+    title: '広島IT勉強会カレンダー',
+    description:
+      '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。',
+    images: [`${baseUrl}/og-image.png`],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: '広島IT勉強会カレンダー',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
+}
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  useEffect(() => {
-    // ページタイトルを設定
-    document.title = '広島IT勉強会カレンダー'
-
-    // メタ情報を設定
-    const metaDescription = document.querySelector('meta[name="description"]')
-    if (metaDescription) {
-      metaDescription.setAttribute(
-        'content',
-        '広島のIT関連の勉強会やイベントのカレンダーです。'
-      )
-    } else {
-      const newMeta = document.createElement('meta')
-      newMeta.name = 'description'
-      newMeta.content = '広島のIT関連の勉強会やイベントのカレンダーです。'
-      document.head.appendChild(newMeta)
-    }
-
-    // キーワードメタタグを設定
-    const metaKeywords = document.querySelector('meta[name="keywords"]')
-    if (metaKeywords) {
-      metaKeywords.setAttribute(
-        'content',
-        '広島,IT,勉強会,エンジニア,セミナー,イベント'
-      )
-    } else {
-      const newKeywords = document.createElement('meta')
-      newKeywords.name = 'keywords'
-      newKeywords.content = '広島,IT,勉強会,エンジニア,セミナー,イベント'
-      document.head.appendChild(newKeywords)
-    }
-
-    // ファビコンを設定
-    const basePath =
-      process.env.NODE_ENV === 'production' ? '/it-study-session-calendar' : ''
-    const existingFavicon = document.querySelector(
-      "link[rel*='icon']"
-    ) as HTMLLinkElement
-    if (existingFavicon) {
-      existingFavicon.href = `${basePath}/favicon.svg`
-      existingFavicon.type = 'image/svg+xml'
-    } else {
-      const newFavicon = document.createElement('link')
-      newFavicon.rel = 'icon'
-      newFavicon.type = 'image/svg+xml'
-      newFavicon.href = `${basePath}/favicon.svg`
-      document.head.appendChild(newFavicon)
-    }
-
-    // Open Graph設定
-    const setOgMeta = (property: string, content: string) => {
-      const existing = document.querySelector(`meta[property="${property}"]`)
-      if (existing) {
-        existing.setAttribute('content', content)
-      } else {
-        const meta = document.createElement('meta')
-        meta.setAttribute('property', property)
-        meta.setAttribute('content', content)
-        document.head.appendChild(meta)
-      }
-    }
-
-    setOgMeta('og:type', 'website')
-    setOgMeta('og:locale', 'ja_JP')
-    setOgMeta(
-      'og:url',
-      'https://satoshi256kbyte.github.io/it-study-session-calendar/'
-    )
-    setOgMeta('og:site_name', '広島IT勉強会カレンダー')
-    setOgMeta('og:title', '広島IT勉強会カレンダー')
-    setOgMeta(
-      'og:description',
-      '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。'
-    )
-    setOgMeta(
-      'og:image',
-      'https://satoshi256kbyte.github.io/it-study-session-calendar/og-image.png'
-    )
-    setOgMeta('og:image:width', '1200')
-    setOgMeta('og:image:height', '630')
-    setOgMeta('og:image:type', 'image/png')
-
-    // Twitter Card設定
-    const setTwitterMeta = (name: string, content: string) => {
-      const existing = document.querySelector(`meta[name="${name}"]`)
-      if (existing) {
-        existing.setAttribute('content', content)
-      } else {
-        const meta = document.createElement('meta')
-        meta.setAttribute('name', name)
-        meta.setAttribute('content', content)
-        document.head.appendChild(meta)
-      }
-    }
-
-    setTwitterMeta('twitter:card', 'summary_large_image')
-    setTwitterMeta('twitter:site', '@hiroshima_it_cal')
-    setTwitterMeta('twitter:creator', '@hiroshima_it_cal')
-    setTwitterMeta('twitter:title', '広島IT勉強会カレンダー')
-    setTwitterMeta(
-      'twitter:description',
-      '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。'
-    )
-    setTwitterMeta(
-      'twitter:image',
-      'https://satoshi256kbyte.github.io/it-study-session-calendar/og-image.png'
-    )
-
-    // 構造化データを設定
-    const structuredData = {
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: '広島IT勉強会カレンダー',
+    description:
+      '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション',
+    url: 'https://satoshi256kbyte.github.io/it-study-session-calendar/',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'JPY',
+    },
+    author: {
+      '@type': 'Organization',
       name: '広島IT勉強会カレンダー',
-      description:
-        '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション',
-      url: 'https://satoshi256kbyte.github.io/it-study-session-calendar/',
-      applicationCategory: 'BusinessApplication',
-      operatingSystem: 'Web',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'JPY',
-      },
-      author: {
-        '@type': 'Organization',
-        name: '広島IT勉強会カレンダー',
-      },
-      audience: {
-        '@type': 'Audience',
-        audienceType: 'IT Engineers',
-        geographicArea: {
-          '@type': 'City',
-          name: '広島市',
-          containedInPlace: {
-            '@type': 'Country',
-            name: '日本',
-          },
+    },
+    audience: {
+      '@type': 'Audience',
+      audienceType: 'IT Engineers',
+      geographicArea: {
+        '@type': 'City',
+        name: '広島市',
+        containedInPlace: {
+          '@type': 'Country',
+          name: '日本',
         },
       },
-    }
-
-    const existingScript = document.querySelector(
-      'script[type="application/ld+json"]'
-    )
-    if (existingScript) {
-      existingScript.textContent = JSON.stringify(structuredData)
-    } else {
-      const script = document.createElement('script')
-      script.type = 'application/ld+json'
-      script.textContent = JSON.stringify(structuredData)
-      document.head.appendChild(script)
-    }
-  }, [])
+    },
+  }
 
   return (
     <html lang="ja">
-      <head>
-        <title>広島IT勉強会カレンダー</title>
-        <meta
-          name="description"
-          content="広島のIT関連の勉強会やイベントのカレンダーです。"
+      <body>
+        {children}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData),
+          }}
         />
-        <meta
-          name="keywords"
-          content="広島,IT,勉強会,エンジニア,セミナー,イベント"
-        />
-        <link
-          rel="icon"
-          href={`${process.env.NODE_ENV === 'production' ? '/it-study-session-calendar' : ''}/favicon.svg`}
-          type="image/svg+xml"
-        />
-        <link
-          rel="apple-touch-icon"
-          href={`${process.env.NODE_ENV === 'production' ? '/it-study-session-calendar' : ''}/favicon.svg`}
-        />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta
-          name="apple-mobile-web-app-title"
-          content="広島IT勉強会カレンダー"
-        />
-      </head>
-      <body>{children}</body>
+      </body>
     </html>
   )
 }
