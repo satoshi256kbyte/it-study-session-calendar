@@ -7,7 +7,7 @@
 /**
  * 資料の種類
  */
-export type MaterialType = 'slide' | 'document' | 'video' | 'other'
+export type MaterialType = 'slide' | 'document' | 'video' | 'blog' | 'other'
 
 /**
  * 個別の資料情報
@@ -212,6 +212,7 @@ export function getMaterialTypeDisplayName(type: MaterialType): string {
     slide: 'スライド',
     document: '資料',
     video: '動画',
+    blog: 'ブログ',
     other: 'その他',
   }
   return typeNames[type] || 'その他'

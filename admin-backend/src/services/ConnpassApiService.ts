@@ -196,6 +196,7 @@ export class ConnpassApiService {
         case 'video':
           return 'video'
         case 'blog':
+          return 'blog'
         case 'document':
           return 'document'
         default:
