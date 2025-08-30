@@ -71,6 +71,7 @@ export const batchUpdateMaterials = async (
         logger.info(`Processing event ${processedCount}/${events.length}`, {
           eventId: eventRecord.eventId,
           title: eventRecord.title,
+          eventUrl: eventRecord.eventUrl,
           connpassUrl: eventRecord.connpassUrl,
         })
 
@@ -113,6 +114,12 @@ export const batchUpdateMaterials = async (
           `Successfully updated materials for event ${eventRecord.eventId}`
         )
         successCount++
+
+        // 次のイベント処理前に追加の待機時間を設ける（並列処理を完全に回避）
+        if (processedCount < events.length) {
+          logger.debug('Waiting before processing next event...')
+          await new Promise(resolve => setTimeout(resolve, 1000)) // 1秒待機
+        }
       } catch (error) {
         const errorMessage = `Failed to update materials for event ${eventRecord.eventId}: ${
           error instanceof Error ? error.message : 'Unknown error'
@@ -122,6 +129,11 @@ export const batchUpdateMaterials = async (
         errorCount++
 
         // エラーが発生してもバッチ処理は継続
+        // 次のイベント処理前に追加の待機時間を設ける
+        if (processedCount < events.length) {
+          logger.debug('Waiting before processing next event after error...')
+          await new Promise(resolve => setTimeout(resolve, 1000)) // 1秒待機
+        }
         continue
       }
     }

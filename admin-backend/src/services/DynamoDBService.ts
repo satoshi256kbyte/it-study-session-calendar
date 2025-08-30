@@ -21,7 +21,11 @@ export class DynamoDBService {
 
   constructor() {
     const client = new DynamoDBClient({})
-    this.dynamodb = DynamoDBDocumentClient.from(client)
+    this.dynamodb = DynamoDBDocumentClient.from(client, {
+      marshallOptions: {
+        removeUndefinedValues: true,
+      },
+    })
     this.tableName = process.env.STUDY_SESSIONS_TABLE_NAME || 'StudySessions'
     logger.debug(`DynamoDBService initialized with table: ${this.tableName}`)
   }
@@ -365,8 +369,7 @@ export class DynamoDBService {
       const result = await this.dynamodb.send(
         new ScanCommand({
           TableName: this.tableName,
-          FilterExpression:
-            '#status = :status AND attribute_exists(connpassUrl)',
+          FilterExpression: '#status = :status',
           ExpressionAttributeNames: {
             '#status': 'status',
           },
@@ -376,7 +379,7 @@ export class DynamoDBService {
         })
       )
 
-      logger.debug('Connpass events scan result:', {
+      logger.debug('Approved events scan result:', {
         Count: result.Count,
         ScannedCount: result.ScannedCount,
         ItemsLength: result.Items?.length || 0,
@@ -384,22 +387,46 @@ export class DynamoDBService {
 
       const sessions = (result.Items as StudySession[]) || []
 
-      // StudySessionをEventRecord形式に変換（connpassUrlが存在するもののみ）
-      const events: EventRecord[] = sessions
-        .filter(session => session.connpassUrl) // connpassUrlが存在するもののみ
-        .map(session => ({
-          eventId: session.id,
-          title: session.title,
-          eventDate: session.datetime,
-          endDatetime: session.endDatetime,
-          eventUrl: session.url,
-          contact: session.contact,
-          status: session.status,
-          connpassUrl: session.connpassUrl!, // フィルター済みなので非null
-          materials: session.materials || [],
-          createdAt: session.createdAt,
-          updatedAt: session.updatedAt,
-        }))
+      // URLのホスト名でconnpassイベントを判定
+      const connpassEvents = sessions.filter(session => {
+        if (!session.url) {
+          logger.debug(`Session ${session.id} has no URL, skipping`)
+          return false
+        }
+
+        try {
+          const url = new URL(session.url)
+          const isConnpass = url.hostname.endsWith('.connpass.com')
+          logger.debug(
+            `Session ${session.id}: URL=${session.url}, hostname=${url.hostname}, isConnpass=${isConnpass}`
+          )
+          return isConnpass
+        } catch (error) {
+          logger.warn(`Invalid URL format: ${session.url}`, {
+            sessionId: session.id,
+          })
+          return false
+        }
+      })
+
+      logger.debug(
+        `Found ${connpassEvents.length} connpass events out of ${sessions.length} approved events`
+      )
+
+      // StudySessionをEventRecord形式に変換
+      const events: EventRecord[] = connpassEvents.map(session => ({
+        eventId: session.id,
+        title: session.title,
+        eventDate: session.datetime,
+        endDatetime: session.endDatetime,
+        eventUrl: session.url,
+        contact: session.contact,
+        status: session.status,
+        connpassUrl: session.url, // connpassのURLをconnpassUrlとして設定
+        materials: session.materials || [],
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+      }))
 
       logger.debug(
         `Retrieved ${events.length} approved events with connpass URL`

@@ -12,8 +12,8 @@ import {
  */
 export class ConnpassApiService {
   private static readonly BASE_URL = 'https://connpass.com/api/v2'
-  private static readonly RATE_LIMIT_DELAY = 1000 // 1秒あたり1リクエスト
-  private lastRequestTime = 0
+  private static readonly RATE_LIMIT_DELAY = 5000 // 5秒間隔
+  private static lastRequestTime = 0 // 全インスタンス間で共有
 
   constructor(private apiKey: string) {
     logger.debug('ConnpassApiService initialized')
@@ -25,7 +25,7 @@ export class ConnpassApiService {
    */
   private async enforceRateLimit(): Promise<void> {
     const now = Date.now()
-    const timeSinceLastRequest = now - this.lastRequestTime
+    const timeSinceLastRequest = now - ConnpassApiService.lastRequestTime
 
     if (timeSinceLastRequest < ConnpassApiService.RATE_LIMIT_DELAY) {
       const waitTime =
@@ -34,7 +34,7 @@ export class ConnpassApiService {
       await new Promise(resolve => setTimeout(resolve, waitTime))
     }
 
-    this.lastRequestTime = Date.now()
+    ConnpassApiService.lastRequestTime = Date.now()
   }
 
   /**
@@ -96,14 +96,10 @@ export class ConnpassApiService {
     logger.debug(`Getting presentations for connpass event: ${eventId}`)
 
     try {
-      // connpass API v2のpresentationsエンドポイントを呼び出し
+      // connpass API v2の/events/{id}/presentationsエンドポイントを使用
       const response =
         await this.makeAuthenticatedRequest<ConnpassPresentationsResponse>(
-          '/presentations/',
-          {
-            event_id: eventId,
-            count: 100, // 最大取得件数
-          }
+          `/events/${eventId}/presentations`
         )
 
       logger.debug(
@@ -132,8 +128,11 @@ export class ConnpassApiService {
    */
   static extractEventIdFromUrl(connpassUrl: string): string | null {
     try {
+      logger.debug(`Extracting event ID from URL: ${connpassUrl}`)
       const match = connpassUrl.match(/\/event\/(\d+)\/?/)
-      return match ? match[1] : null
+      const eventId = match ? match[1] : null
+      logger.debug(`Extracted event ID: ${eventId}`)
+      return eventId
     } catch (error) {
       logger.error('Failed to extract event ID from connpass URL:', error)
       return null
@@ -150,27 +149,60 @@ export class ConnpassApiService {
   ): Material {
     const now = new Date().toISOString()
 
-    // URLから資料の種類を推定
-    const materialType = this.inferMaterialType(presentation.url)
+    // connpass APIのpresentation_typeとURLから資料の種類を推定
+    const materialType = this.inferMaterialType(
+      presentation.url,
+      presentation.presentation_type
+    )
 
     // 一意なIDを生成（connpass APIには資料IDがないため）
     const materialId = `connpass_${Date.now()}_${index}`
 
-    return {
+    const material: Material = {
       id: materialId,
-      title: presentation.title || 'Untitled Presentation',
+      title: presentation.name || 'Untitled Presentation',
       url: presentation.url,
-      thumbnailUrl: presentation.thumbnail_url,
       type: materialType,
-      createdAt: now,
+      createdAt: presentation.created_at || now,
     }
+
+    // 発表者のニックネームを追加
+    if (presentation.presenter?.nickname) {
+      material.presenterNickname = presentation.presenter.nickname
+    }
+
+    // connpass APIの元の資料種別を保存
+    if (presentation.presentation_type) {
+      material.originalType = presentation.presentation_type
+    }
+
+    return material
   }
 
   /**
-   * URLから資料の種類を推定
+   * connpass APIのpresentation_typeとURLから資料の種類を推定
    * 要件6.1に対応
    */
-  private inferMaterialType(url: string): MaterialType {
+  private inferMaterialType(
+    url: string,
+    presentationType?: string
+  ): MaterialType {
+    // connpass APIのpresentation_typeを優先的に使用
+    if (presentationType) {
+      switch (presentationType.toLowerCase()) {
+        case 'slide':
+        case 'slides':
+          return 'slide'
+        case 'video':
+          return 'video'
+        case 'blog':
+        case 'document':
+          return 'document'
+        default:
+          // 不明な場合はURLから推定
+          break
+      }
+    }
     const lowerUrl = url.toLowerCase()
 
     // スライド系サービス

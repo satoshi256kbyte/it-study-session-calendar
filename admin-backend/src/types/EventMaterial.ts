@@ -29,6 +29,12 @@ export interface Material {
   /** 資料の種類 */
   type: MaterialType
 
+  /** 発表者のニックネーム */
+  presenterNickname?: string
+
+  /** connpass APIの資料種別 */
+  originalType?: string
+
   /** 資料作成日時 (ISO 8601形式) */
   createdAt: string
 }
@@ -137,17 +143,26 @@ export interface EventRecord {
  * 要件6.1に対応
  */
 export interface ConnpassPresentationData {
-  /** 資料タイトル */
-  title: string
+  /** 資料名 */
+  name: string
 
   /** 資料URL */
   url: string
 
-  /** サムネイルURL（利用可能な場合） */
-  thumbnail_url?: string
+  /** 発表者情報 */
+  presenter: {
+    id: number
+    nickname: string
+  }
 
-  /** 資料の種類（connpass APIから推定） */
-  type?: string
+  /** 資料の種類 */
+  presentation_type: string
+
+  /** 作成日時 */
+  created_at: string
+
+  /** ユーザー情報 */
+  user: Record<string, any>
 }
 
 /**
