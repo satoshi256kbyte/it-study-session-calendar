@@ -205,44 +205,42 @@ export class StudySessionCalendarStack extends cdk.Stack {
       SNS_TOPIC_ARN: studySessionNotificationTopic.topicArn,
     }
 
-    // Lambda Layer for dependencies (temporarily disabled for testing)
-    // const dependenciesLayer = new lambda.LayerVersion(
-    //     this,
-    //     'DependenciesLayer',
-    //     {
-    //         code: lambda.Code.fromAsset('../admin-backend', {
-    //             bundling: {
-    //                 image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-    //                 command: [
-    //                     'bash',
-    //                     '-c',
-    //                     [
-    //                         'echo "Starting bundling process..."',
-    //                         'ls -la',
-    //                         'echo "Installing dependencies..."',
-    //                         'npm ci --production --ignore-engines || npm install --production --ignore-engines',
-    //                         'echo "Creating output directory..."',
-    //                         'mkdir -p /asset-output/nodejs',
-    //                         'echo "Copying node_modules..."',
-    //                         'if [ -d "node_modules" ]; then cp -r node_modules /asset-output/nodejs/; else echo "No node_modules found"; fi',
-    //                         'echo "Copying package.json..."',
-    //                         'if [ -f "package.json" ]; then cp package.json /asset-output/nodejs/; else echo "No package.json found"; fi',
-    //                         'echo "Ensuring output directory exists..."',
-    //                         'touch /asset-output/nodejs/.keep',
-    //                         'echo "Listing output directory..."',
-    //                         'ls -la /asset-output/',
-    //                         'ls -la /asset-output/nodejs/ || echo "nodejs directory not found"',
-    //                         'echo "Bundling complete"',
-    //                     ].join(' && '),
-    //                 ],
-    //                 user: 'root', // Docker内でroot権限を使用
-    //             },
-    //         }),
-    //         compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
-    //         description: 'Dependencies layer for study session functions',
-    //         layerVersionName: `${serviceName}-${environment}-layer-dependencies`,
-    //     }
-    // )
+    // Lambda Layer for dependencies
+    const dependenciesLayer = new lambda.LayerVersion(
+      this,
+      'DependenciesLayer',
+      {
+        code: lambda.Code.fromAsset('../admin-backend', {
+          bundling: {
+            image: lambda.Runtime.NODEJS_20_X.bundlingImage,
+            command: [
+              'bash',
+              '-c',
+              [
+                'echo "Starting bundling process..."',
+                'ls -la',
+                'echo "Installing dependencies..."',
+                'npm ci --production --ignore-engines || npm install --production --ignore-engines',
+                'echo "Creating output directory..."',
+                'mkdir -p /asset-output/nodejs',
+                'echo "Copying node_modules..."',
+                'cp -r node_modules /asset-output/nodejs/ || echo "No node_modules found"',
+                'echo "Copying package.json..."',
+                'cp package.json /asset-output/nodejs/ || echo "No package.json found"',
+                'echo "Listing output directory..."',
+                'ls -la /asset-output/',
+                'ls -la /asset-output/nodejs/ || echo "nodejs directory not found"',
+                'echo "Bundling complete"',
+              ].join(' && '),
+            ],
+            user: 'root', // Docker内でroot権限を使用
+          },
+        }),
+        compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
+        description: 'Dependencies layer for study session functions',
+        layerVersionName: `${serviceName}-${environment}-layer-dependencies`,
+      }
+    )
 
     // Lambda 関数
     const createStudySessionFunction = new lambda.Function(
@@ -255,7 +253,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-create-study-session`,
-        // layers: [dependenciesLayer], // temporarily disabled
+        layers: [dependenciesLayer],
       }
     )
 
@@ -269,7 +267,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-get-study-sessions`,
-        // layers: [dependenciesLayer], // temporarily disabled
+        layers: [dependenciesLayer],
       }
     )
 
@@ -283,7 +281,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-approve-study-session`,
-        // layers: [dependenciesLayer], // temporarily disabled
+        layers: [dependenciesLayer],
       }
     )
 
@@ -297,7 +295,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-reject-study-session`,
-        // layers: [dependenciesLayer], // temporarily disabled
+        layers: [dependenciesLayer],
       }
     )
 
@@ -311,7 +309,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-delete-study-session`,
-        // layers: [dependenciesLayer], // temporarily disabled
+        layers: [dependenciesLayer],
       }
     )
 
@@ -326,7 +324,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         environment: lambdaEnvironment,
         timeout: cdk.Duration.seconds(30),
         functionName: `${serviceName}-${environment}-lambda-get-event-materials`,
-        // layers: [dependenciesLayer], // temporarily disabled
+        layers: [dependenciesLayer],
       }
     )
 
@@ -344,7 +342,7 @@ export class StudySessionCalendarStack extends cdk.Stack {
         },
         timeout: cdk.Duration.minutes(15), // バッチ処理は長時間実行される可能性がある
         functionName: `${serviceName}-${environment}-lambda-batch-materials`,
-        // layers: [dependenciesLayer], // temporarily disabled
+        layers: [dependenciesLayer],
       }
     )
 
