@@ -89,7 +89,13 @@ export default function RootLayout({
       'og:description',
       '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。'
     )
-    setOgMeta('og:image', `${basePath}/og-image.png`)
+    setOgMeta(
+      'og:image',
+      'https://satoshi256kbyte.github.io/it-study-session-calendar/og-image.png'
+    )
+    setOgMeta('og:image:width', '1200')
+    setOgMeta('og:image:height', '630')
+    setOgMeta('og:image:type', 'image/png')
 
     // Twitter Card設定
     const setTwitterMeta = (name: string, content: string) => {
@@ -104,7 +110,7 @@ export default function RootLayout({
       }
     }
 
-    setTwitterMeta('twitter:card', 'summary')
+    setTwitterMeta('twitter:card', 'summary_large_image')
     setTwitterMeta('twitter:site', '@hiroshima_it_cal')
     setTwitterMeta('twitter:creator', '@hiroshima_it_cal')
     setTwitterMeta('twitter:title', '広島IT勉強会カレンダー')
@@ -112,7 +118,10 @@ export default function RootLayout({
       'twitter:description',
       '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション。connpassやDoorkeeperなどの勉強会情報を一元管理し、参加しやすい環境を提供します。'
     )
-    setTwitterMeta('twitter:image', `${basePath}/og-image.png`)
+    setTwitterMeta(
+      'twitter:image',
+      'https://satoshi256kbyte.github.io/it-study-session-calendar/og-image.png'
+    )
 
     // 構造化データを設定
     const structuredData = {
