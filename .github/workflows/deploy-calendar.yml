@@ -2,8 +2,8 @@ name: Deploy Calendar to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
-    paths: [ 'calendar/**' ]
+    branches: [main]
+    paths: ['calendar/**']
   workflow_dispatch:
 
 permissions:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: false
 
 jobs:
@@ -26,7 +26,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "23.10.0"
+          node-version: '18.18.0'
+          cache: 'npm'
+          cache-dependency-path: calendar/package-lock.json
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -42,32 +44,46 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('calendar/package.json') }}-
 
-      - name: Clean install dependencies (ignore workspace)
+      - name: Clean install dependencies
         run: |
           cd calendar
           # Remove any existing node_modules and package-lock.json
-          rm -rf node_modules package-lock.json
-          # Install dependencies without workspace context
-          npm install --no-workspaces
+          rm -rf node_modules package-lock.json .next
+          # Create a temporary .npmrc to ignore workspace config
+          echo "workspaces=false" > .npmrc
+          # Install dependencies
+          npm ci --prefer-offline --no-audit --no-fund
+          # Remove temporary .npmrc
+          rm -f .npmrc
         env:
           CI: true
+          NEXT_TELEMETRY_DISABLED: 1
 
       - name: Debug environment variables
         run: |
           echo "API_BASE_URL: ${{ secrets.API_BASE_URL }}"
           echo "GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}"
 
-      - name: Build with Next.js (skip linting)
+      - name: Build with Next.js
         run: |
           cd calendar
-          # Build without linting to avoid ESLint dependency issues
+          # Set environment variables
+          export NEXT_TELEMETRY_DISABLED=1
+          export NODE_ENV=production
+          # Create a temporary .npmrc to ignore workspace config
+          echo "workspaces=false" > .npmrc
+          # Build the application
           npx next build --no-lint
-          # Copy assets manually since npm run copy-assets might fail
+          # Remove temporary .npmrc
+          rm -f .npmrc
+          # Copy assets manually
           mkdir -p out
           cp -r assets/* out/ 2>/dev/null || true
         env:
           NEXT_PUBLIC_GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          NEXT_TELEMETRY_DISABLED: 1
+          NODE_ENV: production
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
