@@ -4,6 +4,7 @@ import { memo, useMemo } from 'react'
 import {
   EventMaterialsTableProps,
   formatEventDate,
+  MaterialType,
 } from '../types/eventMaterial'
 import MaterialLink from './MaterialLink'
 
@@ -23,12 +24,42 @@ function EventMaterialsTable({
 }: EventMaterialsTableProps) {
   /**
    * イベントを開催日時の降順でソート（要件1.3: 最新が最初）
+   * 各イベント内の資料も指定された順序でソート
    * 要件6.2: useMemoでソート処理を最適化
    */
   const sortedEvents = useMemo(() => {
-    return [...events].sort((a, b) => {
-      return new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()
-    })
+    /**
+     * 資料タイプの優先順位を定義
+     * ビデオ、スライド、ブログ、資料、その他の順
+     */
+    const materialTypePriority: Record<MaterialType, number> = {
+      video: 1,
+      slide: 2,
+      blog: 3,
+      document: 4,
+      other: 5,
+    }
+
+    return [...events]
+      .sort((a, b) => {
+        return new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()
+      })
+      .map(event => ({
+        ...event,
+        materials: [...event.materials].sort((a, b) => {
+          const priorityA = materialTypePriority[a.type] || 5
+          const priorityB = materialTypePriority[b.type] || 5
+
+          // 優先順位が同じ場合は作成日時の降順（新しい順）
+          if (priorityA === priorityB) {
+            return (
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            )
+          }
+
+          return priorityA - priorityB
+        }),
+      }))
   }, [events])
 
   return (
