@@ -203,12 +203,10 @@ export class ShareContentGenerator {
   }
 
   /**
-   * フッター部分（URL + ハッシュタグ）を生成
+   * フッター部分（URLのみ）を生成
    */
   private generateFooter(): string {
-    const urlLine = `詳細はこちら: ${this.config.calendarUrl}`
-    const hashtagsLine = this.generateHashtags()
-    return `${urlLine}\n\n${hashtagsLine}`
+    return `詳細はこちら:\nhttps://satoshi256kbyte.github.io/it-study-session-calendar/`
   }
 
   /**
@@ -405,7 +403,6 @@ export function createShareContentGenerator(
 ): ShareContentGenerator {
   return new ShareContentGenerator({
     calendarUrl,
-    hashtags: ['#広島IT', '#勉強会', '#プログラミング'],
     baseMessage: '📅 今月の広島IT勉強会',
   })
 }
