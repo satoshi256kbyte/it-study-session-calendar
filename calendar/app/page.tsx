@@ -395,7 +395,7 @@ export default function Home() {
               <div className="flex justify-between items-center">
                 <div>
                   <h2 className="text-lg font-medium text-gray-900">
-                    イベント資料一覧
+                    <b>イベント資料一覧</b>
                   </h2>
                   <p className="mt-1 text-sm text-gray-600">
                     過去6ヶ月分のconnpassイベントの発表資料

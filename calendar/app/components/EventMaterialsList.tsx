@@ -213,20 +213,15 @@ function EventMaterialsList() {
    */
   return (
     <div className="w-full">
+      {/* 更新状態とキャッシュ情報の表示 */}
       <div className="mb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
-              イベント資料一覧
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              過去6ヶ月分のconnpassイベントの発表資料
-              {lastUpdated && (
-                <span className="ml-2">
-                  (最終更新: {lastUpdated.toLocaleString('ja-JP')})
-                </span>
-              )}
-            </p>
+            {lastUpdated && (
+              <p className="text-sm text-gray-600">
+                最終更新: {lastUpdated.toLocaleString('ja-JP')}
+              </p>
+            )}
           </div>
 
           {/* バックグラウンド更新中のインジケーター */}
