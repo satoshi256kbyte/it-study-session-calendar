@@ -18,16 +18,12 @@ import { logger } from '../utils/logger'
 export class DynamoDBService {
   private dynamodb: DynamoDBDocumentClient
   private tableName: string
-  private eventsTableName: string
 
   constructor() {
     const client = new DynamoDBClient({})
     this.dynamodb = DynamoDBDocumentClient.from(client)
     this.tableName = process.env.STUDY_SESSIONS_TABLE_NAME || 'StudySessions'
-    this.eventsTableName = process.env.EVENTS_TABLE_NAME || 'Events'
-    logger.debug(
-      `DynamoDBService initialized with tables: ${this.tableName}, ${this.eventsTableName}`
-    )
+    logger.debug(`DynamoDBService initialized with table: ${this.tableName}`)
   }
 
   async createStudySession(
@@ -224,15 +220,17 @@ export class DynamoDBService {
     )
 
     try {
-      // GSI: EventsByDate を使用してクエリ
+      // StatusIndexを使用してクエリ
       const result = await this.dynamodb.send(
         new QueryCommand({
-          TableName: this.eventsTableName,
-          IndexName: 'EventsByDate',
-          KeyConditionExpression:
-            '#status = :status AND eventDate BETWEEN :startDate AND :endDate',
+          TableName: this.tableName,
+          IndexName: 'StatusIndex',
+          KeyConditionExpression: '#status = :status',
+          FilterExpression:
+            '#datetime BETWEEN :startDate AND :endDate AND attribute_exists(connpassUrl) AND attribute_exists(materials)',
           ExpressionAttributeNames: {
             '#status': 'status',
+            '#datetime': 'datetime',
           },
           ExpressionAttributeValues: {
             ':status': status,
@@ -249,34 +247,36 @@ export class DynamoDBService {
         ItemsLength: result.Items?.length || 0,
       })
 
-      const events = (result.Items as EventRecord[]) || []
+      const sessions = (result.Items as StudySession[]) || []
 
       // connpassイベントで資料があるもののみをフィルタリング
-      const filteredEvents = events.filter(
-        event =>
-          event.connpassUrl && event.materials && event.materials.length > 0
+      const filteredSessions = sessions.filter(
+        session =>
+          session.connpassUrl &&
+          session.materials &&
+          session.materials.length > 0
       )
 
       logger.debug(
-        `Filtered ${filteredEvents.length} events with connpass URL and materials from ${events.length} total events`
+        `Filtered ${filteredSessions.length} sessions with connpass URL and materials from ${sessions.length} total sessions`
       )
 
       // EventWithMaterials形式に変換
-      const eventsWithMaterials: EventWithMaterials[] = filteredEvents.map(
-        event => ({
-          id: event.eventId,
-          title: event.title,
-          eventDate: event.eventDate,
-          eventUrl: event.eventUrl,
-          materials: event.materials,
-          connpassUrl: event.connpassUrl,
-          createdAt: event.createdAt,
-          updatedAt: event.updatedAt,
+      const eventsWithMaterials: EventWithMaterials[] = filteredSessions.map(
+        session => ({
+          id: session.id,
+          title: session.title,
+          eventDate: session.datetime,
+          eventUrl: session.url,
+          materials: session.materials || [],
+          connpassUrl: session.connpassUrl!, // フィルター済みなので非null
+          createdAt: session.createdAt,
+          updatedAt: session.updatedAt,
         })
       )
 
       logger.debug(
-        `Converted ${eventsWithMaterials.length} events to EventWithMaterials format`
+        `Converted ${eventsWithMaterials.length} sessions to EventWithMaterials format`
       )
 
       return eventsWithMaterials
@@ -312,7 +312,7 @@ export class DynamoDBService {
   }
 
   /**
-   * イベントレコードを作成または更新
+   * イベントレコードを作成または更新（StudySessionとして保存）
    * 要件6.1, 6.2に対応
    */
   async upsertEventRecord(eventRecord: EventRecord): Promise<EventRecord> {
@@ -322,10 +322,25 @@ export class DynamoDBService {
     })
 
     try {
+      // EventRecordをStudySession形式に変換
+      const studySession: StudySession = {
+        id: eventRecord.eventId,
+        title: eventRecord.title,
+        url: eventRecord.eventUrl,
+        datetime: eventRecord.eventDate,
+        endDatetime: eventRecord.endDatetime,
+        contact: eventRecord.contact,
+        status: eventRecord.status,
+        connpassUrl: eventRecord.connpassUrl,
+        materials: eventRecord.materials,
+        createdAt: eventRecord.createdAt,
+        updatedAt: eventRecord.updatedAt,
+      }
+
       await this.dynamodb.send(
         new PutCommand({
-          TableName: this.eventsTableName,
-          Item: eventRecord,
+          TableName: this.tableName,
+          Item: studySession,
         })
       )
 
@@ -349,7 +364,7 @@ export class DynamoDBService {
     try {
       const result = await this.dynamodb.send(
         new ScanCommand({
-          TableName: this.eventsTableName,
+          TableName: this.tableName,
           FilterExpression:
             '#status = :status AND attribute_exists(connpassUrl)',
           ExpressionAttributeNames: {
@@ -367,7 +382,25 @@ export class DynamoDBService {
         ItemsLength: result.Items?.length || 0,
       })
 
-      const events = (result.Items as EventRecord[]) || []
+      const sessions = (result.Items as StudySession[]) || []
+
+      // StudySessionをEventRecord形式に変換（connpassUrlが存在するもののみ）
+      const events: EventRecord[] = sessions
+        .filter(session => session.connpassUrl) // connpassUrlが存在するもののみ
+        .map(session => ({
+          eventId: session.id,
+          title: session.title,
+          eventDate: session.datetime,
+          endDatetime: session.endDatetime,
+          eventUrl: session.url,
+          contact: session.contact,
+          status: session.status,
+          connpassUrl: session.connpassUrl!, // フィルター済みなので非null
+          materials: session.materials || [],
+          createdAt: session.createdAt,
+          updatedAt: session.updatedAt,
+        }))
+
       logger.debug(
         `Retrieved ${events.length} approved events with connpass URL`
       )

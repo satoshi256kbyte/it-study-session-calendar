@@ -107,8 +107,14 @@ export interface EventRecord {
   /** イベント開催日時 (ISO 8601形式) */
   eventDate: string
 
+  /** イベント終了日時 (ISO 8601形式) */
+  endDatetime?: string
+
   /** イベントページURL */
   eventUrl: string
+
+  /** 連絡先 */
+  contact?: string
 
   /** connpass URL（必須、connpassイベントのみ対象） */
   connpassUrl: string

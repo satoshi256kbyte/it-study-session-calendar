@@ -1,3 +1,5 @@
+import { Material } from './EventMaterial'
+
 export interface StudySession {
   id: string
   title: string
@@ -6,6 +8,8 @@ export interface StudySession {
   endDatetime?: string
   contact?: string
   status: 'pending' | 'approved' | 'rejected'
+  connpassUrl?: string
+  materials?: Material[]
   createdAt: string
   updatedAt: string
 }
