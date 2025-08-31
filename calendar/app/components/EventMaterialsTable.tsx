@@ -73,19 +73,19 @@ function EventMaterialsTable({
               {/* 要件2.1: イベント名、開催日時、資料の列 */}
               <th
                 scope="col"
-                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5 lg:w-1/2"
               >
                 イベント名
               </th>
               <th
                 scope="col"
-                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-1/6 lg:w-1/8"
               >
                 開催日時
               </th>
               <th
                 scope="col"
-                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5 lg:w-3/8"
               >
                 資料
               </th>
@@ -96,14 +96,18 @@ function EventMaterialsTable({
               <tr key={event.id} className="hover:bg-gray-50">
                 {/* イベント名列 - 要件2.2: 元のイベントページへのクリック可能なリンク */}
                 {/* 要件4.1: 小画面でのテーブル表示最適化 */}
-                <td className="px-3 py-4 sm:px-6 min-w-0">
+                <td className="px-3 py-4 sm:px-6 min-w-0 max-w-xs lg:max-w-md xl:max-w-lg">
                   <div className="text-sm">
                     <a
                       href={event.eventUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline font-medium block leading-5 break-words"
+                      className="text-blue-600 hover:text-blue-800 hover:underline font-medium block leading-5 break-words hyphens-auto"
                       title={`${event.title}のイベントページを開く`}
+                      style={{
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                      }}
                     >
                       {event.title}
                     </a>
@@ -123,14 +127,14 @@ function EventMaterialsTable({
                 </td>
 
                 {/* 開催日時列 - 要件2.3: YYYY/MM/DD形式 */}
-                <td className="px-3 py-4 sm:px-6 whitespace-nowrap">
+                <td className="px-3 py-4 sm:px-6 whitespace-nowrap w-1/6 lg:w-1/8">
                   <div className="text-sm text-gray-900">
                     {formatEventDate(event.eventDate)}
                   </div>
                 </td>
 
                 {/* 資料列 - 要件2.4, 2.5: 資料リンクとサムネイル、複数資料対応 */}
-                <td className="px-3 py-4 sm:px-6 min-w-0">
+                <td className="px-3 py-4 sm:px-6 min-w-0 w-2/5 lg:w-3/8">
                   <div className="space-y-2">
                     {event.materials.map(material => (
                       <MaterialLink
