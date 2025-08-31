@@ -5,6 +5,9 @@
 /* Import transition effects - 要件5.2: スムーズなトランジション効果 */
 @import './styles/transitions.css';
 
+/* Import responsive header button utilities - 要件1.5, 3.5, 5.1, 5.2 */
+@import './styles/responsive-utilities.css';
+
 /* Responsive Event Materials Components - 要件5.2, 7.2 */
 @layer components {
   /* Base Event Materials Container */
@@ -281,6 +284,29 @@ body {
     transform: translateZ(0);
     backface-visibility: hidden;
     perspective: 1000px;
+  }
+  
+  /* Responsive Header Button Utilities - 要件1.5, 3.5, 5.1, 5.2 */
+  .responsive-header-container {
+    contain: layout style;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  
+  .responsive-button-base {
+    contain: layout style;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  @media (pointer: coarse) {
+    .responsive-button-base {
+      min-height: 48px;
+    }
   }
   
   /* Desktop layout - 要件3.1: デスクトップでテーブル形式を維持 */
@@ -598,5 +624,78 @@ body {
       transition: none;
       transform: none;
     }
+    
+    .responsive-button-base,
+    .responsive-header-container {
+      transition: none;
+      transform: none;
+      animation: none;
+    }
+  }
+  
+  /* Enhanced Responsive Header Button Display Utilities - 要件1.1, 1.2, 2.1, 2.2 */
+  .header-btn-text-mobile-hidden {
+    @apply hidden sm:inline;
+  }
+  
+  .header-btn-desktop-only {
+    @apply hidden sm:inline-flex;
+  }
+  
+  .header-btn-mobile-only {
+    @apply block sm:hidden;
+  }
+  
+  .header-btn-icon-spacing-responsive {
+    @apply mr-0 sm:mr-2;
+  }
+
+  /* Additional Mobile-First Utilities - 要件1.5, 5.1 */
+  .mobile-first-compact {
+    @apply p-2 min-w-[44px];
+  }
+
+  @media (min-width: 640px) {
+    .mobile-first-compact {
+      @apply px-3 py-2 min-w-0;
+    }
+  }
+
+  .mobile-first-spacing {
+    @apply space-x-2 sm:space-x-4;
+  }
+
+  /* Performance Optimized Button Base - 要件5.2 */
+  .btn-performance-base {
+    contain: layout style;
+    transform: translateZ(0);
+    transition: all 0.2s ease;
+  }
+  
+  /* Mobile Register Section Utilities - 要件2.2, 2.5 */
+  .mobile-register-container {
+    @apply block sm:hidden mt-6 px-4;
+    contain: layout style;
+  }
+  
+  .mobile-register-content {
+    @apply bg-white rounded-lg shadow-sm border p-6 text-center;
+    contain: layout style paint;
+  }
+  
+  /* Header Layout Stability - 요건3.5, 5.2 */
+  .header-layout-container {
+    contain: layout style;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  
+  .header-transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+  }
+  
+  .header-transition-complete {
+    will-change: auto;
   }
 }

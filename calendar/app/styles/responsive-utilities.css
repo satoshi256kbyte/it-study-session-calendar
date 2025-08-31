@@ -1,0 +1,120 @@
+/* Responsive Header Button Utilities - Task 5 Implementation */
+/* 要件1.5, 3.5, 5.1, 5.2 対応 */
+
+/* Mobile-First Button Text Visibility - 要件1.1, 1.2 */
+.responsive-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .responsive-text {
+    display: inline;
+  }
+}
+
+/* Mobile-First Button Display - 要件2.1, 2.2 */
+.responsive-btn-mobile-hidden {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .responsive-btn-mobile-hidden {
+    display: inline-flex;
+  }
+}
+
+.responsive-btn-desktop-hidden {
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .responsive-btn-desktop-hidden {
+    display: none;
+  }
+}
+
+/* Responsive Icon Spacing - 要件1.5 */
+.responsive-icon-spacing {
+  margin-right: 0;
+  transition: margin-right 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .responsive-icon-spacing {
+    margin-right: 0.5rem;
+  }
+}
+
+/* Smooth Transitions - 要件5.2 */
+.responsive-transition {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* CSS Containment for Performance - 要件5.2 */
+.responsive-contain {
+  contain: layout style;
+}
+
+/* Touch Target Optimization - 要件4.2 */
+.responsive-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (pointer: coarse) {
+  .responsive-touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+/* Responsive Container Spacing - 要件3.5 */
+.responsive-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: gap 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .responsive-container {
+    gap: 1rem;
+  }
+}
+
+/* Mobile-First Button Pattern - 要件5.1 */
+.responsive-btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  contain: layout style;
+  transform: translateZ(0);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 640px) {
+  .responsive-btn-base {
+    padding: 0.5rem 0.75rem;
+    min-width: auto;
+  }
+}
+
+/* Reduced Motion Support - 要件4.1 */
+@media (prefers-reduced-motion: reduce) {
+  .responsive-transition,
+  .responsive-icon-spacing,
+  .responsive-container,
+  .responsive-btn-base {
+    transition: none !important;
+  }
+}

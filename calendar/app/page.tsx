@@ -8,11 +8,14 @@ import {
   lazy,
   Suspense,
 } from 'react'
-import Link from 'next/link'
-import TwitterShareButton from './components/TwitterShareButton'
+import ResponsiveHeaderButtons from './components/ResponsiveHeaderButtons'
+import MobileRegisterSection from './components/MobileRegisterSection'
 import LoadingSpinner from './components/LoadingSpinner'
 import { useStudySessionEventsWithDefaults } from './hooks/useStudySessionEvents'
 import { initializePerformanceMonitoring } from './utils/performance'
+
+// Import responsive header button styles
+import './styles/responsive-header-buttons.css'
 
 // Lazy load EventMaterialsList for better initial page load performance
 const EventMaterialsList = lazy(() => import('./components/EventMaterialsList'))
@@ -108,67 +111,19 @@ export default function Home() {
                 広島IT勉強会カレンダー
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <TwitterShareButton
-                shareText={shareText}
-                calendarUrl={pageUrl}
-                isLoading={isEventsLoading}
-                hasError={!!eventsError && !isFallbackMode}
-                disabled={!shareText && !isEventsLoading}
-                onShareClick={handleTwitterShareClick}
-                onError={handleTwitterShareError}
-              />
-              {/* エラー状態の表示とリトライボタン */}
-              {eventsError && isRetryable && !isFallbackMode && (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={retry}
-                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded"
-                    title="勉強会データの取得を再試行"
-                  >
-                    <svg
-                      className="w-3 h-3 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    再試行
-                  </button>
-                </div>
-              )}
-              <button
-                onClick={handleShare}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 button-optimized"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
-                  />
-                </svg>
-                シェア
-              </button>
-              <Link
-                href="/register"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 button-optimized"
-              >
-                勉強会の登録依頼
-              </Link>
-            </div>
+            <ResponsiveHeaderButtons
+              shareText={shareText}
+              calendarUrl={pageUrl}
+              isEventsLoading={isEventsLoading}
+              eventsError={eventsError}
+              isFallbackMode={isFallbackMode}
+              isRetryable={isRetryable}
+              onRetry={retry}
+              onShareClick={handleTwitterShareClick}
+              onTwitterShareError={handleTwitterShareError}
+              onNativeShare={handleShare}
+              className="header-buttons-container"
+            />
           </div>
         </div>
       </header>
@@ -202,6 +157,9 @@ export default function Home() {
               )}
             </div>
           </div>
+
+          {/* Mobile Register Section - positioned below calendar on mobile */}
+          <MobileRegisterSection />
 
           {/* エラー状態とフォールバック表示 */}
           {eventsError && (
@@ -323,7 +281,7 @@ export default function Home() {
                   現在、今月開催予定の勉強会はありません。新しい勉強会の登録をお待ちしています。
                 </p>
                 <div className="mt-6">
-                  <Link
+                  <a
                     href="/register"
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
@@ -341,7 +299,7 @@ export default function Home() {
                       />
                     </svg>
                     勉強会の登録依頼
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>

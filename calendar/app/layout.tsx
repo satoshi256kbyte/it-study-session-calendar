@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import './styles/image-optimization.css'
 import './styles/browser-compatibility.css'
+import './styles/responsive-header-buttons-minimal.css'
+import './styles/transitions.css'
 import BrowserCompatibilityProvider from './components/BrowserCompatibilityProvider'
 
 export const viewport: Viewport = {
