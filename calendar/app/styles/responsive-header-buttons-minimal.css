@@ -2,178 +2,169 @@
 /* Requirements: 3.5, 4.5, 5.2, 5.5 */
 
 /* Base Performance Optimizations */
-@layer base {
-  /* CSS Containment for Performance */
-  .header-buttons-container {
-    contain: layout style;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
+.header-buttons-container {
+  contain: layout style;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
 
-  /* Reduced Motion Support */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* Optimized Component Styles */
-@layer components {
-  /* Twitter Button - Mobile First Approach */
-  .twitter-button-responsive {
-    @apply inline-flex items-center px-2 py-2 sm:px-3 sm:py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
-    min-height: 44px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    contain: layout style;
-    transition: background-color 0.15s ease;
-    will-change: auto;
-  }
-
-  .twitter-button-responsive:hover {
-    will-change: background-color;
-  }
-
-  .twitter-button-responsive:not(:hover) {
-    will-change: auto;
-  }
-
-  /* Twitter Button Text - CSS Only Responsive */
-  .twitter-button-text {
-    @apply hidden sm:inline;
-  }
-
-  /* Twitter Button Icon Spacing */
-  .twitter-button-icon {
-    @apply w-4 h-4 flex-shrink-0 mr-0 sm:mr-2;
-  }
-
-  /* Register Button - Header Display */
-  .register-button-header {
-    @apply hidden sm:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
-    min-height: 44px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    contain: layout style;
-    transition: background-color 0.15s ease;
-    will-change: auto;
-  }
-
-  .register-button-header:hover {
-    will-change: background-color;
-  }
-
-  .register-button-header:not(:hover) {
-    will-change: auto;
-  }
-
-  /* Register Button - Mobile Section */
-  .register-button-mobile-section {
-    @apply block sm:hidden w-full px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
-    min-height: 48px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    contain: layout style;
-    transition: background-color 0.15s ease;
-  }
-
-  /* Mobile Register Section */
-  .mobile-register-section {
-    @apply block sm:hidden mt-6 px-4;
-    contain: layout style;
-  }
-
-  .mobile-register-section-content {
-    @apply text-center bg-white rounded-lg shadow-sm border p-6;
-    contain: layout style paint;
-  }
-
-  /* Share Button */
-  .share-button-responsive {
-    @apply inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
-    min-height: 44px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    contain: layout style;
-    transition: background-color 0.15s ease;
-    will-change: auto;
-  }
-
-  .share-button-responsive:hover {
-    will-change: background-color;
-  }
-
-  .share-button-responsive:not(:hover) {
-    will-change: auto;
-  }
+/* Twitter Button - Mobile First Approach */
+.twitter-button-responsive {
+  @apply inline-flex items-center px-2 py-2 sm:px-3 sm:py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style;
+  transition: background-color 0.15s ease;
+  will-change: auto;
 }
 
-/* Optimized Utilities */
-@layer utilities {
-  /* Performance Optimized Container */
-  .responsive-header-buttons {
-    @apply flex items-center space-x-2 sm:space-x-4;
-    contain: layout style;
-  }
+.twitter-button-responsive:hover {
+  will-change: background-color;
+}
 
-  /* GPU Acceleration for Smooth Transitions */
-  .gpu-optimized {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-  }
+.twitter-button-responsive:not(:hover) {
+  will-change: auto;
+}
 
-  /* Layout Stability */
-  .layout-stable {
-    contain: layout;
-    min-height: 44px;
-  }
+/* Twitter Button Text - CSS Only Responsive */
+.twitter-button-text {
+  @apply hidden sm:inline;
+}
 
-  /* Touch Optimization */
+/* Twitter Button Icon Spacing */
+.twitter-button-icon {
+  @apply w-4 h-4 flex-shrink-0 mr-0 sm:mr-2;
+}
+
+/* Register Button - Header Display */
+.register-button-header {
+  @apply hidden sm:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style;
+  transition: background-color 0.15s ease;
+  will-change: auto;
+}
+
+.register-button-header:hover {
+  will-change: background-color;
+}
+
+.register-button-header:not(:hover) {
+  will-change: auto;
+}
+
+/* Register Button - Mobile Section */
+.register-button-mobile-section {
+  @apply block sm:hidden w-full px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  min-height: 48px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style;
+  transition: background-color 0.15s ease;
+}
+
+/* Mobile Register Section */
+.mobile-register-section {
+  @apply block sm:hidden mt-6 px-4;
+  contain: layout style;
+}
+
+.mobile-register-section-content {
+  @apply text-center bg-white rounded-lg shadow-sm border p-6;
+  contain: layout style paint;
+}
+
+/* Share Button */
+.share-button-responsive {
+  @apply inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style;
+  transition: background-color 0.15s ease;
+  will-change: auto;
+}
+
+.share-button-responsive:hover {
+  will-change: background-color;
+}
+
+.share-button-responsive:not(:hover) {
+  will-change: auto;
+}
+
+/* Performance Optimized Container */
+.responsive-header-buttons {
+  @apply flex items-center space-x-2 sm:space-x-4;
+  contain: layout style;
+}
+
+/* GPU Acceleration for Smooth Transitions */
+.gpu-optimized {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Layout Stability */
+.layout-stable {
+  contain: layout;
+  min-height: 44px;
+}
+
+/* Touch Optimization */
+.touch-optimized {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (pointer: coarse) {
   .touch-optimized {
-    min-height: 44px;
-    min-width: 44px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+    min-height: 48px;
+    min-width: 48px;
   }
+}
 
-  @media (pointer: coarse) {
-    .touch-optimized {
-      min-height: 48px;
-      min-width: 48px;
-    }
-  }
+/* Focus Ring Enhancement */
+.focus-ring-enhanced:focus {
+  box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
 
-  /* Focus Ring Enhancement */
-  .focus-ring-enhanced:focus {
-    box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
-  }
+/* Transition Classes - Minimal and Fast */
+.transition-fast {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  /* Transition Classes - Minimal and Fast */
-  .transition-fast {
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  .transition-smooth {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+/* Will-change Management */
+.will-change-auto {
+  will-change: auto;
+}
 
-  /* Will-change Management */
-  .will-change-auto {
-    will-change: auto;
-  }
+.will-change-transform {
+  will-change: transform;
+}
 
-  .will-change-transform {
-    will-change: transform;
-  }
-
-  .will-change-opacity {
-    will-change: opacity;
-  }
+.will-change-opacity {
+  will-change: opacity;
 }
 
 /* Responsive Breakpoint Optimizations */
