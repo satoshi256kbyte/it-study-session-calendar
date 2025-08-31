@@ -1,0 +1,575 @@
+/**
+ * Cross-browser compatibility styles for responsive event materials
+ * 要件5.4, 7.4: 主要ブラウザでのレスポンシブ表示テスト、CSS Grid/Flexboxの互換性確認
+ */
+
+/* CSS Feature Detection and Fallbacks */
+
+/* Grid Layout with Flexbox Fallback */
+.responsive-grid-tablet {
+  /* Flexbox fallback for browsers without Grid support */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* Modern browsers with Grid support */
+@supports (display: grid) {
+  .responsive-grid-tablet {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    grid-auto-rows: min-content;
+    align-items: start;
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .responsive-grid-tablet {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+  }
+}
+
+/* Flexbox fallback for tablet cards */
+@supports not (display: grid) {
+  .responsive-grid-tablet .event-card-tablet {
+    flex: 0 1 calc(50% - 0.75rem);
+    min-width: 280px;
+    max-width: 100%;
+  }
+  
+  @media (max-width: 767px) {
+    .responsive-grid-tablet .event-card-tablet {
+      flex: 1 1 100%;
+    }
+  }
+}
+
+/* Transform Fallbacks */
+.event-card {
+  /* Fallback for browsers without transform support */
+  position: relative;
+  top: 0;
+  transition: top 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+@supports (transform: translateY(-1px)) {
+  .event-card {
+    top: auto;
+    transform: translateZ(0);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+  
+  .event-card:hover {
+    transform: translateZ(0) translateY(-1px);
+  }
+}
+
+@supports not (transform: translateY(-1px)) {
+  .event-card:hover {
+    top: -1px;
+  }
+}
+
+/* Will-change Fallbacks */
+@supports (will-change: transform) {
+  .card-hover-transition {
+    will-change: transform, box-shadow;
+  }
+  
+  .card-hover-transition.transition-complete {
+    will-change: auto;
+  }
+}
+
+@supports not (will-change: transform) {
+  .card-hover-transition {
+    /* Use transform3d to trigger hardware acceleration on older browsers */
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Browser-Specific Fixes */
+
+/* Chrome and Chromium-based browsers */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .event-card {
+    /* Fix for Chrome's subpixel rendering issues */
+    -webkit-font-smoothing: antialiased;
+    -webkit-backface-visibility: hidden;
+  }
+  
+  .responsive-grid-tablet {
+    /* Fix for Chrome's grid gap rendering */
+    -webkit-box-sizing: border-box;
+  }
+}
+
+/* Firefox-specific fixes */
+@-moz-document url-prefix() {
+  .event-card {
+    /* Fix for Firefox's box-shadow rendering */
+    -moz-box-sizing: border-box;
+  }
+  
+  .responsive-grid-tablet {
+    /* Firefox grid gap fix */
+    -moz-box-sizing: border-box;
+  }
+  
+  /* Firefox flexbox gap fallback */
+  @supports not (gap: 1rem) {
+    .responsive-grid-tablet {
+      margin: -0.5rem;
+    }
+    
+    .responsive-grid-tablet .event-card-tablet {
+      margin: 0.5rem;
+    }
+  }
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) {
+  .event-card {
+    /* Safari transform optimization */
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+  }
+  
+  .touch-target-enhanced {
+    /* Safari touch target optimization */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+  }
+  
+  /* Safari scroll optimization */
+  .responsive-event-materials-container {
+    -webkit-overflow-scrolling: touch;
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .event-card {
+    /* iOS Safari rendering optimization */
+    -webkit-transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+  }
+  
+  .touch-target-enhanced {
+    /* iOS Safari touch optimization */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+  }
+  
+  /* iOS Safari scroll bounce control */
+  .responsive-event-materials-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* iOS Safari viewport fix */
+  @media screen and (max-device-width: 812px) {
+    .event-card-mobile {
+      /* Prevent zoom on double-tap */
+      touch-action: manipulation;
+    }
+  }
+}
+
+/* Edge Legacy (EdgeHTML) fixes */
+@supports (-ms-ime-align: auto) {
+  .responsive-grid-tablet {
+    /* Edge Legacy grid fallback */
+    display: -ms-grid;
+    -ms-grid-columns: 1fr;
+    -ms-grid-rows: auto;
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .responsive-grid-tablet {
+      -ms-grid-columns: 1fr 1.5rem 1fr;
+    }
+    
+    .responsive-grid-tablet .event-card-tablet:nth-child(odd) {
+      -ms-grid-column: 1;
+    }
+    
+    .responsive-grid-tablet .event-card-tablet:nth-child(even) {
+      -ms-grid-column: 3;
+    }
+  }
+}
+
+/* Internet Explorer 11 fixes (if needed) */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .responsive-grid-tablet {
+    /* IE11 flexbox fallback */
+    display: -ms-flexbox;
+    -ms-flex-wrap: wrap;
+    -ms-flex-pack: justify;
+    -ms-flex-align: start;
+  }
+  
+  .event-card-tablet {
+    /* IE11 flex item sizing */
+    -ms-flex: 0 1 calc(50% - 0.75rem);
+    max-width: calc(50% - 0.75rem);
+  }
+  
+  @media (max-width: 767px) {
+    .event-card-tablet {
+      -ms-flex: 1 1 100%;
+      max-width: 100%;
+    }
+  }
+}
+
+/* High DPI Display Optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .event-card {
+    /* High DPI rendering optimization */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .event-card img {
+    /* High DPI image rendering */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .event-card,
+  .card-hover-transition,
+  .layout-transitioning,
+  .responsive-grid-tablet,
+  .responsive-stack-mobile {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  
+  .event-card:hover {
+    transform: none !important;
+    top: 0 !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .event-card {
+    border: 2px solid;
+    border-color: ButtonText;
+  }
+  
+  .event-card:hover {
+    border-color: Highlight;
+  }
+  
+  .event-card:focus-within {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .event-card {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+  
+  .event-card:hover {
+    background-color: #111827;
+    border-color: #4b5563;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .responsive-event-materials-container {
+    /* Print optimization */
+    display: block !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .event-card {
+    /* Print card styling */
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #000;
+    box-shadow: none;
+    transform: none;
+    margin-bottom: 1rem;
+  }
+  
+  .responsive-grid-tablet {
+    /* Print layout */
+    display: block !important;
+    columns: 2;
+    column-gap: 2rem;
+  }
+  
+  @media (max-width: 767px) {
+    .responsive-grid-tablet {
+      columns: 1;
+    }
+  }
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-transparency: reduce) {
+  .event-card {
+    /* Reduce transparency for accessibility */
+    background-color: #ffffff;
+    backdrop-filter: none;
+  }
+}
+
+/* Focus Visible Support */
+@supports selector(:focus-visible) {
+  .event-card:focus {
+    outline: none;
+  }
+  
+  .event-card:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+@supports not selector(:focus-visible) {
+  .event-card:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+/* Container Queries Fallback */
+@supports not (container-type: inline-size) {
+  /* Fallback for browsers without container query support */
+  .event-card-tablet {
+    /* Use viewport-based responsive design */
+    width: 100%;
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .event-card-tablet {
+      width: calc(50% - 0.75rem);
+    }
+  }
+}
+
+/* Aspect Ratio Fallback */
+@supports not (aspect-ratio: 1 / 1) {
+  .event-card img {
+    /* Fallback for browsers without aspect-ratio support */
+    width: 100%;
+    height: auto;
+  }
+  
+  .event-card .image-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    overflow: hidden;
+  }
+  
+  .event-card .image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+/* Object Fit Fallback */
+@supports not (object-fit: cover) {
+  .event-card img {
+    /* Fallback for browsers without object-fit support */
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+  }
+}
+
+/* Sticky Position Fallback */
+@supports not (position: sticky) {
+  .sticky-header {
+    /* Fallback for browsers without sticky support */
+    position: relative;
+  }
+}
+
+/* Scroll Behavior Fallback */
+@supports not (scroll-behavior: smooth) {
+  html {
+    /* JavaScript-based smooth scrolling fallback would be implemented */
+    scroll-behavior: auto;
+  }
+}
+
+/* Gap Property Fallback */
+@supports not (gap: 1rem) {
+  .responsive-grid-tablet {
+    /* Margin-based gap fallback */
+    margin: -0.5rem;
+  }
+  
+  .responsive-grid-tablet .event-card-tablet {
+    margin: 0.5rem;
+  }
+  
+  .responsive-stack-mobile {
+    /* Margin-based gap fallback for stack */
+    margin: -0.5rem 0;
+  }
+  
+  .responsive-stack-mobile .event-card-mobile {
+    margin: 0.5rem 0;
+  }
+}
+
+/* Touch Action Fallback */
+@supports not (touch-action: manipulation) {
+  .touch-target-enhanced {
+    /* Fallback for browsers without touch-action support */
+    -ms-touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Overscroll Behavior Fallback */
+@supports not (overscroll-behavior: contain) {
+  .responsive-event-materials-container {
+    /* Fallback for browsers without overscroll-behavior support */
+    overflow: hidden;
+  }
+}
+
+/* Backdrop Filter Fallback */
+@supports not (backdrop-filter: blur(10px)) {
+  .backdrop-blur {
+    /* Fallback background for browsers without backdrop-filter */
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* CSS Logical Properties Fallback */
+@supports not (margin-inline-start: 1rem) {
+  .logical-margin {
+    /* Fallback for browsers without logical properties */
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+  
+  [dir="rtl"] .logical-margin {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}
+
+/* Custom Properties (CSS Variables) Fallback */
+@supports not (color: var(--primary-color)) {
+  .event-card {
+    /* Fallback colors for browsers without CSS custom properties */
+    background-color: #ffffff;
+    border-color: #e5e7eb;
+    color: #111827;
+  }
+  
+  .event-card:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+  }
+}
+
+/* Performance Optimizations for Older Browsers */
+.legacy-browser-optimized {
+  /* Disable expensive effects on older browsers */
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Feature Detection Classes */
+.no-grid .responsive-grid-tablet {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.no-flexbox .responsive-grid-tablet {
+  display: block;
+}
+
+.no-transforms .event-card:hover {
+  position: relative;
+  top: -1px;
+}
+
+.no-transitions .event-card {
+  transition: none;
+}
+
+/* Browser Detection Classes (to be added via JavaScript) */
+.browser-chrome .event-card {
+  -webkit-font-smoothing: antialiased;
+}
+
+.browser-firefox .event-card {
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.browser-safari .event-card {
+  -webkit-transform: translateZ(0);
+}
+
+.browser-edge .event-card {
+  -ms-transform: translateZ(0);
+}
+
+/* Mobile Browser Optimizations */
+.mobile-browser .event-card {
+  /* Optimize for mobile browsers */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.mobile-browser .responsive-event-materials-container {
+  /* Mobile scroll optimization */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Tablet Browser Optimizations */
+.tablet-browser .responsive-grid-tablet {
+  /* Optimize grid for tablet browsers */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Desktop Browser Optimizations */
+.desktop-browser .event-card:hover {
+  /* Enhanced hover effects for desktop */
+  transform: translateZ(0) translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}

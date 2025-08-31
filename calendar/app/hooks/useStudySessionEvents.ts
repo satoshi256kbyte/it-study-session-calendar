@@ -257,7 +257,6 @@ export function useStudySessionEvents(
       }
     },
     [
-      calendarUrl,
       maxRetries,
       retryDelay,
       enableAutoRetry,
@@ -284,7 +283,7 @@ export function useStudySessionEvents(
   // 初回データ取得
   useEffect(() => {
     fetchEventsAndGenerateShareText(false)
-  }, []) // 依存配列を空にして初回のみ実行
+  }, [fetchEventsAndGenerateShareText])
 
   // コンポーネントのアンマウント時にタイマーをクリア
   useEffect(() => {

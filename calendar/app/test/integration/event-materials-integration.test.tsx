@@ -43,7 +43,9 @@ describe('EventMaterialsList Integration', () => {
     })
 
     // データ読み込み後の構造確認
-    expect(screen.getByText('イベント資料一覧')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /イベント資料一覧/ })
+    ).toBeInTheDocument()
     expect(
       screen.getByText('過去6ヶ月分のconnpassイベントの発表資料')
     ).toBeInTheDocument()
@@ -106,7 +108,9 @@ describe('EventMaterialsList Integration', () => {
     })
 
     // データ読み込み後にヘッダーが表示される
-    expect(screen.getByText('イベント資料一覧')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /イベント資料一覧/ })
+    ).toBeInTheDocument()
     expect(
       screen.getByText('過去6ヶ月分のconnpassイベントの発表資料')
     ).toBeInTheDocument()

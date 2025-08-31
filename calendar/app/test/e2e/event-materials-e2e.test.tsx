@@ -61,7 +61,9 @@ describe('Event Materials E2E Tests', () => {
       expect(calendarIframe).toBeInTheDocument()
 
       // イベント資料一覧セクションの確認
-      expect(screen.getByText('イベント資料一覧')).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: /イベント資料一覧/ })
+      ).toBeInTheDocument()
       expect(
         screen.getByText('過去6ヶ月分のconnpassイベントの発表資料')
       ).toBeInTheDocument()
@@ -361,7 +363,7 @@ describe('Event Materials E2E Tests', () => {
       // ナビゲーションボタンの確認
       const shareButton = screen.getByText('シェア')
       const twitterButton = screen.getByText('共有')
-      const registerLink = screen.getByText('勉強会を登録')
+      const registerLink = screen.getByText('勉強会の登録依頼')
 
       expect(shareButton).toBeInTheDocument()
       expect(twitterButton).toBeInTheDocument()
@@ -392,7 +394,9 @@ describe('Event Materials E2E Tests', () => {
 
       // カレンダーとイベント資料一覧の両方が表示される
       expect(screen.getByTitle('広島IT勉強会カレンダー')).toBeInTheDocument()
-      const eventMaterialsHeaders = screen.getAllByText('イベント資料一覧')
+      const eventMaterialsHeaders = screen.getAllByRole('heading', {
+        name: /イベント資料一覧/,
+      })
       expect(eventMaterialsHeaders.length).toBeGreaterThan(0)
 
       // タブレットサイズに変更
@@ -404,7 +408,9 @@ describe('Event Materials E2E Tests', () => {
 
       // レイアウトが維持される
       expect(screen.getByTitle('広島IT勉強会カレンダー')).toBeInTheDocument()
-      const eventMaterialsHeaders2 = screen.getAllByText('イベント資料一覧')
+      const eventMaterialsHeaders2 = screen.getAllByRole('heading', {
+        name: /イベント資料一覧/,
+      })
       expect(eventMaterialsHeaders2.length).toBeGreaterThan(0)
     })
   })

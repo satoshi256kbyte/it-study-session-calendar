@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import { useEventMaterials } from '../hooks/useEventMaterials'
-import EventMaterialsTable from './EventMaterialsTable'
+import ResponsiveEventMaterialsList from './ResponsiveEventMaterialsList'
 
 /**
  * イベント資料一覧コンポーネント
@@ -12,6 +12,8 @@ import EventMaterialsTable from './EventMaterialsTable'
  * - シンプルなローディング状態の表示
  * - エラー状態とリトライ機能を実装
  * - 不要な再レンダリングの防止
+ * - ResponsiveEventMaterialsListとの統合により、レスポンシブ表示を実現
+ * - 既存のローディング・エラー状態の処理を維持し、後方互換性を保持
  */
 function EventMaterialsList() {
   /**
@@ -208,7 +210,8 @@ function EventMaterialsList() {
 
   /**
    * メインコンテンツの表示
-   * EventMaterialsTableコンポーネントにデータを渡す
+   * ResponsiveEventMaterialsListコンポーネントにデータを渡す
+   * 要件1.1, 5.1: 既存のローディング・エラー状態の処理を維持し、後方互換性を保った統合
    * 要件6.2: キャッシュがある場合は既存データを表示しながら更新
    */
   return (
@@ -241,7 +244,9 @@ function EventMaterialsList() {
         )}
       </div>
 
-      <EventMaterialsTable
+      {/* レスポンシブイベント資料一覧コンポーネントを使用 */}
+      {/* 要件1.1, 5.1: 既存のローディング・エラー状態の処理を維持し、後方互換性を保った統合 */}
+      <ResponsiveEventMaterialsList
         events={events}
         loading={isLoading && events.length === 0}
         error={error}

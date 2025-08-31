@@ -1,0 +1,249 @@
+/**
+ * 画像最適化用CSSスタイル
+ * 要件7.3: 画像とサムネイルの最適化
+ */
+
+/* GPU加速を活用した画像トランジション */
+.optimized-image {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.optimized-image.loaded {
+  will-change: auto;
+}
+
+/* レスポンシブ画像の基本スタイル */
+.responsive-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* サムネイル画像の最適化 */
+.thumbnail-image {
+  border-radius: 0.375rem; /* rounded-md */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.thumbnail-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* カード用サムネイル */
+.thumbnail-card {
+  width: 4rem; /* 64px */
+  height: 3rem; /* 48px */
+}
+
+@media (min-width: 640px) {
+  .thumbnail-card {
+    width: 5rem; /* 80px */
+    height: 4rem; /* 64px */
+  }
+}
+
+@media (min-width: 768px) {
+  .thumbnail-card {
+    width: 4.5rem; /* 72px */
+    height: 3.5rem; /* 56px */
+  }
+}
+
+/* テーブル用サムネイル */
+.thumbnail-table {
+  width: 3rem; /* 48px */
+  height: 2.25rem; /* 36px */
+}
+
+@media (min-width: 640px) {
+  .thumbnail-table {
+    width: 4rem; /* 64px */
+    height: 3rem; /* 48px */
+  }
+}
+
+/* プレースホルダーアニメーション */
+.image-placeholder {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 遅延読み込み用スタイル */
+.lazy-image {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+.lazy-image.error {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+/* 高解像度ディスプレイ対応 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* プリロード用スタイル */
+.preload-image {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* WebP対応チェック用 */
+.webp .webp-image {
+  background-image: url('data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA');
+}
+
+.no-webp .webp-image {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+}
+
+/* パフォーマンス最適化 */
+.gpu-optimized-image {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+.gpu-optimized-image.static {
+  will-change: auto;
+}
+
+/* アクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+  .optimized-image,
+  .thumbnail-image,
+  .lazy-image {
+    transition: none;
+    animation: none;
+  }
+  
+  .image-placeholder {
+    animation: none;
+    background: #f3f4f6;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .image-placeholder {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  }
+  
+  .thumbnail-image {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  }
+  
+  .thumbnail-image:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* 印刷用スタイル */
+@media print {
+  .optimized-image,
+  .thumbnail-image,
+  .lazy-image {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .image-placeholder {
+    display: none;
+  }
+}
+
+/* コンテナクエリ対応（実験的） */
+@container (max-width: 400px) {
+  .thumbnail-responsive {
+    width: 2.5rem;
+    height: 1.875rem;
+  }
+}
+
+@container (min-width: 401px) and (max-width: 600px) {
+  .thumbnail-responsive {
+    width: 3.5rem;
+    height: 2.625rem;
+  }
+}
+
+@container (min-width: 601px) {
+  .thumbnail-responsive {
+    width: 4rem;
+    height: 3rem;
+  }
+}
+
+/* 画像品質の段階的向上 */
+.image-quality-low {
+  filter: blur(0.5px);
+}
+
+.image-quality-medium {
+  filter: none;
+}
+
+.image-quality-high {
+  filter: contrast(1.05) saturate(1.1);
+}
+
+/* 接続速度に応じた最適化 */
+.slow-connection .optimized-image {
+  filter: blur(0.5px);
+  transition: filter 0.5s ease-in-out;
+}
+
+.slow-connection .optimized-image.loaded {
+  filter: none;
+}
+
+/* データセーバーモード対応 */
+.data-saver .thumbnail-image {
+  filter: grayscale(20%);
+}
+
+.data-saver .image-placeholder {
+  animation-duration: 3s;
+}
+
+/* 低メモリデバイス対応 */
+.low-memory .optimized-image {
+  will-change: auto;
+  transform: none;
+}
+
+.low-memory .image-placeholder {
+  animation: none;
+  background: #f3f4f6;
+}

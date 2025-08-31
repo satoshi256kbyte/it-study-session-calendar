@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import './styles/image-optimization.css'
+import './styles/browser-compatibility.css'
+import BrowserCompatibilityProvider from './components/BrowserCompatibilityProvider'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -113,7 +116,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        {children}
+        <BrowserCompatibilityProvider>{children}</BrowserCompatibilityProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

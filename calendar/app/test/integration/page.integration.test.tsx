@@ -40,7 +40,9 @@ describe('Home Page Integration', () => {
     )
 
     // イベント資料一覧セクションの確認
-    expect(screen.getByText('イベント資料一覧')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /イベント資料一覧/ })
+    ).toBeInTheDocument()
     expect(
       screen.getByText('過去6ヶ月分のconnpassイベントの発表資料')
     ).toBeInTheDocument()
@@ -101,7 +103,7 @@ describe('Home Page Integration', () => {
     render(<Home />)
 
     // 勉強会登録リンクの確認
-    const registerLink = screen.getByText('勉強会を登録')
+    const registerLink = screen.getByText('勉強会の登録依頼')
     expect(registerLink).toBeInTheDocument()
     expect(registerLink.closest('a')).toHaveAttribute('href', '/register')
 

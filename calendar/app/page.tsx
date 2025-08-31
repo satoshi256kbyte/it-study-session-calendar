@@ -166,7 +166,7 @@ export default function Home() {
                 href="/register"
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 button-optimized"
               >
-                勉強会を登録
+                勉強会の登録依頼
               </Link>
             </div>
           </div>
@@ -177,18 +177,6 @@ export default function Home() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900">
-                    広島の勉強会スケジュール
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-600">
-                    広島のIT関連の勉強会やイベントのスケジュールを確認できます
-                  </p>
-                </div>
-              </div>
-            </div>
             <div className="p-6">
               {calendarUrl ? (
                 <div className="calendar-container calendar-optimized">
@@ -352,7 +340,7 @@ export default function Home() {
                         d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                       />
                     </svg>
-                    勉強会を登録する
+                    勉強会の登録依頼
                   </Link>
                 </div>
               </div>

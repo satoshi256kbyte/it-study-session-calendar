@@ -108,6 +108,9 @@ export interface MaterialLinkProps {
 
   /** イベントタイトル（アクセシビリティ用） */
   eventTitle: string
+
+  /** 表示バリアント（カード用の最適化） */
+  variant?: 'default' | 'card'
 }
 
 /**

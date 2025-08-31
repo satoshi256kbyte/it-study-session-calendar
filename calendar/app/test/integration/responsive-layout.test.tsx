@@ -404,7 +404,7 @@ describe('Responsive Layout Tests', () => {
       // ナビゲーションボタンの配置
       const shareButton = screen.getByText('シェア')
       const twitterButton = screen.getByText('共有')
-      const registerLink = screen.getByText('勉強会を登録')
+      const registerLink = screen.getByText('勉強会の登録依頼')
 
       expect(shareButton).toBeInTheDocument()
       expect(twitterButton).toBeInTheDocument()

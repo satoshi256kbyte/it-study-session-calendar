@@ -1,0 +1,415 @@
+/* Responsive Layout Transition Effects - 要件5.2, 7.4 */
+
+/* Base Transition Classes */
+.transition-base {
+  transition-property: opacity, transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.3s;
+}
+
+.transition-fast {
+  transition-property: opacity, transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.15s;
+}
+
+.transition-smooth {
+  transition-property: opacity, transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-duration: 0.4s;
+}
+
+/* Layout Transition States - 要件5.2: レイアウト切り替え時のトランジション */
+.layout-enter {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.layout-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.layout-enter-done {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.layout-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.layout-exit-active {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.layout-exit-done {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+}
+
+/* Card Animation States - 要件5.2: カードの表示・非表示アニメーション */
+.card-enter {
+  opacity: 0;
+  transform: translateY(30px) scale(0.9);
+  box-shadow: none;
+}
+
+.card-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-enter-done {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.card-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.card-exit-active {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  box-shadow: none;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-exit-done {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  box-shadow: none;
+}
+
+/* Staggered Animation for Multiple Cards */
+.card-stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.card-stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.card-stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.card-stagger-4 {
+  animation-delay: 0.2s;
+}
+
+.card-stagger-5 {
+  animation-delay: 0.25s;
+}
+
+.card-stagger-6 {
+  animation-delay: 0.3s;
+}
+
+/* Grid Layout Transitions - 要件5.2: グリッドレイアウトの切り替えアニメーション */
+.grid-transition-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.grid-transition-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.grid-transition-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.grid-transition-exit-active {
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover and Focus Transitions - 要件7.4: パフォーマンスを考慮したCSS transform */
+.card-hover-transition {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+}
+
+.card-hover-transition:hover {
+  transform: translateZ(0) translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-hover-transition:active {
+  transform: translateZ(0) translateY(0);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: transform 0.05s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.05s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus Ring Transitions */
+.focus-ring-transition {
+  transition: box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.focus-ring-transition:focus {
+  box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Loading State Transitions */
+.loading-enter {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.loading-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.loading-exit-active {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Responsive Breakpoint Transitions */
+@media (min-width: 768px) {
+  .tablet-transition-enter {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  
+  .tablet-transition-enter-active {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-transition-enter {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  .mobile-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Performance Optimizations - 要件7.4: GPU加速とパフォーマンス最適化 */
+.gpu-optimized-transition {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.will-change-transition {
+  will-change: transform, opacity;
+}
+
+.will-change-transition.transition-complete {
+  will-change: auto;
+}
+
+/* Accessibility - Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .layout-enter,
+  .layout-enter-active,
+  .layout-exit,
+  .layout-exit-active,
+  .card-enter,
+  .card-enter-active,
+  .card-exit,
+  .card-exit-active,
+  .grid-transition-enter,
+  .grid-transition-enter-active,
+  .grid-transition-exit,
+  .grid-transition-exit-active,
+  .card-hover-transition,
+  .focus-ring-transition,
+  .loading-enter,
+  .loading-enter-active,
+  .loading-exit,
+  .loading-exit-active,
+  .tablet-transition-enter,
+  .tablet-transition-enter-active,
+  .mobile-transition-enter,
+  .mobile-transition-enter-active {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  
+  .card-hover-transition:hover {
+    transform: none !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .card-hover-transition:hover {
+    border: 2px solid;
+  }
+  
+  .focus-ring-transition:focus {
+    outline: 2px solid;
+    outline-offset: 2px;
+  }
+}
+
+/* Dark Mode Support (if needed in the future) */
+@media (prefers-color-scheme: dark) {
+  .card-enter-active,
+  .card-enter-done {
+    box-shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1), 0 1px 2px 0 rgba(255, 255, 255, 0.06);
+  }
+  
+  .card-hover-transition:hover {
+    box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -2px rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Touch Device Optimizations */
+@media (pointer: coarse) {
+  .card-hover-transition {
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .card-hover-transition:active {
+    transform: translateZ(0) scale(0.98);
+    transition: transform 0.05s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Fine Pointer (Mouse) Optimizations */
+@media (pointer: fine) {
+  .card-hover-transition:hover {
+    transform: translateZ(0) translateY(-1px);
+  }
+}
+
+/* Animation Keyframes for Complex Transitions */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animation Classes */
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-out-down {
+  animation: fadeOutDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-scale-out {
+  animation: scaleOut 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

@@ -2,6 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import transition effects - 要件5.2: スムーズなトランジション効果 */
+@import './styles/transitions.css';
+
+/* Responsive Event Materials Components - 要件5.2, 7.2 */
+@layer components {
+  /* Base Event Materials Container */
+  .event-materials-container {
+    @apply w-full;
+    contain: layout style;
+  }
+  
+  /* Responsive Layout Containers */
+  .responsive-layout-desktop {
+    @apply hidden lg:block;
+  }
+  
+  .responsive-layout-tablet-mobile {
+    @apply block lg:hidden;
+  }
+  
+  /* Card Base Components - 要件5.2: カード用のベーススタイル */
+  .event-card-base {
+    @apply bg-white rounded-lg shadow-sm border transition-all duration-200;
+    contain: layout style paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  
+  .event-card-hover {
+    @apply hover:shadow-md;
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .event-card-hover:hover {
+    transform: translateZ(0) translateY(-1px);
+  }
+  
+  .event-card-focus {
+    @apply focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2;
+  }
+  
+  /* Mobile Card Variant - 要件2.1, 2.2 */
+  .event-card-mobile {
+    @apply event-card-base event-card-hover event-card-focus;
+    @apply w-full p-4 mb-4;
+    min-height: 200px;
+  }
+  
+  /* Tablet Card Variant - 要件2.1, 2.2 */
+  .event-card-tablet {
+    @apply event-card-base event-card-hover event-card-focus;
+    @apply w-full p-4 mb-4 md:mb-6;
+    min-height: 180px;
+  }
+  
+  /* Grid Layout Components */
+  .responsive-grid-container {
+    @apply grid gap-4;
+    grid-template-columns: 1fr;
+    contain: layout;
+    width: 100%;
+    grid-auto-rows: min-content;
+    align-items: start;
+  }
+  
+  .responsive-grid-tablet-2col {
+    @apply responsive-grid-container;
+  }
+  
+  @screen md {
+    .responsive-grid-tablet-2col {
+      grid-template-columns: repeat(2, 1fr);
+      @apply gap-6 px-2;
+    }
+  }
+  
+  .responsive-stack-container {
+    @apply flex flex-col gap-4 px-1;
+    contain: layout;
+    width: 100%;
+  }
+  
+  @screen md {
+    .responsive-stack-container {
+      @apply gap-5 px-2;
+    }
+  }
+  
+  /* Layout Transition Components - 要件5.2 */
+  .layout-transition-base {
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity;
+  }
+  
+  .layout-transitioning {
+    @apply layout-transition-base opacity-75;
+  }
+  
+  .layout-stable {
+    @apply layout-transition-base opacity-100;
+  }
+  
+  /* Touch Target Components - 要件2.3 */
+  .touch-target-base {
+    @apply min-h-[44px] min-w-[44px];
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .touch-target-enhanced {
+    @apply touch-target-base p-2;
+  }
+  
+  @media (pointer: coarse) {
+    .touch-target-enhanced {
+      @apply min-h-[48px] min-w-[48px] p-3;
+    }
+  }
+  
+  /* Focus Ring Components - 要件6.4 */
+  .focus-ring-primary {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+  
+  .focus-ring-enhanced {
+    @apply focus-ring-primary rounded-md;
+  }
+  
+  /* Performance Optimization Components - 要件7.2 */
+  .gpu-optimized {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  .will-change-optimized {
+    will-change: auto;
+  }
+  
+  .will-change-optimized.transitioning {
+    will-change: transform, opacity;
+  }
+  
+  /* Accessibility Components */
+  .sr-only-enhanced {
+    @apply sr-only;
+  }
+  
+  .high-contrast-border {
+    @apply border;
+  }
+  
+  @media (prefers-contrast: high) {
+    .high-contrast-border {
+      @apply border-2;
+    }
+  }
+  
+  /* Reduced Motion Components */
+  @media (prefers-reduced-motion: reduce) {
+    .motion-safe-transition {
+      transition: none !important;
+      transform: none !important;
+      animation: none !important;
+    }
+  }
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -104,5 +273,330 @@ body {
   .calendar-optimized {
     contain: strict;
     transform: translateZ(0);
+  }
+  
+  /* Responsive Event Materials Layout - 要件5.2, 7.2 */
+  .responsive-event-materials-container {
+    contain: layout style;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Desktop layout - 要件3.1: デスクトップでテーブル形式を維持 */
+  .event-materials-desktop {
+    @apply block;
+    display: none;
+  }
+  
+  @media (min-width: 1024px) {
+    .event-materials-desktop {
+      display: block;
+    }
+  }
+  
+  /* Mobile/Tablet layout - 要件1.1, 2.1: カード形式での表示 */
+  .event-materials-responsive {
+    @apply block;
+    display: block;
+  }
+  
+  @media (min-width: 1024px) {
+    .event-materials-responsive {
+      display: none;
+    }
+  }
+  
+  /* Card Base Styles - 要件5.2: カード用のベーススタイル */
+  .event-card {
+    @apply bg-white rounded-lg shadow-sm border;
+    contain: layout style paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .event-card:hover {
+    @apply shadow-md;
+    transform: translateZ(0) translateY(-1px);
+  }
+  
+  .event-card:focus-within {
+    @apply ring-2 ring-blue-500 ring-offset-2;
+    transform: translateZ(0);
+  }
+  
+  /* Mobile Card Layout - 要件2.1, 2.2: モバイル用1列スタックレイアウト */
+  .event-card-mobile {
+    @apply w-full p-4 mb-4;
+    min-height: 200px;
+    max-width: 100%;
+  }
+  
+  /* Tablet Card Layout - 要件2.1, 2.2: タブレット用2列グリッドレイアウト */
+  .event-card-tablet {
+    @apply w-full p-4 mb-4;
+    min-height: 180px;
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .event-card-tablet {
+      @apply mb-6;
+      width: calc(50% - 0.75rem);
+    }
+  }
+  
+  /* Grid Layout Containers - 要件2.1, 2.2: レスポンシブグリッドレイアウト */
+  .responsive-grid-tablet {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    contain: layout;
+    width: 100%;
+    grid-auto-rows: min-content;
+    align-items: start;
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .responsive-grid-tablet {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      padding: 0 0.5rem;
+    }
+  }
+  
+  .responsive-stack-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    contain: layout;
+    width: 100%;
+    padding: 0 0.25rem;
+  }
+  
+  @media (min-width: 768px) {
+    .responsive-stack-mobile {
+      gap: 1.25rem;
+      padding: 0 0.5rem;
+    }
+  }
+  
+  /* Layout Transition Classes - 要件5.2: スムーズなトランジション効果 */
+  .layout-transitioning {
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity;
+  }
+  
+  .layout-transition-enter {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  
+  .layout-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .layout-transition-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .layout-transition-exit-active {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Display Control Utilities - 要件5.2: 表示切り替えクラス */
+  .show-desktop-only {
+    display: none;
+  }
+  
+  @media (min-width: 1024px) {
+    .show-desktop-only {
+      display: block;
+    }
+  }
+  
+  .show-tablet-only {
+    display: none;
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .show-tablet-only {
+      display: block;
+    }
+  }
+  
+  .show-mobile-only {
+    display: block;
+  }
+  
+  @media (min-width: 768px) {
+    .show-mobile-only {
+      display: none;
+    }
+  }
+  
+  .hide-desktop {
+    display: block;
+  }
+  
+  @media (min-width: 1024px) {
+    .hide-desktop {
+      display: none;
+    }
+  }
+  
+  .hide-tablet-mobile {
+    display: block;
+  }
+  
+  @media (max-width: 1023px) {
+    .hide-tablet-mobile {
+      display: none;
+    }
+  }
+  
+  /* Grid Item Optimizations - 要件7.2: パフォーマンス最適化 */
+  .grid-item-optimized {
+    contain: layout style paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: auto;
+  }
+  
+  .grid-item-optimized.transitioning {
+    will-change: transform, opacity;
+  }
+  
+  /* Grid Layout Enhancements */
+  .responsive-grid-tablet > * {
+    align-self: start;
+    width: 100%;
+    min-width: 0; /* Prevent grid blowout */
+  }
+  
+  .responsive-stack-mobile > * {
+    width: 100%;
+    flex-shrink: 0;
+    min-width: 0; /* Prevent flex blowout */
+  }
+  
+  /* Smooth Layout Transitions - 要件5.2: レイアウト切り替え時のアニメーション */
+  .responsive-grid-tablet,
+  .responsive-stack-mobile {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Responsive Spacing Adjustments */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .responsive-grid-tablet {
+      gap: 1.25rem;
+      padding: 0 0.5rem;
+    }
+    
+    .event-card-tablet {
+      padding: 1.25rem;
+    }
+  }
+  
+  @media (max-width: 767px) {
+    .responsive-stack-mobile {
+      gap: 1rem;
+      padding: 0 0.25rem;
+    }
+    
+    .event-card-mobile {
+      padding: 1rem;
+    }
+  }
+  
+  /* Prevent Layout Shift During Transitions - 要件5.2: トランジション中の安定性 */
+  .layout-transitioning * {
+    pointer-events: none;
+  }
+  
+  .layout-transitioning .event-card {
+    transform: translateZ(0);
+  }
+  
+  /* Responsive Typography Adjustments */
+  @media (max-width: 767px) {
+    .event-card h3 {
+      @apply text-base;
+      line-height: 1.4;
+    }
+    
+    .event-card .text-sm {
+      @apply text-xs;
+    }
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .event-card h3 {
+      @apply text-lg;
+      line-height: 1.3;
+    }
+  }
+  
+  /* Touch Target Optimizations - 要件2.3: タッチターゲットサイズ */
+  .touch-target-optimized {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  @media (pointer: coarse) {
+    .touch-target-optimized {
+      min-height: 48px;
+      min-width: 48px;
+      padding: 12px 16px;
+    }
+  }
+  
+  /* Accessibility Enhancements - 要件6.4: フォーカス表示の改善 */
+  .focus-ring-enhanced:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
+    border-radius: 0.375rem;
+  }
+  
+  @media (prefers-contrast: high) {
+    .focus-ring-enhanced:focus {
+      outline: 2px solid;
+      outline-offset: 2px;
+    }
+    
+    .event-card {
+      border-width: 2px;
+    }
+  }
+  
+  /* Reduced Motion Support - 要件5.2: アクセシビリティ対応 */
+  @media (prefers-reduced-motion: reduce) {
+    .event-card,
+    .layout-transitioning,
+    .responsive-grid-tablet,
+    .responsive-stack-mobile {
+      transition: none;
+      transform: none;
+      animation: none;
+    }
+    
+    .layout-transition-enter,
+    .layout-transition-enter-active,
+    .layout-transition-exit,
+    .layout-transition-exit-active {
+      transition: none;
+      transform: none;
+    }
   }
 }

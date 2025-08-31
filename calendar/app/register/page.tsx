@@ -355,7 +355,7 @@ export default function Register() {
                   disabled={isSubmitting}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? '登録中...' : '勉強会を登録'}
+                  {isSubmitting ? '送信中...' : '送信'}
                 </button>
               </div>
             </form>

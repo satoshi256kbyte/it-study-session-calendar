@@ -24,6 +24,10 @@ export interface TwitterShareButtonProps {
   onShareClick?: () => void
   /** エラー時のコールバック */
   onError?: (error: Error) => void
+  /** コンパクト表示（タブレット用） */
+  compact?: boolean
+  /** モバイル表示 */
+  mobile?: boolean
 }
 
 /**

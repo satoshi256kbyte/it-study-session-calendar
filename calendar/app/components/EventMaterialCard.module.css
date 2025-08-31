@@ -1,0 +1,210 @@
+/* EventMaterialCard用のカスタムCSS */
+/* 要件2.3, 4.4, 6.4: タッチデバイス向けの最適化 */
+
+.eventCard {
+  /* タッチデバイス向けのスムーズなスクロール */
+  -webkit-overflow-scrolling: touch;
+  
+  /* タッチ操作の最適化 */
+  touch-action: manipulation;
+  
+  /* タッチデバイスでのタップハイライトを無効化（カスタムスタイルを使用） */
+  -webkit-tap-highlight-color: transparent;
+  
+  /* タッチデバイスでのスムーズなトランジション */
+  transition: transform 0.1s ease-out, box-shadow 0.2s ease-out;
+}
+
+/* ホバー可能なデバイスでのみホバー効果を適用 */
+@media (hover: hover) {
+  .eventCard:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+  }
+}
+
+/* タッチデバイス向けのアクティブ状態 - 要件2.3: タッチデバイス向けのフィードバック */
+.eventCard:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+}
+
+/* タッチターゲットの最小サイズ確保 - 要件2.3: 最小44pxのタッチターゲット */
+.touchTarget {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* タッチターゲット内のパディングを確保 */
+  padding: 8px 12px;
+  
+  /* タッチ時の視覚的フィードバック */
+  position: relative;
+  overflow: hidden;
+}
+
+/* タッチターゲットのアクティブ状態 */
+.touchTarget:active {
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: scale(0.98);
+  transition: all 0.05s ease-out;
+}
+
+/* タッチターゲットのリップル効果（タッチフィードバック） */
+.touchTarget::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.touchTarget:active::after {
+  width: 100px;
+  height: 100px;
+  opacity: 1;
+  transition: width 0.1s ease-out, height 0.1s ease-out, opacity 0.1s ease-out;
+}
+
+/* フォーカス表示の改善 - 要件6.4: 十分なコントラストと視認性 */
+.focusRing:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .focusRing:focus {
+    outline: 2px solid;
+    outline-offset: 2px;
+  }
+  
+  .eventCard {
+    border-width: 2px;
+  }
+}
+
+/* 動きを減らす設定に対応 */
+@media (prefers-reduced-motion: reduce) {
+  .eventCard,
+  .eventCard:active {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* スクリーンリーダー専用テキスト */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* タッチデバイスでのテキスト選択を無効化（必要に応じて） */
+.noSelect {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* 高DPIディスプレイ対応 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .eventCard {
+    /* 高解像度ディスプレイでのシャープな表示 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* タッチデバイス専用スタイル - 要件2.3, 4.4: タッチデバイス向けの最適化 */
+@media (pointer: coarse) {
+  /* タッチデバイスでのタッチターゲットサイズを拡大 */
+  .touchTarget {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 16px;
+  }
+  
+  /* タッチデバイスでのカード間隔を拡大 */
+  .eventCard {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* タッチデバイスでのフォントサイズを調整 */
+  .eventCard h3 {
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+  
+  /* タッチデバイスでのボタンスタイル調整 */
+  .touchTarget {
+    border-radius: 8px;
+    background-color: transparent;
+    transition: background-color 0.15s ease-out, transform 0.1s ease-out;
+  }
+  
+  .touchTarget:hover {
+    background-color: rgba(59, 130, 246, 0.05);
+  }
+}
+
+/* 細かいポインター（マウス等）専用スタイル */
+@media (pointer: fine) {
+  .touchTarget {
+    min-height: 44px;
+    padding: 6px 8px;
+  }
+  
+  .touchTarget:hover {
+    background-color: rgba(59, 130, 246, 0.03);
+  }
+}
+
+/* タッチデバイスでのスクロール最適化 */
+@media (pointer: coarse) {
+  .eventCard {
+    /* タッチスクロールの慣性を有効化 */
+    -webkit-overflow-scrolling: touch;
+    
+    /* スクロール時のバウンス効果を制御 */
+    overscroll-behavior: contain;
+  }
+}
+
+/* iOS Safari専用の最適化 */
+@supports (-webkit-touch-callout: none) {
+  .touchTarget {
+    /* iOS Safariでのタップハイライトを完全に無効化 */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-touch-callout: none;
+  }
+  
+  .eventCard {
+    /* iOS Safariでのスクロールバウンスを制御 */
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Android Chrome専用の最適化 */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .touchTarget:active {
+    /* Android Chromeでのタップ時の背景色変更を制御 */
+    background-color: rgba(59, 130, 246, 0.1) !important;
+  }
+}
