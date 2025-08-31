@@ -38,33 +38,24 @@ jobs:
         with:
           path: |
             calendar/.next/cache
+            ~/.cache/next-swc
           key: ${{ runner.os }}-nextjs-${{ hashFiles('calendar/package.json') }}-${{ hashFiles('calendar/**.[jt]s', 'calendar/**.[jt]sx') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('calendar/package.json') }}-
 
-      - name: Clean install dependencies (ignore workspace)
+      - name: Clean install dependencies
         run: |
           cd calendar
-          # Remove any existing node_modules and package-lock.json
-          rm -rf node_modules package-lock.json
-          # Install dependencies without workspace context
+          rm -rf node_modules package-lock.json .next
+          rm -rf ~/.cache/next-swc
           npm install --no-workspaces
         env:
           CI: true
 
-      - name: Debug environment variables
-        run: |
-          echo "API_BASE_URL: ${{ secrets.API_BASE_URL }}"
-          echo "GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}"
-
-      - name: Build with Next.js (skip linting)
+      - name: Build with Next.js
         run: |
           cd calendar
-          # Build without linting to avoid ESLint dependency issues
-          npx next build --no-lint
-          # Copy assets manually since npm run copy-assets might fail
-          mkdir -p out
-          cp -r assets/* out/ 2>/dev/null || true
+          npm run build
         env:
           NEXT_PUBLIC_GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}
