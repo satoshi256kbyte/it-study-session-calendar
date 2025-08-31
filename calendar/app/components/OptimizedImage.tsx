@@ -127,7 +127,7 @@ function OptimizedImage({
     : {
         src: optimizeImageUrl(src),
         alt,
-        loading: (lazy && !priority ? 'lazy' : 'eager') as const,
+        loading: (lazy && !priority ? 'lazy' : 'eager') as 'lazy' | 'eager',
         decoding: 'async' as const,
       }
 
