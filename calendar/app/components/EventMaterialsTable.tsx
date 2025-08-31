@@ -13,8 +13,8 @@ import MaterialLink from './MaterialLink'
  * 要件2.1, 2.2, 2.3, 6.2に対応
  *
  * - テーブル形式でのイベント表示機能
- * - イベント名、開催日時、資料の列を実装
- * - 日付フォーマット（YYYY/MM/DD）を実装
+ * - イベント名、資料の列を実装
+ * - イベント名の下に開催日時（YYYY/MM/DD）を表示
  * - 不要な再レンダリングの防止
  */
 function EventMaterialsTable({
@@ -70,22 +70,16 @@ function EventMaterialsTable({
         <table className="min-w-full sm:min-w-[600px] divide-y divide-gray-300">
           <thead className="bg-gray-50">
             <tr>
-              {/* 要件2.1: イベント名、開催日時、資料の列 */}
+              {/* 要件2.1: イベント名、資料の列 */}
               <th
                 scope="col"
-                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5 lg:w-1/2"
+                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2 lg:w-3/5"
               >
                 イベント名
               </th>
               <th
                 scope="col"
-                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-1/6 lg:w-1/8"
-              >
-                開催日時
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5 lg:w-3/8"
+                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2 lg:w-2/5"
               >
                 資料
               </th>
@@ -96,7 +90,7 @@ function EventMaterialsTable({
               <tr key={event.id} className="hover:bg-gray-50">
                 {/* イベント名列 - 要件2.2: 元のイベントページへのクリック可能なリンク */}
                 {/* 要件4.1: 小画面でのテーブル表示最適化 */}
-                <td className="px-3 py-4 sm:px-6 min-w-0 max-w-xs lg:max-w-md xl:max-w-lg">
+                <td className="px-3 py-4 sm:px-6 min-w-0 max-w-xs lg:max-w-md xl:max-w-lg w-1/2 lg:w-3/5">
                   <div className="text-sm">
                     <a
                       href={event.eventUrl}
@@ -111,30 +105,15 @@ function EventMaterialsTable({
                     >
                       {event.title}
                     </a>
-                    {/* connpass URLも表示（小さく） */}
+                    {/* 開催日時を表示 */}
                     <div className="text-xs text-gray-500 mt-1">
-                      <a
-                        href={event.connpassUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-gray-700 inline-block py-1"
-                        title="connpassページを開く"
-                      >
-                        connpass
-                      </a>
+                      開催日時：{formatEventDate(event.eventDate)}
                     </div>
                   </div>
                 </td>
 
-                {/* 開催日時列 - 要件2.3: YYYY/MM/DD形式 */}
-                <td className="px-3 py-4 sm:px-6 whitespace-nowrap w-1/6 lg:w-1/8">
-                  <div className="text-sm text-gray-900">
-                    {formatEventDate(event.eventDate)}
-                  </div>
-                </td>
-
                 {/* 資料列 - 要件2.4, 2.5: 資料リンクとサムネイル、複数資料対応 */}
-                <td className="px-3 py-4 sm:px-6 min-w-0 w-2/5 lg:w-3/8">
+                <td className="px-3 py-4 sm:px-6 min-w-0 w-1/2 lg:w-2/5">
                   <div className="space-y-2">
                     {event.materials.map(material => (
                       <MaterialLink
