@@ -486,10 +486,8 @@ describe('Responsive Header Behavior Integration Tests', () => {
       })
       expect(section).toHaveAttribute('aria-label')
 
-      const heading = screen.getByRole('heading', {
-        name: /勉強会を登録しませんか？/,
-      })
-      expect(heading).toBeInTheDocument()
+      const button = screen.getByTestId('study-session-register-button')
+      expect(button).toBeInTheDocument()
 
       const registerButton = screen.getByRole('link', {
         name: /勉強会の登録依頼ページへ移動/,

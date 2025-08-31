@@ -34,10 +34,8 @@ describe('MobileRegisterSection Integration', () => {
     render(<MobileRegisterSection />)
 
     // Check for complete user journey elements
-    expect(screen.getByText('勉強会を登録しませんか？')).toBeInTheDocument()
-    expect(
-      screen.getByText(/あなたの勉強会やイベントをカレンダーに追加して/)
-    ).toBeInTheDocument()
+    const button = screen.getByTestId('study-session-register-button')
+    expect(button).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: /勉強会の登録依頼/ })
     ).toBeInTheDocument()

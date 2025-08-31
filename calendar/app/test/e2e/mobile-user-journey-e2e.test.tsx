@@ -291,12 +291,9 @@ describe('Mobile User Journey E2E Tests', () => {
         '勉強会の登録依頼ページへ移動'
       )
 
-      // Verify heading structure
-      const sectionHeading = screen.getByRole('heading', {
-        name: /勉強会を登録しませんか？/,
-      })
-      expect(sectionHeading).toBeInTheDocument()
-      expect(sectionHeading.tagName).toBe('H3')
+      // Verify button is present
+      const button = screen.getByTestId('study-session-register-button')
+      expect(button).toBeInTheDocument()
     })
 
     it('should handle keyboard navigation in mobile registration section', async () => {

@@ -27,18 +27,9 @@ describe('MobileRegisterSection', () => {
     const section = screen.getByRole('region', { name: '勉強会登録セクション' })
     expect(section).toBeInTheDocument()
 
-    // Check if the heading is present
-    expect(screen.getByText('勉強会を登録しませんか？')).toBeInTheDocument()
-
-    // Check if the description is present
-    expect(
-      screen.getByText(/あなたの勉強会やイベントをカレンダーに追加して/)
-    ).toBeInTheDocument()
-
-    // Check if the disclaimer is present
-    expect(
-      screen.getByText('登録には管理者の承認が必要です')
-    ).toBeInTheDocument()
+    // Check if the button is present
+    const button = screen.getByTestId('study-session-register-button')
+    expect(button).toBeInTheDocument()
   })
 
   it('has mobile-only responsive classes (hidden on desktop/tablet)', () => {
@@ -58,22 +49,16 @@ describe('MobileRegisterSection', () => {
     // Check if the button has correct props
     expect(button).toHaveAttribute('data-display-mode', 'mobile-section')
     expect(button).toHaveAttribute('data-responsive', 'true')
-    expect(button).toHaveClass('shadow-lg')
+    expect(button).toHaveClass('w-full')
   })
 
-  it('has prominent styling for discoverability', () => {
+  it('has simple styling for clean appearance', () => {
     render(<MobileRegisterSection />)
 
     const section = screen.getByRole('region', { name: '勉強会登録セクション' })
 
-    // Check for prominent styling classes
-    expect(section).toHaveClass(
-      'bg-white',
-      'rounded-lg',
-      'shadow',
-      'border-2',
-      'border-blue-100'
-    )
+    // Check for basic styling classes
+    expect(section).toHaveClass('block', 'sm:hidden', 'mt-6', 'px-4')
   })
 
   it('has proper spacing and layout classes', () => {
@@ -100,37 +85,28 @@ describe('MobileRegisterSection', () => {
     const section = screen.getByRole('region', { name: '勉強会登録セクション' })
     expect(section).toHaveAttribute('aria-label', '勉強会登録セクション')
 
-    // Check for proper heading structure
-    const heading = screen.getByRole('heading', { level: 3 })
-    expect(heading).toHaveTextContent('勉強会を登録しませんか？')
-  })
-
-  it('has decorative icon with proper accessibility attributes', () => {
-    render(<MobileRegisterSection />)
-
-    // Check if the SVG icon has aria-hidden attribute
-    const svg = document.querySelector('svg[aria-hidden="true"]')
-    expect(svg).toBeInTheDocument()
-    expect(svg).toHaveAttribute('aria-hidden', 'true')
-  })
-
-  it('displays content in proper visual hierarchy', () => {
-    render(<MobileRegisterSection />)
-
-    // Check if elements are in the correct order
-    const section = screen.getByRole('region', { name: '勉強会登録セクション' })
-    const heading = screen.getByText('勉強会を登録しませんか？')
-    const description = screen.getByText(
-      /あなたの勉強会やイベントをカレンダーに追加して/
-    )
+    // Check for button accessibility
     const button = screen.getByTestId('study-session-register-button')
-    const disclaimer = screen.getByText('登録には管理者の承認が必要です')
+    expect(button).toHaveAttribute('aria-label', '勉強会の登録依頼ページへ移動')
+  })
 
-    // Verify the visual hierarchy through DOM structure
-    expect(section).toContainElement(heading)
-    expect(section).toContainElement(description)
+  it('has simple centered layout', () => {
+    render(<MobileRegisterSection />)
+
+    const section = screen.getByRole('region', { name: '勉強会登録セクション' })
+    const centerDiv = section.querySelector('.text-center')
+    expect(centerDiv).toBeInTheDocument()
+  })
+
+  it('displays button in proper layout', () => {
+    render(<MobileRegisterSection />)
+
+    // Check if button is properly contained
+    const section = screen.getByRole('region', { name: '勉強会登録セクション' })
+    const button = screen.getByTestId('study-session-register-button')
+
+    // Verify the button is contained within the section
     expect(section).toContainElement(button)
-    expect(section).toContainElement(disclaimer)
   })
 
   it('uses text-center for centered layout', () => {
@@ -201,33 +177,27 @@ describe('MobileRegisterSection', () => {
       expect(section).toHaveClass('px-4')
     })
 
-    it('has visually prominent styling for discoverability', () => {
+    it('has simple clean styling', () => {
       render(<MobileRegisterSection />)
 
       const section = screen.getByRole('region', {
         name: '勉強会登録セクション',
       })
 
-      // Should have prominent visual styling
-      expect(section).toHaveClass(
-        'bg-white',
-        'rounded-lg',
-        'shadow',
-        'border-2',
-        'border-blue-100'
-      )
+      // Should have basic styling classes
+      expect(section).toHaveClass('block', 'sm:hidden', 'mt-6', 'px-4')
     })
 
-    it('has proper internal padding and layout', () => {
+    it('has proper internal layout', () => {
       render(<MobileRegisterSection />)
 
       const section = screen.getByRole('region', {
         name: '勉強会登録セクション',
       })
-      const innerDiv = section.querySelector('.p-6')
+      const innerDiv = section.querySelector('.text-center')
 
       expect(innerDiv).toBeInTheDocument()
-      expect(innerDiv).toHaveClass('p-6', 'text-center')
+      expect(innerDiv).toHaveClass('text-center')
     })
   })
 
@@ -242,13 +212,14 @@ describe('MobileRegisterSection', () => {
       expect(section.tagName).toBe('SECTION')
     })
 
-    it('has proper heading hierarchy', () => {
+    it('has simple semantic structure', () => {
       render(<MobileRegisterSection />)
 
-      // Should have h3 heading
-      const heading = screen.getByRole('heading', { level: 3 })
-      expect(heading).toHaveTextContent('勉強会を登録しませんか？')
-      expect(heading).toHaveClass('text-lg', 'font-semibold')
+      // Should be a section element with proper role
+      const section = screen.getByRole('region', {
+        name: '勉強会登録セクション',
+      })
+      expect(section.tagName).toBe('SECTION')
     })
 
     it('has descriptive aria-label for screen readers', () => {
@@ -260,12 +231,12 @@ describe('MobileRegisterSection', () => {
       expect(section).toHaveAttribute('aria-label', '勉強会登録セクション')
     })
 
-    it('has decorative icon with proper aria-hidden', () => {
+    it('focuses on button functionality', () => {
       render(<MobileRegisterSection />)
 
-      const svg = document.querySelector('svg[aria-hidden="true"]')
-      expect(svg).toBeInTheDocument()
-      expect(svg).toHaveAttribute('aria-hidden', 'true')
+      const button = screen.getByTestId('study-session-register-button')
+      expect(button).toBeInTheDocument()
+      expect(button).toHaveAttribute('role', 'button')
     })
 
     it('maintains keyboard accessibility for embedded button', () => {
@@ -282,19 +253,17 @@ describe('MobileRegisterSection', () => {
       )
     })
 
-    it('has proper text contrast and readability', () => {
+    it('maintains button accessibility', () => {
       render(<MobileRegisterSection />)
 
-      const heading = screen.getByText('勉強会を登録しませんか？')
-      const description = screen.getByText(
-        /あなたの勉強会やイベントをカレンダーに追加して/
-      )
-      const disclaimer = screen.getByText('登録には管理者の承認が必要です')
+      const button = screen.getByTestId('study-session-register-button')
 
-      // Check for proper text color classes
-      expect(heading).toHaveClass('text-gray-900')
-      expect(description).toHaveClass('text-gray-600')
-      expect(disclaimer).toHaveClass('text-gray-500')
+      // Check button accessibility
+      expect(button).toHaveAttribute('tabIndex', '0')
+      expect(button).toHaveAttribute(
+        'aria-label',
+        '勉強会の登録依頼ページへ移動'
+      )
     })
 
     it('has proper focus management', () => {
@@ -327,7 +296,7 @@ describe('MobileRegisterSection', () => {
       render(<MobileRegisterSection />)
 
       const button = screen.getByTestId('study-session-register-button')
-      expect(button).toHaveClass('shadow-lg')
+      expect(button).toHaveClass('w-full')
     })
 
     it('maintains StudySessionRegisterButton functionality in mobile context', () => {
@@ -351,67 +320,43 @@ describe('MobileRegisterSection', () => {
 
       // Button should be contained within the section
       expect(section).toContainElement(button)
-
-      // Verify all key elements are present in the section
-      const description = screen.getByText(
-        /あなたの勉強会やイベントをカレンダーに追加して/
-      )
-      const disclaimer = screen.getByText('登録には管理者の承認が必要です')
-
-      expect(section).toContainElement(description)
-      expect(section).toContainElement(button)
-      expect(section).toContainElement(disclaimer)
     })
   })
 
   describe('Visual Design and User Experience', () => {
-    it('has proper visual hierarchy with icon, heading, description, button, disclaimer', () => {
+    it('has simple clean design with just the button', () => {
       render(<MobileRegisterSection />)
 
-      // Check that all elements are present in correct order
+      // Check that button is present and properly styled
       const section = screen.getByRole('region', {
         name: '勉強会登録セクション',
       })
-      const icon = section.querySelector('svg')
-      const heading = screen.getByText('勉強会を登録しませんか？')
-      const description = screen.getByText(
-        /あなたの勉強会やイベントをカレンダーに追加して/
-      )
       const button = screen.getByTestId('study-session-register-button')
-      const disclaimer = screen.getByText('登録には管理者の承認が必要です')
 
-      expect(icon).toBeInTheDocument()
-      expect(section).toContainElement(heading)
-      expect(section).toContainElement(description)
       expect(section).toContainElement(button)
-      expect(section).toContainElement(disclaimer)
+      expect(button).toHaveClass('w-full')
     })
 
-    it('has proper spacing between elements', () => {
+    it('has centered layout for the button', () => {
       render(<MobileRegisterSection />)
 
-      // Check for proper spacing classes
-      const iconContainer = document.querySelector('.mb-3')
-      const heading = screen.getByText('勉強会を登録しませんか？')
-      const disclaimer = screen.getByText('登録には管理者の承認が必要です')
+      const section = screen.getByRole('region', {
+        name: '勉強会登録セクション',
+      })
+      const centerDiv = section.querySelector('.text-center')
 
-      expect(iconContainer).toBeInTheDocument()
-      expect(heading).toHaveClass('mb-2')
-      expect(disclaimer).toHaveClass('mt-3')
+      expect(centerDiv).toBeInTheDocument()
+      expect(centerDiv).toHaveClass('text-center')
     })
 
-    it('uses appropriate text sizes for mobile readability', () => {
+    it('maintains mobile-first responsive design', () => {
       render(<MobileRegisterSection />)
 
-      const heading = screen.getByText('勉強会を登録しませんか？')
-      const description = screen.getByText(
-        /あなたの勉強会やイベントをカレンダーに追加して/
-      )
-      const disclaimer = screen.getByText('登録には管理者の承認が必要です')
+      const section = screen.getByRole('region', {
+        name: '勉強会登録セクション',
+      })
 
-      expect(heading).toHaveClass('text-lg')
-      expect(description).toHaveClass('text-sm')
-      expect(disclaimer).toHaveClass('text-xs')
+      expect(section).toHaveClass('block', 'sm:hidden')
     })
   })
 })
