@@ -167,11 +167,6 @@ export default function LayoutErrorFallback({
                           >
                             {material.title || material.url}
                           </a>
-                          {material.description && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {material.description}
-                            </p>
-                          )}
                         </li>
                       ))}
                     </ul>
