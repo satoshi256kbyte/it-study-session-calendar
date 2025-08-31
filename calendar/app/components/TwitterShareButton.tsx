@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, memo, useRef, useEffect } from 'react'
-import { performanceMonitor } from '../utils/performance'
+import { usePerformanceMonitor } from '../utils/performance'
 import { useResponsiveTransitions } from '../utils/responsive-transitions'
 
 /**
@@ -52,6 +52,7 @@ const TwitterShareButton = memo(function TwitterShareButton({
   displayMode = 'full',
   responsive = false,
 }: TwitterShareButtonProps) {
+  const performanceMonitor = usePerformanceMonitor('TwitterShareButton')
   // Responsive transition management for smooth text show/hide
   // Requirements: 1.5, 3.5, 4.1, 5.2
   const transitionState = useResponsiveTransitions({
@@ -131,8 +132,6 @@ const TwitterShareButton = memo(function TwitterShareButton({
    * 要件2.1, 2.2に対応
    */
   const handleShareClick = useCallback(async () => {
-    performanceMonitor.startMeasure('twitterShareResponse')
-
     try {
       // 分析用コールバックを実行
       onShareClick?.()
@@ -154,10 +153,7 @@ const TwitterShareButton = memo(function TwitterShareButton({
         )
         await copyToClipboard(shareText)
       }
-
-      performanceMonitor.endMeasure('twitterShareResponse')
     } catch (error) {
-      performanceMonitor.endMeasure('twitterShareResponse')
       console.error('Twitter共有エラー:', error)
 
       // エラーコールバックを実行

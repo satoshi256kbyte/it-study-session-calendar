@@ -10,7 +10,7 @@ import {
   createShareContentGenerator,
   ShareContentResult,
 } from '../services/shareContentGenerator'
-import { performanceMonitor, measureAsync } from '../utils/performance'
+import { usePerformanceMonitor } from '../utils/performance'
 
 /**
  * useStudySessionEventsフックの戻り値型
@@ -177,8 +177,9 @@ export function useStudySessionEvents(
         clearAutoRetryTimer()
 
         // 承認済み勉強会データを取得（リトライ機能付き）
-        const fetchedEvents = await measureAsync('studySessionDataFetch', () =>
-          fetchApprovedStudySessionsWithRetry(maxRetries, retryDelay)
+        const fetchedEvents = await fetchApprovedStudySessionsWithRetry(
+          maxRetries,
+          retryDelay
         )
 
         // パフォーマンス最適化: 前回と同じデータの場合は再計算をスキップ
@@ -194,9 +195,8 @@ export function useStudySessionEvents(
           console.log('ShareContent generation skipped (same data)')
         } else {
           // 新しいデータまたは初回の場合は新規計算
-          result = await measureAsync('shareTextGeneration', async () =>
-            shareContentGenerator.generateTwitterContent(fetchedEvents)
-          )
+          result =
+            await shareContentGenerator.generateTwitterContent(fetchedEvents)
 
           // 結果をキャッシュ
           lastResultRef.current = {

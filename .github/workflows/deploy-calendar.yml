@@ -48,14 +48,34 @@ jobs:
           cd calendar
           rm -rf node_modules package-lock.json .next
           rm -rf ~/.cache/next-swc
+          rm -rf ~/.npm/_cacache
+          npm cache clean --force
           npm install --no-workspaces
         env:
           CI: true
 
-      - name: Build with Next.js
+      - name: Build with Next.js (with retry)
         run: |
           cd calendar
-          npm run build
+          # Try build up to 3 times to handle SWC download issues
+          for i in {1..3}; do
+            echo "Build attempt $i"
+            if npm run build; then
+              echo "Build successful on attempt $i"
+              break
+            else
+              echo "Build failed on attempt $i"
+              if [ $i -lt 3 ]; then
+                echo "Cleaning SWC cache and retrying..."
+                rm -rf ~/.cache/next-swc
+                rm -rf .next
+                sleep 5
+              else
+                echo "All build attempts failed"
+                exit 1
+              fi
+            fi
+          done
         env:
           NEXT_PUBLIC_GOOGLE_CALENDAR_URL: ${{ secrets.GOOGLE_CALENDAR_URL }}
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}

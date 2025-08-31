@@ -330,7 +330,7 @@ export class EventListenerManager {
     }
 
     const elementListeners = this.listeners.get(element)!
-    const key = `${event}-${options?.passive}-${options?.capture}`
+    const key = `${event}-${(options as any)?.passive}-${options?.capture}`
 
     if (elementListeners.has(key)) {
       this.remove(element, event, options)
@@ -348,7 +348,7 @@ export class EventListenerManager {
     const elementListeners = this.listeners.get(element)
     if (!elementListeners) return
 
-    const key = `${event}-${options?.passive}-${options?.capture}`
+    const key = `${event}-${(options as any)?.passive}-${options?.capture}`
     const handler = elementListeners.get(key)
 
     if (handler) {

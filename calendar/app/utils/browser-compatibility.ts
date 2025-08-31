@@ -328,28 +328,30 @@ export function setupTouchPolyfills(): void {
         pointercancel: 'touchcancel',
       }
 
-      Object.entries(touchEventMap).forEach(([pointerEvent, touchEvent]) => {
-        document.addEventListener(pointerEvent, (e: Event) => {
-          const pointerEvent = e as PointerEvent
-          if (pointerEvent.pointerType === 'touch') {
-            const touchEvent = new CustomEvent(touchEvent, {
-              bubbles: true,
-              cancelable: true,
-              detail: {
-                touches: [
-                  {
-                    clientX: pointerEvent.clientX,
-                    clientY: pointerEvent.clientY,
-                    pageX: pointerEvent.pageX,
-                    pageY: pointerEvent.pageY,
-                  },
-                ],
-              },
-            })
-            pointerEvent.target?.dispatchEvent(touchEvent)
-          }
-        })
-      })
+      Object.entries(touchEventMap).forEach(
+        ([pointerEventType, touchEventType]) => {
+          document.addEventListener(pointerEventType, (e: Event) => {
+            const pointerEvent = e as PointerEvent
+            if (pointerEvent.pointerType === 'touch') {
+              const touchEvent = new CustomEvent(touchEventType, {
+                bubbles: true,
+                cancelable: true,
+                detail: {
+                  touches: [
+                    {
+                      clientX: pointerEvent.clientX,
+                      clientY: pointerEvent.clientY,
+                      pageX: pointerEvent.pageX,
+                      pageY: pointerEvent.pageY,
+                    },
+                  ],
+                },
+              })
+              pointerEvent.target?.dispatchEvent(touchEvent)
+            }
+          })
+        }
+      )
     }
   }
 }
@@ -399,11 +401,12 @@ export function setupOrientationHandling(): void {
     window.addEventListener('orientationchange', handleOrientationChange)
 
     // Fallback for browsers that don't support orientationchange
-    if (!('onorientationchange' in window)) {
-      let lastWidth = window.innerWidth
+    if (typeof window !== 'undefined' && !('onorientationchange' in window)) {
+      const win = window as any
+      let lastWidth = win.innerWidth
 
-      window.addEventListener('resize', () => {
-        const currentWidth = window.innerWidth
+      win.addEventListener('resize', () => {
+        const currentWidth = win.innerWidth
         const widthDifference = Math.abs(currentWidth - lastWidth)
 
         // Significant width change likely indicates orientation change

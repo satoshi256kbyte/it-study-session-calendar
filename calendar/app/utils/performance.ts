@@ -53,8 +53,11 @@ export const createMemoizedComponent = <T extends React.ComponentType<any>>(
     prevProps: React.ComponentProps<T>,
     nextProps: React.ComponentProps<T>
   ) => boolean
-): T => {
-  return React.memo(Component, areEqual) as T
+): React.MemoExoticComponent<T> => {
+  return React.memo(
+    Component as React.ComponentType<any>,
+    areEqual as any
+  ) as React.MemoExoticComponent<T>
 }
 
 /**
