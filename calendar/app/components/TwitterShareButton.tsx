@@ -251,10 +251,29 @@ const TwitterShareButton = memo(function TwitterShareButton({
    * パフォーマンス最適化: 状態が変わった時のみ再計算
    */
   const buttonClasses = useMemo((): string => {
-    // 既存のデザインシステムに合わせた基本クラス（page.tsxの他のボタンと統一）
-    // icon-onlyモードの場合はパディングを調整
-    const paddingClasses =
-      displayMode === 'icon-only' ? 'px-2 py-2' : 'px-3 py-2'
+    // icon-onlyモードの場合は枠なしのスタイルを適用（スマホ表示用）
+    if (displayMode === 'icon-only') {
+      const baseClasses = `inline-flex items-center p-2 text-sm font-medium rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200 min-h-[44px] sm:min-h-0`
+
+      // Add responsive transition classes
+      const responsiveClasses = responsive
+        ? transitionState.getTransitionClasses()
+        : ''
+
+      if (disabled || isLoading) {
+        return `${baseClasses} ${responsiveClasses} text-gray-400 bg-gray-100 cursor-not-allowed opacity-60`
+      }
+
+      if (hasError) {
+        return `${baseClasses} ${responsiveClasses} text-red-600 hover:text-red-700 hover:bg-red-50 focus:ring-red-500`
+      }
+
+      // 通常状態（枠なし、ホバー時に背景色変更）
+      return `${baseClasses} ${responsiveClasses} text-gray-600 hover:text-gray-800 hover:bg-gray-100 focus:ring-blue-500`
+    }
+
+    // 通常のボタンスタイル（デスクトップ表示用）
+    const paddingClasses = 'px-3 py-2'
     const baseClasses = `inline-flex items-center ${paddingClasses} border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 min-h-[44px] sm:min-h-0`
 
     // Add responsive transition classes
