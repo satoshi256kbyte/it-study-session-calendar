@@ -11,6 +11,10 @@
     "build": "tsc",
     "dev": "ts-node src/index.ts",
     "test": "jest",
+    "test:performance": "jest --config jest.performance.config.js",
+    "test:performance:runner": "ts-node src/test/performance-test-runner.ts",
+    "test:performance:watch": "jest --config jest.performance.config.js --watch",
+    "test:performance:coverage": "jest --config jest.performance.config.js --coverage",
     "deploy": "./scripts/deploy.sh"
   },
   "dependencies": {

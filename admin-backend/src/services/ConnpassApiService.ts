@@ -2,9 +2,27 @@ import { logger } from '../utils/logger'
 import {
   ConnpassPresentationData,
   ConnpassPresentationsResponse,
+  ConnpassEventData,
+  ConnpassSearchResult,
   Material,
   MaterialType,
 } from '../types/EventMaterial'
+
+/**
+ * connpass API専用エラークラス
+ * 要件1.4, 1.5に対応
+ */
+export class ConnpassApiError extends Error {
+  constructor(
+    message: string,
+    public readonly errorCode: string,
+    public readonly httpStatus: number,
+    public readonly retryable: boolean
+  ) {
+    super(message)
+    this.name = 'ConnpassApiError'
+  }
+}
 
 /**
  * connpass API v2クライアントサービス
@@ -39,11 +57,12 @@ export class ConnpassApiService {
 
   /**
    * connpass API v2への認証付きHTTPリクエスト
-   * 要件6.1に対応
+   * 要件6.1, 1.4, 1.5に対応
    */
   private async makeAuthenticatedRequest<T>(
     endpoint: string,
-    params: Record<string, string | number> = {}
+    params: Record<string, string | number> = {},
+    retryCount: number = 0
   ): Promise<T> {
     await this.enforceRateLimit()
 
@@ -54,7 +73,11 @@ export class ConnpassApiService {
       url.searchParams.append(key, value.toString())
     })
 
-    logger.debug(`Making request to connpass API: ${url.toString()}`)
+    logger.debug(`Making request to connpass API: ${url.toString()}`, {
+      endpoint,
+      params,
+      retryCount,
+    })
 
     try {
       const response = await fetch(url.toString(), {
@@ -67,30 +90,108 @@ export class ConnpassApiService {
       })
 
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('connpass API authentication failed: Invalid API key')
-        } else if (response.status === 429) {
-          throw new Error('connpass API rate limit exceeded')
-        } else {
-          throw new Error(
-            `connpass API request failed: ${response.status} ${response.statusText}`
-          )
-        }
+        // 要件1.4: connpass APIエラー（401, 429, その他）の分類と対応を実装
+        await this.handleApiError(response, endpoint, retryCount)
       }
 
       const data = await response.json()
-      logger.debug('connpass API response received successfully')
+      logger.debug('connpass API response received successfully', {
+        endpoint,
+        dataKeys: data && typeof data === 'object' ? Object.keys(data) : [],
+      })
 
       return data as T
     } catch (error) {
-      logger.error('connpass API request failed:', error)
+      // 要件1.5: 詳細なエラーログとスタックトレース出力を実装
+      const errorDetails = {
+        endpoint,
+        params,
+        retryCount,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      }
+
+      logger.error(
+        'connpass API request failed with detailed context:',
+        errorDetails
+      )
+
+      // エラーを再スローして上位で処理継続判断を行う
       throw error
     }
   }
 
   /**
+   * connpass APIエラーの分類と対応処理
+   * 要件1.4に対応
+   */
+  private async handleApiError(
+    response: Response,
+    endpoint: string,
+    retryCount: number
+  ): Promise<never> {
+    const errorContext = {
+      status: response.status,
+      statusText: response.statusText,
+      endpoint,
+      retryCount,
+    }
+
+    if (response.status === 401) {
+      // 認証エラー（401）: ログ記録、処理継続
+      logger.error(
+        'connpass API authentication failed: Invalid API key',
+        errorContext
+      )
+      throw new ConnpassApiError(
+        'connpass API authentication failed: Invalid API key',
+        'AUTHENTICATION_FAILED',
+        response.status,
+        false // リトライ不可
+      )
+    } else if (response.status === 429) {
+      // レート制限エラー（429）: 待機後リトライ（1回のみ）
+      logger.warn('connpass API rate limit exceeded', errorContext)
+
+      if (retryCount === 0) {
+        logger.info('Attempting retry after rate limit with extended wait time')
+        // 通常の5秒に加えて追加の10秒待機
+        await new Promise(resolve => setTimeout(resolve, 10000))
+        // リトライを実行（再帰呼び出しでretryCountを1に設定）
+        throw new ConnpassApiError(
+          'connpass API rate limit exceeded - retry needed',
+          'RATE_LIMIT_RETRY',
+          response.status,
+          true // リトライ可能
+        )
+      } else {
+        logger.error(
+          'connpass API rate limit exceeded after retry',
+          errorContext
+        )
+        throw new ConnpassApiError(
+          'connpass API rate limit exceeded after retry',
+          'RATE_LIMIT_EXCEEDED',
+          response.status,
+          false // リトライ済み
+        )
+      }
+    } else {
+      // その他APIエラー: ログ記録、処理継続
+      logger.error('connpass API request failed with HTTP error', errorContext)
+      throw new ConnpassApiError(
+        `connpass API request failed: ${response.status} ${response.statusText}`,
+        'HTTP_ERROR',
+        response.status,
+        false // リトライ不可
+      )
+    }
+  }
+
+  /**
    * connpassイベントIDから資料データを取得
-   * 要件6.1に対応
+   * 要件6.1, 1.4, 1.5に対応
    */
   async getPresentations(eventId: string): Promise<Material[]> {
     logger.debug(`Getting presentations for connpass event: ${eventId}`)
@@ -98,7 +199,7 @@ export class ConnpassApiService {
     try {
       // connpass API v2の/events/{id}/presentationsエンドポイントを使用
       const response =
-        await this.makeAuthenticatedRequest<ConnpassPresentationsResponse>(
+        await this.makeAuthenticatedRequestWithRetry<ConnpassPresentationsResponse>(
           `/events/${eventId}/presentations?count=100`
         )
 
@@ -117,7 +218,19 @@ export class ConnpassApiService {
 
       return materials
     } catch (error) {
-      logger.error(`Failed to get presentations for event ${eventId}:`, error)
+      // 要件1.5: 詳細なエラーログとスタックトレース出力を実装
+      const errorDetails = {
+        eventId,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        isConnpassApiError: error instanceof ConnpassApiError,
+        stack: error instanceof Error ? error.stack : undefined,
+      }
+
+      logger.error(
+        `Failed to get presentations for event ${eventId} with detailed context:`,
+        errorDetails
+      )
       throw error
     }
   }
@@ -254,6 +367,63 @@ export class ConnpassApiService {
   }
 
   /**
+   * キーワードでイベントを検索
+   * 要件1.1, 1.3, 1.4, 1.5に対応
+   */
+  async searchEventsByKeyword(
+    keyword: string,
+    count: number = 100
+  ): Promise<ConnpassSearchResult> {
+    logger.debug(`Searching connpass events with keyword: ${keyword}`)
+
+    try {
+      // connpass API v2の/events/エンドポイントを使用してキーワード検索
+      const response = await this.makeAuthenticatedRequestWithRetry<{
+        results_returned: number
+        results_available: number
+        results_start: number
+        events: ConnpassEventData[]
+      }>('/events/', {
+        keyword: keyword,
+        count: count,
+        order: 2, // 開催日時順
+      })
+
+      logger.debug(
+        `Retrieved ${response.results_returned} events from connpass API (total: ${response.results_available})`
+      )
+
+      // レスポンスをConnpassSearchResult型に変換
+      const searchResult: ConnpassSearchResult = {
+        events: response.events || [],
+        totalCount: response.results_available || 0,
+      }
+
+      logger.debug(
+        `Converted search result: ${searchResult.events.length} events`
+      )
+
+      return searchResult
+    } catch (error) {
+      // 要件1.5: 詳細なエラーログとスタックトレース出力を実装
+      const errorDetails = {
+        keyword,
+        count,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        isConnpassApiError: error instanceof ConnpassApiError,
+        stack: error instanceof Error ? error.stack : undefined,
+      }
+
+      logger.error(
+        `Failed to search events with keyword "${keyword}" with detailed context:`,
+        errorDetails
+      )
+      throw error
+    }
+  }
+
+  /**
    * APIキーの有効性をテスト
    * 要件6.1に対応
    */
@@ -271,6 +441,31 @@ export class ConnpassApiService {
     } catch (error) {
       logger.error('connpass API key test failed:', error)
       return false
+    }
+  }
+
+  /**
+   * リトライ機能付きのconnpass APIリクエスト
+   * 要件1.4に対応
+   */
+  private async makeAuthenticatedRequestWithRetry<T>(
+    endpoint: string,
+    params: Record<string, string | number> = {}
+  ): Promise<T> {
+    try {
+      return await this.makeAuthenticatedRequest<T>(endpoint, params, 0)
+    } catch (error) {
+      if (
+        error instanceof ConnpassApiError &&
+        error.errorCode === 'RATE_LIMIT_RETRY' &&
+        error.retryable
+      ) {
+        // レート制限エラーの場合、1回だけリトライ
+        logger.info('Retrying connpass API request after rate limit')
+        return await this.makeAuthenticatedRequest<T>(endpoint, params, 1)
+      }
+      // その他のエラーまたはリトライ不可の場合はそのまま再スロー
+      throw error
     }
   }
 }

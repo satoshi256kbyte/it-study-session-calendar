@@ -7,12 +7,16 @@ import {
 import { DynamoDBService } from '../../services/DynamoDBService'
 import { ConnpassApiService } from '../../services/ConnpassApiService'
 import { SecretsManagerService } from '../../services/SecretsManagerService'
+import { HiroshimaEventDiscoveryService } from '../../services/HiroshimaEventDiscoveryService'
+import { NotificationService } from '../../services/NotificationService'
 import { EventRecord, Material } from '../../types/EventMaterial'
 
 // サービスのモック
 jest.mock('../../services/DynamoDBService')
 jest.mock('../../services/ConnpassApiService')
 jest.mock('../../services/SecretsManagerService')
+jest.mock('../../services/HiroshimaEventDiscoveryService')
+jest.mock('../../services/NotificationService')
 
 const MockDynamoDBService = DynamoDBService as jest.MockedClass<
   typeof DynamoDBService
@@ -23,11 +27,20 @@ const MockConnpassApiService = ConnpassApiService as jest.MockedClass<
 const MockSecretsManagerService = SecretsManagerService as jest.MockedClass<
   typeof SecretsManagerService
 >
+const MockHiroshimaEventDiscoveryService =
+  HiroshimaEventDiscoveryService as jest.MockedClass<
+    typeof HiroshimaEventDiscoveryService
+  >
+const MockNotificationService = NotificationService as jest.MockedClass<
+  typeof NotificationService
+>
 
 describe('batchMaterialsHandler', () => {
   let mockDynamoDBService: jest.Mocked<DynamoDBService>
   let mockConnpassApiService: jest.Mocked<ConnpassApiService>
   let mockSecretsManagerService: jest.Mocked<SecretsManagerService>
+  let mockHiroshimaEventDiscoveryService: jest.Mocked<HiroshimaEventDiscoveryService>
+  let mockNotificationService: jest.Mocked<NotificationService>
 
   const mockEvent: ScheduledEvent = {
     id: 'test-event-id',
@@ -79,6 +92,24 @@ describe('batchMaterialsHandler', () => {
     },
   ]
 
+  const mockHiroshimaDiscoveryResult = {
+    totalFound: 2,
+    newRegistrations: 1,
+    duplicatesSkipped: 1,
+    errors: [],
+    registeredEvents: [
+      {
+        id: 'hiroshima-event-1',
+        title: '広島IT勉強会',
+        url: 'https://connpass.com/event/789/',
+        datetime: '2023-02-01T19:00:00+09:00',
+        status: 'pending' as const,
+        createdAt: '2023-01-01T00:00:00Z',
+        updatedAt: '2023-01-01T00:00:00Z',
+      },
+    ],
+  }
+
   beforeEach(() => {
     jest.clearAllMocks()
 
@@ -96,7 +127,17 @@ describe('batchMaterialsHandler', () => {
 
     // SecretsManagerService のモック
     mockSecretsManagerService = {
-      getConnpassApiKeyWithFallback: jest.fn(),
+      getConnpassApiKey: jest.fn(),
+    } as any
+
+    // HiroshimaEventDiscoveryService のモック
+    mockHiroshimaEventDiscoveryService = {
+      discoverAndRegisterEvents: jest.fn(),
+    } as any
+
+    // NotificationService のモック
+    mockNotificationService = {
+      sendNotification: jest.fn(),
     } as any
 
     // コンストラクタのモック
@@ -105,6 +146,10 @@ describe('batchMaterialsHandler', () => {
     MockSecretsManagerService.mockImplementation(
       () => mockSecretsManagerService
     )
+    MockHiroshimaEventDiscoveryService.mockImplementation(
+      () => mockHiroshimaEventDiscoveryService
+    )
+    MockNotificationService.mockImplementation(() => mockNotificationService)
 
     // ConnpassApiService の静的メソッドのモック
     jest.spyOn(ConnpassApiService, 'extractEventIdFromUrl')
@@ -112,7 +157,7 @@ describe('batchMaterialsHandler', () => {
 
   describe('batchUpdateMaterials', () => {
     beforeEach(() => {
-      mockSecretsManagerService.getConnpassApiKeyWithFallback.mockResolvedValue(
+      mockSecretsManagerService.getConnpassApiKey.mockResolvedValue(
         'test-api-key'
       )
       mockConnpassApiService.testApiKey.mockResolvedValue(true)
@@ -121,6 +166,9 @@ describe('batchMaterialsHandler', () => {
       )
       mockConnpassApiService.getPresentations.mockResolvedValue(mockMaterials)
       mockDynamoDBService.upsertEventRecord.mockResolvedValue(mockEventRecord)
+      mockHiroshimaEventDiscoveryService.discoverAndRegisterEvents.mockResolvedValue(
+        mockHiroshimaDiscoveryResult
+      )
     })
 
     it('should successfully process events and update materials', async () => {
@@ -132,15 +180,16 @@ describe('batchMaterialsHandler', () => {
 
       expect(result.statusCode).toBe(200)
       expect(JSON.parse(result.body)).toMatchObject({
-        message: 'Batch update completed',
+        message: 'Complete batch update finished',
         processedCount: 1,
         successCount: 1,
         errorCount: 0,
+        hiroshimaDiscovery: mockHiroshimaDiscoveryResult,
       })
 
-      expect(
-        mockSecretsManagerService.getConnpassApiKeyWithFallback
-      ).toHaveBeenCalledTimes(1)
+      expect(mockSecretsManagerService.getConnpassApiKey).toHaveBeenCalledTimes(
+        1
+      )
       expect(mockConnpassApiService.testApiKey).toHaveBeenCalledTimes(1)
       expect(
         mockDynamoDBService.getApprovedEventsWithConnpassUrl
@@ -158,23 +207,30 @@ describe('batchMaterialsHandler', () => {
           updatedAt: expect.any(String),
         })
       )
+      expect(
+        mockHiroshimaEventDiscoveryService.discoverAndRegisterEvents
+      ).toHaveBeenCalledTimes(1)
     })
 
-    it('should handle no events to process', async () => {
+    it('should handle no events to process but still run Hiroshima discovery', async () => {
       mockDynamoDBService.getApprovedEventsWithConnpassUrl.mockResolvedValue([])
 
       const result = await batchUpdateMaterials(mockEvent, mockContext)
 
       expect(result.statusCode).toBe(200)
       expect(JSON.parse(result.body)).toMatchObject({
-        message: 'No events to process',
+        message: 'Complete batch update finished',
         processedCount: 0,
         successCount: 0,
         errorCount: 0,
+        hiroshimaDiscovery: mockHiroshimaDiscoveryResult,
       })
 
       expect(mockConnpassApiService.getPresentations).not.toHaveBeenCalled()
       expect(mockDynamoDBService.upsertEventRecord).not.toHaveBeenCalled()
+      expect(
+        mockHiroshimaEventDiscoveryService.discoverAndRegisterEvents
+      ).toHaveBeenCalledTimes(1)
     })
 
     it('should handle invalid API key', async () => {
@@ -207,13 +263,14 @@ describe('batchMaterialsHandler', () => {
 
       expect(result.statusCode).toBe(500) // All events failed
       expect(JSON.parse(result.body)).toMatchObject({
-        message: 'Batch update completed',
+        message: 'Complete batch update finished',
         processedCount: 1,
         successCount: 0,
         errorCount: 1,
         errors: expect.arrayContaining([
           expect.stringContaining('Invalid connpass URL format'),
         ]),
+        hiroshimaDiscovery: mockHiroshimaDiscoveryResult,
       })
 
       expect(mockConnpassApiService.getPresentations).not.toHaveBeenCalled()
@@ -238,7 +295,7 @@ describe('batchMaterialsHandler', () => {
 
       expect(result.statusCode).toBe(200) // Partial success
       expect(JSON.parse(result.body)).toMatchObject({
-        message: 'Batch update completed',
+        message: 'Complete batch update finished',
         processedCount: 2,
         successCount: 1,
         errorCount: 1,
@@ -247,6 +304,7 @@ describe('batchMaterialsHandler', () => {
             'Failed to update materials for event test-event-1'
           ),
         ]),
+        hiroshimaDiscovery: mockHiroshimaDiscoveryResult,
       })
 
       expect(mockConnpassApiService.getPresentations).toHaveBeenCalledTimes(2)
@@ -271,7 +329,7 @@ describe('batchMaterialsHandler', () => {
 
       expect(result.statusCode).toBe(200) // Partial success
       expect(JSON.parse(result.body)).toMatchObject({
-        message: 'Batch update completed',
+        message: 'Complete batch update finished',
         processedCount: 2,
         successCount: 1,
         errorCount: 1,
@@ -280,11 +338,12 @@ describe('batchMaterialsHandler', () => {
             'Failed to update materials for event test-event-1'
           ),
         ]),
+        hiroshimaDiscovery: mockHiroshimaDiscoveryResult,
       })
     })
 
     it('should handle secrets manager errors', async () => {
-      mockSecretsManagerService.getConnpassApiKeyWithFallback.mockRejectedValue(
+      mockSecretsManagerService.getConnpassApiKey.mockRejectedValue(
         new Error('Secrets Manager error')
       )
 
@@ -302,21 +361,60 @@ describe('batchMaterialsHandler', () => {
 
   describe('manualBatchUpdate', () => {
     it('should execute batch update with mock event and context', async () => {
-      mockSecretsManagerService.getConnpassApiKeyWithFallback.mockResolvedValue(
+      mockSecretsManagerService.getConnpassApiKey.mockResolvedValue(
         'test-api-key'
       )
       mockConnpassApiService.testApiKey.mockResolvedValue(true)
       mockDynamoDBService.getApprovedEventsWithConnpassUrl.mockResolvedValue([])
+      mockHiroshimaEventDiscoveryService.discoverAndRegisterEvents.mockResolvedValue(
+        mockHiroshimaDiscoveryResult
+      )
 
       const result = await manualBatchUpdate()
 
       expect(result.statusCode).toBe(200)
       expect(JSON.parse(result.body)).toMatchObject({
-        message: 'No events to process',
+        message: 'Complete batch update finished',
         processedCount: 0,
         successCount: 0,
         errorCount: 0,
+        hiroshimaDiscovery: mockHiroshimaDiscoveryResult,
       })
+      expect(
+        mockHiroshimaEventDiscoveryService.discoverAndRegisterEvents
+      ).toHaveBeenCalledTimes(1)
+    })
+
+    it('should include Hiroshima discovery results in manual execution', async () => {
+      mockSecretsManagerService.getConnpassApiKey.mockResolvedValue(
+        'test-api-key'
+      )
+      mockConnpassApiService.testApiKey.mockResolvedValue(true)
+      mockDynamoDBService.getApprovedEventsWithConnpassUrl.mockResolvedValue([
+        mockEventRecord,
+      ])
+      mockHiroshimaEventDiscoveryService.discoverAndRegisterEvents.mockResolvedValue(
+        mockHiroshimaDiscoveryResult
+      )
+      ;(ConnpassApiService.extractEventIdFromUrl as jest.Mock).mockReturnValue(
+        '123456'
+      )
+      mockConnpassApiService.getPresentations.mockResolvedValue(mockMaterials)
+      mockDynamoDBService.upsertEventRecord.mockResolvedValue(mockEventRecord)
+
+      const result = await manualBatchUpdate()
+
+      expect(result.statusCode).toBe(200)
+      const responseBody = JSON.parse(result.body)
+
+      // 要件5.5: 手動実行時の結果表示に広島イベント発見結果を含める
+      expect(responseBody).toHaveProperty('hiroshimaDiscovery')
+      expect(responseBody.hiroshimaDiscovery).toEqual(
+        mockHiroshimaDiscoveryResult
+      )
+      expect(
+        mockHiroshimaEventDiscoveryService.discoverAndRegisterEvents
+      ).toHaveBeenCalledTimes(1)
     })
   })
 

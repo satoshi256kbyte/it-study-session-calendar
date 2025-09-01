@@ -12,8 +12,25 @@ import {
   EventRecord,
   EventWithMaterials,
   Material,
+  ConnpassEventData,
 } from '../types/EventMaterial'
 import { logger } from '../utils/logger'
+
+/**
+ * DynamoDB専用エラークラス
+ * 要件6.3, 6.4に対応
+ */
+export class DynamoDBError extends Error {
+  constructor(
+    message: string,
+    public readonly errorCode: string,
+    public readonly operation: string,
+    public readonly originalError: Error
+  ) {
+    super(message)
+    this.name = 'DynamoDBError'
+  }
+}
 
 export class DynamoDBService {
   private dynamodb: DynamoDBDocumentClient
@@ -436,6 +453,159 @@ export class DynamoDBService {
     } catch (error) {
       logger.error('Error getting approved events with connpass URL:', error)
       throw error
+    }
+  }
+
+  /**
+   * イベントURLによる重複チェック機能
+   * 要件2.1, 2.2, 2.4, 6.3に対応
+   */
+  async checkEventExists(eventUrl: string): Promise<boolean> {
+    logger.debug(`Checking if event exists with URL: ${eventUrl}`)
+
+    try {
+      const result = await this.dynamodb.send(
+        new ScanCommand({
+          TableName: this.tableName,
+          FilterExpression: '#url = :eventUrl',
+          ExpressionAttributeNames: {
+            '#url': 'url',
+          },
+          ExpressionAttributeValues: {
+            ':eventUrl': eventUrl,
+          },
+        })
+      )
+
+      logger.debug('Event existence check result:', {
+        Count: result.Count,
+        ScannedCount: result.ScannedCount,
+        ItemsLength: result.Items?.length || 0,
+      })
+
+      const exists = (result.Items?.length || 0) > 0
+
+      if (exists) {
+        logger.debug(`Event with URL ${eventUrl} already exists in database`)
+      } else {
+        logger.debug(`Event with URL ${eventUrl} does not exist in database`)
+      }
+
+      return exists
+    } catch (error) {
+      // 要件6.3, 6.4: 詳細なエラーログとスタックトレース出力を実装
+      const errorDetails = {
+        eventUrl,
+        tableName: this.tableName,
+        operation: 'checkEventExists',
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      }
+
+      logger.error(
+        `DynamoDB error checking event existence for URL ${eventUrl} with detailed context:`,
+        errorDetails
+      )
+
+      // 要件2.5: 重複検出が失敗した時、エラーをログに記録し、問題のあるイベントをスキップ
+      throw new DynamoDBError(
+        `Failed to check event existence: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'DUPLICATE_CHECK_FAILED',
+        'checkEventExists',
+        error instanceof Error ? error : new Error('Unknown error')
+      )
+    }
+  }
+
+  /**
+   * connpassイベントデータからStudySession作成機能
+   * 要件3.1, 3.2, 3.3, 3.4, 3.5, 6.3, 6.4に対応
+   */
+  async createStudySessionFromConnpass(
+    eventData: ConnpassEventData
+  ): Promise<StudySession> {
+    logger.debug('Creating study session from connpass event data:', {
+      eventId: eventData.event_id,
+      title: eventData.title,
+      eventUrl: eventData.event_url,
+    })
+
+    try {
+      // 要件3.5: connpass URLが利用可能な時、システムはそれをurlフィールドに保存する
+      const createRequest: CreateStudySessionRequest = {
+        title: eventData.title,
+        url: eventData.event_url,
+        datetime: eventData.started_at,
+        endDatetime: eventData.ended_at,
+        // contactは設定しない（connpass APIには含まれない）
+      }
+
+      logger.debug(
+        'Converted connpass event to CreateStudySessionRequest:',
+        createRequest
+      )
+
+      // 要件3.1: 手動登録と同じStudySessionデータ構造を使用
+      const id = this.generateId()
+      const now = new Date().toISOString()
+
+      const session: StudySession = {
+        id,
+        title: createRequest.title,
+        url: createRequest.url,
+        datetime: createRequest.datetime,
+        endDatetime: createRequest.endDatetime,
+        contact: createRequest.contact,
+        status: 'pending', // 要件3.2: 管理者承認のためにステータスを「pending」に設定
+        createdAt: now, // 要件3.4: createdAtを現在のISOタイムスタンプに設定
+        updatedAt: now, // 要件3.4: updatedAtを現在のISOタイムスタンプに設定
+      }
+
+      logger.debug(
+        'Generated study session object from connpass data:',
+        session
+      )
+
+      await this.dynamodb.send(
+        new PutCommand({
+          TableName: this.tableName,
+          Item: session,
+        })
+      )
+
+      logger.debug(
+        'Study session created successfully from connpass data with ID:',
+        id
+      )
+      return session
+    } catch (error) {
+      // 要件6.3, 6.4: 詳細なエラーログとスタックトレース出力を実装
+      const errorDetails = {
+        eventData: {
+          eventId: eventData.event_id,
+          title: eventData.title,
+          eventUrl: eventData.event_url,
+          startedAt: eventData.started_at,
+        },
+        tableName: this.tableName,
+        operation: 'createStudySessionFromConnpass',
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      }
+
+      logger.error(
+        'DynamoDB error creating study session from connpass data with detailed context:',
+        errorDetails
+      )
+
+      throw new DynamoDBError(
+        `Failed to create study session from connpass data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'CREATE_SESSION_FAILED',
+        'createStudySessionFromConnpass',
+        error instanceof Error ? error : new Error('Unknown error')
+      )
     }
   }
 }

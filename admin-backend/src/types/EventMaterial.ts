@@ -184,6 +184,42 @@ export interface ConnpassPresentationsResponse {
 }
 
 /**
+ * connpass API v2からのイベントデータ
+ * 要件1.1, 1.2に対応
+ */
+export interface ConnpassEventData {
+  /** イベントID */
+  event_id: number
+
+  /** イベントタイトル */
+  title: string
+
+  /** イベントURL */
+  event_url: string
+
+  /** 開始日時 (ISO 8601形式) */
+  started_at: string
+
+  /** 終了日時 (ISO 8601形式) */
+  ended_at?: string
+
+  /** イベント説明 */
+  description?: string
+}
+
+/**
+ * connpass API v2のイベント検索結果
+ * 要件1.1に対応
+ */
+export interface ConnpassSearchResult {
+  /** 検索結果のイベント一覧 */
+  events: ConnpassEventData[]
+
+  /** 総件数 */
+  totalCount: number
+}
+
+/**
  * 型ガード: EventWithMaterialsの検証
  * connpassイベントかつ資料があるもののみを対象とする制約をチェック
  */
