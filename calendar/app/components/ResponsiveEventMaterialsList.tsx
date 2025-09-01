@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useMemo, useState, useEffect } from 'react'
-import { EventMaterialsTableProps } from '../types/eventMaterial'
+import { EventMaterialsTableProps, MaterialType } from '../types/eventMaterial'
 import EventMaterialsTable from './EventMaterialsTable'
 import EventMaterialCard from './EventMaterialCard'
 
@@ -24,6 +24,44 @@ function ResponsiveEventMaterialsList({
   const [layoutType, setLayoutType] = useState<'desktop' | 'tablet' | 'mobile'>(
     'desktop'
   )
+
+  /**
+   * イベントを開催日時の降順でソート（要件1.3: 最新が最初）
+   * 各イベント内の資料も指定された順序でソート
+   * EventMaterialsTableと同じ並び順ロジックを適用
+   */
+  const sortedEvents = useMemo(() => {
+    /**
+     * 資料タイプの優先順位を定義
+     * ビデオ、スライド、ブログ、ドキュメント、その他の順
+     */
+    const materialTypePriority: Record<MaterialType, number> = {
+      video: 1,
+      slide: 2,
+      blog: 3,
+      document: 4,
+      other: 5,
+    }
+
+    return [...events]
+      .sort((a, b) => {
+        return new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()
+      })
+      .map(event => ({
+        ...event,
+        materials: [...event.materials].sort((a, b) => {
+          const priorityA = materialTypePriority[a.type] || 5
+          const priorityB = materialTypePriority[b.type] || 5
+
+          // 優先順位が同じ場合は名称の昇順
+          if (priorityA === priorityB) {
+            return a.title.localeCompare(b.title, 'ja', { numeric: true })
+          }
+
+          return priorityA - priorityB
+        }),
+      }))
+  }, [events])
 
   // 画面サイズの監視
   useEffect(() => {
@@ -92,7 +130,7 @@ function ResponsiveEventMaterialsList({
   }
 
   // イベントが空の場合
-  if (!events || events.length === 0) {
+  if (!sortedEvents || sortedEvents.length === 0) {
     return (
       <div className="text-center py-8">
         <svg
@@ -117,7 +155,11 @@ function ResponsiveEventMaterialsList({
   if (layoutType === 'desktop') {
     return (
       <div className="event-materials-desktop">
-        <EventMaterialsTable events={events} loading={loading} error={error} />
+        <EventMaterialsTable
+          events={sortedEvents}
+          loading={loading}
+          error={error}
+        />
       </div>
     )
   }
@@ -136,7 +178,7 @@ function ResponsiveEventMaterialsList({
         role="region"
         aria-label={`イベント資料一覧 - ${layoutType === 'tablet' ? '2列' : '1列'}表示`}
       >
-        {events.map((event, index) => (
+        {sortedEvents.map((event, index) => (
           <SimpleEventCard key={event.id} event={event} layout={layoutType} />
         ))}
       </div>
@@ -154,6 +196,39 @@ function SimpleEventCard({
   event: any
   layout: 'mobile' | 'tablet'
 }) {
+  /**
+   * 資料を指定された順序でソート
+   * EventMaterialsTableと同じ並び順ロジックを適用
+   */
+  const sortedMaterials = useMemo(() => {
+    if (!event.materials || event.materials.length === 0) {
+      return []
+    }
+
+    /**
+     * 資料タイプの優先順位を定義
+     * ビデオ、スライド、ブログ、ドキュメント、その他の順
+     */
+    const materialTypePriority: Record<MaterialType, number> = {
+      video: 1,
+      slide: 2,
+      blog: 3,
+      document: 4,
+      other: 5,
+    }
+
+    return [...event.materials].sort((a, b) => {
+      const priorityA = materialTypePriority[a.type] || 5
+      const priorityB = materialTypePriority[b.type] || 5
+
+      // 優先順位が同じ場合は名称の昇順
+      if (priorityA === priorityB) {
+        return a.title.localeCompare(b.title, 'ja', { numeric: true })
+      }
+
+      return priorityA - priorityB
+    })
+  }, [event.materials])
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('ja-JP', {
@@ -224,7 +299,7 @@ function SimpleEventCard({
       </div>
 
       {/* 資料リスト */}
-      {event.materials && event.materials.length > 0 && (
+      {sortedMaterials && sortedMaterials.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
             <svg
@@ -240,10 +315,10 @@ function SimpleEventCard({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            資料 ({event.materials.length}件)
+            資料 ({sortedMaterials.length}件)
           </h4>
           <ul className="space-y-2">
-            {event.materials.map((material: any) => (
+            {sortedMaterials.map((material: any) => (
               <li key={material.id}>
                 <a
                   href={material.url}

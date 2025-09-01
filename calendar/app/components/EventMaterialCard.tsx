@@ -1,7 +1,11 @@
 'use client'
 
-import { memo } from 'react'
-import { EventWithMaterials, formatEventDate } from '../types/eventMaterial'
+import { memo, useMemo } from 'react'
+import {
+  EventWithMaterials,
+  formatEventDate,
+  MaterialType,
+} from '../types/eventMaterial'
 
 /**
  * EventMaterialCardコンポーネントのProps
@@ -27,6 +31,35 @@ function EventMaterialCard({
   className = '',
   style = {},
 }: EventMaterialCardProps) {
+  /**
+   * 資料を指定された順序でソート
+   * EventMaterialsTableと同じ並び順ロジックを適用
+   */
+  const sortedMaterials = useMemo(() => {
+    /**
+     * 資料タイプの優先順位を定義
+     * ビデオ、スライド、ブログ、ドキュメント、その他の順
+     */
+    const materialTypePriority: Record<MaterialType, number> = {
+      video: 1,
+      slide: 2,
+      blog: 3,
+      document: 4,
+      other: 5,
+    }
+
+    return [...event.materials].sort((a, b) => {
+      const priorityA = materialTypePriority[a.type] || 5
+      const priorityB = materialTypePriority[b.type] || 5
+
+      // 優先順位が同じ場合は名称の昇順
+      if (priorityA === priorityB) {
+        return a.title.localeCompare(b.title, 'ja', { numeric: true })
+      }
+
+      return priorityA - priorityB
+    })
+  }, [event.materials])
   return (
     <div
       className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${className}`}
@@ -92,7 +125,7 @@ function EventMaterialCard({
       </div>
 
       {/* 資料リスト */}
-      {event.materials && event.materials.length > 0 && (
+      {sortedMaterials && sortedMaterials.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
             <svg
@@ -108,10 +141,10 @@ function EventMaterialCard({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            資料 ({event.materials.length}件)
+            資料 ({sortedMaterials.length}件)
           </h4>
           <ul className="space-y-2">
-            {event.materials.map((material: any) => (
+            {sortedMaterials.map((material: any) => (
               <li key={material.id}>
                 <a
                   href={material.url}
