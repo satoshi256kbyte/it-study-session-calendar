@@ -9,6 +9,7 @@ import {
   Suspense,
 } from 'react'
 import ResponsiveHeaderButtons from './components/ResponsiveHeaderButtons'
+import CalendarHeaderButtons from './components/CalendarHeaderButtons'
 import MobileRegisterSection from './components/MobileRegisterSection'
 import LoadingSpinner from './components/LoadingSpinner'
 import { useStudySessionEventsWithDefaults } from './hooks/useStudySessionEvents'
@@ -132,7 +133,21 @@ export default function Home() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="bg-white rounded-lg shadow">
-            <div className="p-6">
+            {/* カレンダー上部のボタン（スマホ表示のみ） */}
+            <div className="sm:hidden flex justify-end p-4 pb-0">
+              <CalendarHeaderButtons
+                shareText={shareText}
+                calendarUrl={pageUrl}
+                isEventsLoading={isEventsLoading}
+                eventsError={eventsError}
+                isFallbackMode={isFallbackMode}
+                onShareClick={handleTwitterShareClick}
+                onTwitterShareError={handleTwitterShareError}
+                onNativeShare={handleShare}
+              />
+            </div>
+
+            <div className="p-6 sm:pt-6 pt-2">
               {calendarUrl ? (
                 <div className="calendar-container calendar-optimized">
                   <iframe

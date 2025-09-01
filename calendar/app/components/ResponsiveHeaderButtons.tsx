@@ -222,7 +222,7 @@ export default function ResponsiveHeaderButtons({
   return (
     <div
       ref={containerRef}
-      className={`flex items-center space-x-4 ${transitionState.getTransitionClasses()} ${className}`}
+      className={`hidden sm:flex items-center space-x-4 ${transitionState.getTransitionClasses()} ${className}`}
       data-breakpoint={transitionState.currentBreakpoint}
       data-transitioning={transitionState.isTransitioning}
       data-reduced-motion={transitionState.prefersReducedMotion}
