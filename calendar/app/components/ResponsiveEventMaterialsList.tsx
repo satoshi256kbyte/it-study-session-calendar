@@ -1,7 +1,12 @@
 'use client'
 
 import { memo, useMemo, useState, useEffect } from 'react'
-import { EventMaterialsTableProps, MaterialType } from '../types/eventMaterial'
+import {
+  EventMaterialsTableProps,
+  MaterialType,
+  EventWithMaterials,
+  Material,
+} from '../types/eventMaterial'
 import EventMaterialsTable from './EventMaterialsTable'
 import EventMaterialCard from './EventMaterialCard'
 
@@ -193,7 +198,7 @@ function SimpleEventCard({
   event,
   layout,
 }: {
-  event: any
+  event: EventWithMaterials
   layout: 'mobile' | 'tablet'
 }) {
   /**
@@ -318,7 +323,7 @@ function SimpleEventCard({
             資料 ({sortedMaterials.length}件)
           </h4>
           <ul className="space-y-2">
-            {sortedMaterials.map((material: any) => (
+            {sortedMaterials.map((material: Material) => (
               <li key={material.id}>
                 <a
                   href={material.url}

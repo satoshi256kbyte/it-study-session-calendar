@@ -5,6 +5,7 @@ import {
   EventWithMaterials,
   formatEventDate,
   MaterialType,
+  Material,
 } from '../types/eventMaterial'
 
 /**
@@ -144,7 +145,7 @@ function EventMaterialCard({
             資料 ({sortedMaterials.length}件)
           </h4>
           <ul className="space-y-2">
-            {sortedMaterials.map((material: any) => (
+            {sortedMaterials.map((material: Material) => (
               <li key={material.id}>
                 <a
                   href={material.url}
