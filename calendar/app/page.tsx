@@ -112,19 +112,21 @@ export default function Home() {
                 広島IT勉強会カレンダー
               </h1>
             </div>
-            <ResponsiveHeaderButtons
-              shareText={shareText}
-              calendarUrl={pageUrl}
-              isEventsLoading={isEventsLoading}
-              eventsError={eventsError}
-              isFallbackMode={isFallbackMode}
-              isRetryable={isRetryable}
-              onRetry={retry}
-              onShareClick={handleTwitterShareClick}
-              onTwitterShareError={handleTwitterShareError}
-              onNativeShare={handleShare}
-              className="header-buttons-container"
-            />
+            <div className="hidden sm:block">
+              <ResponsiveHeaderButtons
+                shareText={shareText}
+                calendarUrl={pageUrl}
+                isEventsLoading={isEventsLoading}
+                eventsError={eventsError}
+                isFallbackMode={isFallbackMode}
+                isRetryable={isRetryable}
+                onRetry={retry}
+                onShareClick={handleTwitterShareClick}
+                onTwitterShareError={handleTwitterShareError}
+                onNativeShare={handleShare}
+                className="header-buttons-container"
+              />
+            </div>
           </div>
         </div>
       </header>
