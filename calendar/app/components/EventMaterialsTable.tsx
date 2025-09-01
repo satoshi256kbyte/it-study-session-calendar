@@ -30,7 +30,7 @@ function EventMaterialsTable({
   const sortedEvents = useMemo(() => {
     /**
      * 資料タイプの優先順位を定義
-     * ビデオ、スライド、ブログ、資料、その他の順
+     * ビデオ、スライド、ブログ、ドキュメント、その他の順
      */
     const materialTypePriority: Record<MaterialType, number> = {
       video: 1,
@@ -50,11 +50,9 @@ function EventMaterialsTable({
           const priorityA = materialTypePriority[a.type] || 5
           const priorityB = materialTypePriority[b.type] || 5
 
-          // 優先順位が同じ場合は作成日時の降順（新しい順）
+          // 優先順位が同じ場合は名称の昇順
           if (priorityA === priorityB) {
-            return (
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            )
+            return a.title.localeCompare(b.title, 'ja', { numeric: true })
           }
 
           return priorityA - priorityB

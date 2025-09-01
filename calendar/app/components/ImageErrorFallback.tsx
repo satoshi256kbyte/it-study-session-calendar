@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import Image from 'next/image'
 
 /**
  * Image error fallback props
@@ -8,6 +9,8 @@ import { useState, useCallback } from 'react'
 interface ImageErrorFallbackProps {
   src: string
   alt: string
+  width: number
+  height: number
   className?: string
   fallbackSrc?: string
   fallbackText?: string
@@ -21,6 +24,8 @@ interface ImageErrorFallbackProps {
 export default function ImageErrorFallback({
   src,
   alt,
+  width,
+  height,
   className = '',
   fallbackSrc,
   fallbackText,
@@ -133,14 +138,15 @@ export default function ImageErrorFallback({
 
   // Show image
   return (
-    <img
+    <Image
       src={currentSrc}
       alt={alt}
+      width={width}
+      height={height}
       className={className}
       onError={handleError}
       onLoad={handleLoad}
       loading="lazy"
-      decoding="async"
     />
   )
 }

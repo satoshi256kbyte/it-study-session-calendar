@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect, memo } from 'react'
+import Image from 'next/image'
 import {
   useOptimizedIntersectionObserver,
   generateResponsiveImageProps,
@@ -15,6 +16,10 @@ export interface OptimizedImageProps {
   src: string
   /** 代替テキスト */
   alt: string
+  /** 画像の幅 */
+  width: number
+  /** 画像の高さ */
+  height: number
   /** 画像のサイズ設定 */
   sizes?: {
     mobile: number
@@ -46,6 +51,8 @@ export interface OptimizedImageProps {
 function OptimizedImage({
   src,
   alt,
+  width,
+  height,
   sizes = { mobile: 320, tablet: 640, desktop: 1024 },
   className = '',
   style = {},
@@ -170,9 +177,11 @@ function OptimizedImage({
       {!isLoaded && !hasError && (
         <div style={placeholderStyle}>
           {placeholder ? (
-            <img
+            <Image
               src={placeholder}
               alt=""
+              width={width}
+              height={height}
               className="w-full h-full object-cover blur-sm"
               aria-hidden="true"
             />
@@ -220,9 +229,12 @@ function OptimizedImage({
 
       {/* メイン画像 */}
       {isInView && (
-        <img
+        <Image
           ref={imgRef}
-          {...imageProps}
+          src={responsive ? imageProps.src : optimizeImageUrl(src)}
+          alt={alt}
+          width={width}
+          height={height}
           style={imageStyle}
           onLoad={handleLoad}
           onError={handleError}
@@ -232,9 +244,13 @@ function OptimizedImage({
             ${hasError ? 'error' : ''}
             w-full h-full object-cover
           `}
-          alt={alt}
-          // 優先度の高い画像はfetchpriorityを設定
-          {...(priority && { fetchPriority: 'high' as const })}
+          loading={lazy && !priority ? 'lazy' : 'eager'}
+          priority={priority}
+          sizes={
+            responsive
+              ? `(max-width: 640px) ${sizes.mobile}px, (max-width: 1024px) ${sizes.tablet}px, ${sizes.desktop}px`
+              : undefined
+          }
         />
       )}
     </div>
@@ -255,7 +271,7 @@ export const OptimizedThumbnail = memo<
   OptimizedImageProps & {
     variant?: 'card' | 'table'
   }
->(({ variant = 'table', ...props }) => {
+>(({ variant = 'table', width = 64, height = 48, ...props }) => {
   const thumbnailSizes =
     variant === 'card'
       ? { mobile: 64, tablet: 80, desktop: 72 } // カード用サイズ
@@ -264,6 +280,8 @@ export const OptimizedThumbnail = memo<
   return (
     <OptimizedImage
       {...props}
+      width={width}
+      height={height}
       sizes={thumbnailSizes}
       className={`
         ${props.className || ''}

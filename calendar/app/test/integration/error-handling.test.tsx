@@ -189,6 +189,8 @@ describe('Error Handling and Fallbacks', () => {
         <ImageErrorFallback
           src="https://example.com/valid-image.jpg"
           alt="Test image"
+          width={100}
+          height={100}
           className="w-32 h-32"
         />
       )
@@ -203,6 +205,8 @@ describe('Error Handling and Fallbacks', () => {
         <ImageErrorFallback
           src="https://example.com/image.jpg"
           alt="Test image"
+          width={100}
+          height={100}
         />
       )
 
@@ -214,6 +218,8 @@ describe('Error Handling and Fallbacks', () => {
         <ImageErrorFallback
           src="https://example.com/invalid-image.jpg"
           alt="Test image"
+          width={100}
+          height={100}
         />
       )
 
@@ -237,6 +243,8 @@ describe('Error Handling and Fallbacks', () => {
         <ImageErrorFallback
           src="https://example.com/invalid-image.jpg"
           alt="Test image"
+          width={100}
+          height={100}
           fallbackSrc="https://example.com/fallback-image.jpg"
         />
       )
@@ -262,6 +270,8 @@ describe('Error Handling and Fallbacks', () => {
         <ImageErrorFallback
           src="https://example.com/invalid-image.jpg"
           alt="Test image"
+          width={100}
+          height={100}
           fallbackText="カスタムエラーメッセージ"
         />
       )
@@ -282,6 +292,8 @@ describe('Error Handling and Fallbacks', () => {
         <ImageErrorFallback
           src="https://example.com/image.jpg"
           alt="Test image"
+          width={100}
+          height={100}
         />
       )
 
@@ -468,6 +480,8 @@ describe('Error Handling and Fallbacks', () => {
         <ImageErrorFallback
           src="https://example.com/invalid-image.jpg"
           alt="Test image description"
+          width={100}
+          height={100}
         />
       )
 
@@ -501,6 +515,8 @@ describe('Error Handling and Fallbacks', () => {
         <ImageErrorFallback
           src="https://example.com/invalid-image.jpg"
           alt="Test image"
+          width={100}
+          height={100}
           onError={onError}
         />
       )
