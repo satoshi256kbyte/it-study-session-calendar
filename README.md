@@ -145,7 +145,7 @@ npm run dev:admin-frontend
 
 ## プロジェクト構成
 
-```
+```bash
 ├── calendar/           # エンドユーザー画面
 ├── admin-frontend/     # 管理者画面
 ├── admin-backend/      # バックエンドAPI
