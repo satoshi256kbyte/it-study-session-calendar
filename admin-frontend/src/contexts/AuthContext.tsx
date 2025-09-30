@@ -87,6 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuthState = async () => {
     try {
+      console.log('🔍 checkAuthState: 開始')
       setError(null)
 
       // URLにcodeパラメータがある場合（OAuth認証後のリダイレクト）
@@ -94,34 +95,102 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const authCode = urlParams.get('code')
       const authError = urlParams.get('error')
 
+      console.log('🔍 URL params:', { authCode: !!authCode, authError })
+
       if (authError) {
-        console.error('Auth error from Cognito:', authError)
+        console.error('❌ Auth error from Cognito:', authError)
         setError(`認証エラー: ${authError}`)
         setLoading(false)
         return
       }
 
       if (authCode) {
-        // URLからcodeパラメータを削除（Amplifyが自動的に処理するため）
+        console.log('✅ OAuth認証コードを検出、処理開始')
+        // URLからcodeパラメータを削除
         const newUrl = window.location.pathname
         window.history.replaceState({}, document.title, newUrl)
 
-        // 少し待ってからセッションをチェック（Amplifyの処理完了を待つ）
-        setTimeout(async () => {
-          try {
-            await checkUserSession()
-          } catch (error) {
-            console.error('Session check after OAuth failed:', error)
-            setError('認証処理に失敗しました。再度ログインしてください。')
-            setLoading(false)
+        // Amplify v6では手動でトークン交換が必要
+        try {
+          console.log('🔍 トークン交換開始')
+
+          // 認証コードをトークンに交換するためのリクエスト
+          const tokenResponse = await fetch(
+            `https://${COGNITO_CONFIG.userPoolDomain}/oauth2/token`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({
+                grant_type: 'authorization_code',
+                client_id: COGNITO_CONFIG.userPoolClientId!,
+                code: authCode,
+                redirect_uri: COGNITO_CONFIG.redirectUri!,
+              }),
+            }
+          )
+
+          if (!tokenResponse.ok) {
+            throw new Error(`Token exchange failed: ${tokenResponse.status}`)
           }
-        }, 1000)
+
+          const tokens = await tokenResponse.json()
+          console.log('✅ トークン交換成功')
+
+          // トークンをローカルストレージに保存（Amplifyの形式で）
+          const tokenKey = `CognitoIdentityServiceProvider.${COGNITO_CONFIG.userPoolClientId!}`
+          const userKey = `${tokenKey}.LastAuthUser`
+
+          // ユーザー名をJWTから取得
+          const payload = JSON.parse(atob(tokens.id_token.split('.')[1]))
+          const username = payload['cognito:username'] || payload.sub
+
+          localStorage.setItem(userKey, username)
+          localStorage.setItem(
+            `${tokenKey}.${username}.idToken`,
+            tokens.id_token
+          )
+          localStorage.setItem(
+            `${tokenKey}.${username}.accessToken`,
+            tokens.access_token
+          )
+          localStorage.setItem(
+            `${tokenKey}.${username}.refreshToken`,
+            tokens.refresh_token
+          )
+          localStorage.setItem(
+            `${tokenKey}.${username}.tokenScopesString`,
+            'email openid profile'
+          )
+          localStorage.setItem(`${tokenKey}.${username}.clockDrift`, '0')
+
+          console.log('✅ トークンをローカルストレージに保存完了')
+
+          // セッションチェック
+          setTimeout(async () => {
+            try {
+              console.log('🔍 OAuth後のセッションチェック開始')
+              await checkUserSession()
+            } catch (error) {
+              console.error('❌ Session check after OAuth failed:', error)
+              setError('認証処理に失敗しました。再度ログインしてください。')
+              setLoading(false)
+            }
+          }, 500)
+        } catch (error) {
+          console.error('❌ Token exchange failed:', error)
+          setError('認証処理に失敗しました。再度ログインしてください。')
+          setLoading(false)
+        }
         return
       }
 
       // 通常の認証状態チェック
+      console.log('🔍 通常の認証状態チェック開始')
       await checkUserSession()
     } catch (error) {
+      console.log('🔍 認証チェック例外:', error)
       setUser(null)
       setError(null) // 認証エラーは正常な状態
       setLoading(false)
@@ -129,12 +198,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const checkUserSession = async () => {
+    console.log('🔍 checkUserSession: セッション確認開始')
+
     // まずセッションを確認
     const session = await fetchAuthSession()
+    console.log('🔍 fetchAuthSession結果:', {
+      hasTokens: !!session.tokens,
+      hasAccessToken: !!session.tokens?.accessToken,
+      hasIdToken: !!session.tokens?.idToken,
+    })
 
     if (session.tokens && session.tokens.accessToken) {
+      console.log('✅ 有効なセッションを検出、ユーザー情報取得中')
       // セッションが有効な場合のみユーザー情報を取得
       const currentUser = await getCurrentUser()
+      console.log('✅ ユーザー情報取得成功:', currentUser.username)
 
       setUser({
         username: currentUser.username,
@@ -144,8 +222,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email_verified: true,
         },
       })
+      console.log('✅ ユーザー設定完了、ローディング終了')
       setLoading(false)
     } else {
+      console.log('❌ セッションが無効またはアクセストークンなし')
       throw new Error('No valid session')
     }
   }
