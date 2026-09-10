@@ -143,6 +143,99 @@ npm run dev:admin-frontend
 2. 作成されたトピックを選択
 3. Email/SMS/Webhook通知を設定
 
+## 既知の環境問題（ローカル開発環境）
+
+### Node.jsのバージョン（asdf）
+
+このリポジトリは`.tool-versions`で`nodejs 23.10.0`を指定しています。
+
+未インストールの場合、`npx`実行時に以下のエラーになります（コミット時のpre-commitフックでも発生）。
+
+```text
+No version is set for command npx
+```
+
+対処法：
+
+```bash
+asdf install nodejs 23.10.0
+```
+
+### Docker（Colima）でのCDK Lambda Layerバンドリング失敗
+
+`cdk deploy`実行時、`admin-backend`の依存パッケージ用Lambda
+Layer（`DependenciesLayer`）はDockerコンテナ内で`npm install`するバンドリング処理を行いますが、Docker実行環境がColima（`docker info`で`Context: colima`）の場合、以下のエラーになることがあります。
+
+```text
+ValidationError: Bundling did not produce any output. Check that content is written to /asset-output.
+```
+
+**原因**: Colimaはデフォルト（`~/.colima/default/colima.yaml`の`mounts: []`）では
+`$HOME`と`/tmp/colima`しかVMにマウントしません。CDKのバンドリングはmacOSの`$TMPDIR`（実体は`/private/var/folders/...`）を一時ディレクトリとして使いますが、このパスがVMにマウントされていないため、コンテナ内で書き込んだファイルがホスト側に反映されません。
+
+**対処法**:
+`~/.colima/default/colima.yaml`の`mounts`を以下のように設定し、`colima restart`を実行してください。
+
+```yaml
+mounts:
+  - location: /Users/<your-username>
+    writable: true
+  - location: /tmp/colima
+    writable: true
+  - location: /private/var/folders
+    writable: true
+```
+
+⚠️
+YAMLで`~`を引用符なしで書くと`null`と解釈されてしまうため、ホームディレクトリは`~`ではなく絶対パスで指定すること。
+
+### `cdk/`ディレクトリ内で`npx cdk`を実行すると本物のCLIが呼ばれない
+
+`cdk/package.json`は`"name": "cdk"`・`"bin": {"cdk": "bin/cdk.js"}`と自己定義しているため、
+`cdk/`ディレクトリの中で`npx cdk ...`を実行すると、依存パッケージの`aws-cdk`（本物のCLI）ではなく
+**このプロジェクト自身の`bin/cdk.js`（CDKアプリ定義そのもの）が直接実行されてしまう**。
+
+`bin/cdk.js`はCLIではないため`diff`/`deploy`/`--version`等の引数を一切解釈せず、Stackを構築（＝副作用としてLambda
+Layerのバンドリングだけは走る）して終了するだけになる。diffやデプロイの進捗が何も表示されず、exit
+codeも0を返すため気づきにくい。
+
+**対処法**: ルートにホイストされた本物のCLIを直接指定して実行する。
+
+```bash
+cd cdk
+../node_modules/.bin/cdk diff hiroshima-it-calendar-prod-stack
+```
+
+### AWSプロファイル
+
+このリポジトリの操作には`private`プロファイル（AWS Identity
+Center経由）を使用する。リポジトリ直下に`.envrc`（direnvで自動読み込み、gitignore対象）を作成し、
+`export AWS_PROFILE=private`を設定しておくとコマンドごとの指定が不要になる。
+
+```bash
+echo 'export AWS_PROFILE=private' > .envrc
+direnv allow
+```
+
+セッションが切れている場合は再ログインしてから実行する。
+
+```bash
+aws login --profile private
+```
+
+### `admin-backend`（Lambda）にはCI/CDが無い
+
+`.github/workflows/`配下のワークフローは`calendar/**`（エンドユーザー画面・GitHub
+Pages）のみが対象です。
+`admin-backend`・CDKの変更は**GitHubにpushしただけでは本番Lambdaに反映されません**。上記のColima設定・AWSプロファイル設定を済ませたうえで、手動で以下を実行してデプロイする必要があります。
+
+```bash
+cd admin-backend && npm run build
+cd ../cdk && ../node_modules/.bin/cdk deploy hiroshima-it-calendar-prod-stack --require-approval never
+```
+
+`--require-approval never`を付けないと、IAM/セキュリティ関連の変更がある場合に確認プロンプトで停止し、非対話的に実行すると変更が反映されないまま終了することがあります。
+
 ## プロジェクト構成
 
 ```bash

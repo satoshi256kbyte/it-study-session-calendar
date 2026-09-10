@@ -104,3 +104,6 @@ Thumbs.db
 # Documentation images
 docs/*.png
 calendar/tsconfig.tsbuildinfo
+
+# direnv (ローカルのAWSプロファイル設定など、個人環境依存)
+.envrc
