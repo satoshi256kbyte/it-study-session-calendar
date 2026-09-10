@@ -27,7 +27,7 @@ vi.mock('../utils/performance', () => ({
   },
 }))
 
-// Mock window.open for TwitterShareButton
+// Mock window.open
 Object.defineProperty(window, 'open', {
   value: vi.fn(),
   writable: true,
@@ -41,16 +41,11 @@ Object.defineProperty(window, 'alert', {
 
 describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
   const defaultProps: ResponsiveHeaderButtonsProps = {
-    shareText: 'Test share text',
-    calendarUrl: 'https://example.com',
     isEventsLoading: false,
     eventsError: null,
     isFallbackMode: false,
     isRetryable: false,
     onRetry: vi.fn(),
-    onShareClick: vi.fn(),
-    onTwitterShareError: vi.fn(),
-    onNativeShare: vi.fn(),
   }
 
   beforeEach(() => {
@@ -73,7 +68,7 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
       render(<ResponsiveHeaderButtons {...defaultProps} />)
 
       const container = document.querySelector('[data-breakpoint]')
-      expect(container).toHaveClass('flex', 'items-center', 'space-x-4')
+      expect(container).toHaveClass('items-center', 'space-x-4')
       expect(container).toHaveClass('responsive-breakpoint-handler')
     })
 
@@ -89,18 +84,6 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
   })
 
   describe('Proper Prop Passing to Child Components (Requirements: 5.3, 5.4)', () => {
-    it('should render TwitterShareButton with correct attributes', () => {
-      render(<ResponsiveHeaderButtons {...defaultProps} />)
-
-      // Verify TwitterShareButton is rendered with responsive attributes
-      const twitterButton = screen.getByRole('button', {
-        name: /X（旧Twitter）で勉強会情報を共有する/i,
-      })
-      expect(twitterButton).toBeInTheDocument()
-      expect(twitterButton).toHaveAttribute('data-responsive', 'true')
-      expect(twitterButton).toHaveAttribute('data-display-mode', 'full')
-    })
-
     it('should render StudySessionRegisterButton with correct attributes', () => {
       render(<ResponsiveHeaderButtons {...defaultProps} />)
 
@@ -118,18 +101,12 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
       // Update props
       const updatedProps = {
         ...defaultProps,
-        shareText: 'Updated share text',
         isEventsLoading: true,
       }
 
       rerender(<ResponsiveHeaderButtons {...updatedProps} />)
 
       // Verify components are still rendered correctly
-      expect(
-        screen.getByRole('button', {
-          name: /X（旧Twitter）で勉強会情報を共有する/i,
-        })
-      ).toBeInTheDocument()
       expect(
         screen.getByRole('link', { name: /勉強会の登録依頼ページへ移動/i })
       ).toBeInTheDocument()
@@ -143,16 +120,6 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
 
       // Verify all components are still present
       expect(
-        screen.getByRole('button', {
-          name: /X（旧Twitter）で勉強会情報を共有する/i,
-        })
-      ).toBeInTheDocument()
-      expect(
-        screen.getByRole('button', {
-          name: /ネイティブ共有機能を使用してページを共有/i,
-        })
-      ).toBeInTheDocument()
-      expect(
         screen.getByRole('link', { name: /勉強会の登録依頼ページへ移動/i })
       ).toBeInTheDocument()
     })
@@ -162,19 +129,11 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
     it('should coordinate button states correctly', () => {
       render(<ResponsiveHeaderButtons {...defaultProps} />)
 
-      // Verify all buttons are rendered and functional
-      const twitterButton = screen.getByRole('button', {
-        name: /X（旧Twitter）で勉強会情報を共有する/i,
-      })
-      const nativeShareButton = screen.getByRole('button', {
-        name: /ネイティブ共有機能を使用してページを共有/i,
-      })
+      // Verify register button is rendered and functional
       const registerButton = screen.getByRole('link', {
         name: /勉強会の登録依頼ページへ移動/i,
       })
 
-      expect(twitterButton).toBeInTheDocument()
-      expect(nativeShareButton).toBeInTheDocument()
       expect(registerButton).toBeInTheDocument()
     })
 
@@ -213,17 +172,6 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
       expect(
         screen.queryByRole('button', { name: /勉強会データの取得を再試行/i })
       ).not.toBeInTheDocument()
-    })
-
-    it('should handle native share button correctly', () => {
-      render(<ResponsiveHeaderButtons {...defaultProps} />)
-
-      const nativeShareButton = screen.getByRole('button', {
-        name: /ネイティブ共有機能を使用してページを共有/i,
-      })
-      fireEvent.click(nativeShareButton)
-
-      expect(defaultProps.onNativeShare).toHaveBeenCalledTimes(1)
     })
 
     it('should handle errors in callback functions gracefully', () => {
@@ -269,25 +217,11 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
 
       // Verify component renders without errors
       expect(
-        screen.getByRole('button', {
-          name: /X（旧Twitter）で勉強会情報を共有する/i,
-        })
+        screen.getByRole('link', { name: /勉強会の登録依頼ページへ移動/i })
       ).toBeInTheDocument()
 
       // Verify component unmounts without errors
       expect(() => unmount()).not.toThrow()
-    })
-
-    it('should maintain button functionality', () => {
-      render(<ResponsiveHeaderButtons {...defaultProps} />)
-
-      // Verify buttons are functional
-      const nativeShareButton = screen.getByRole('button', {
-        name: /ネイティブ共有機能を使用してページを共有/i,
-      })
-
-      fireEvent.click(nativeShareButton)
-      expect(defaultProps.onNativeShare).toHaveBeenCalledTimes(1)
     })
 
     it('should apply performance optimization styles', () => {
@@ -314,10 +248,9 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
       const { rerender } = render(<ResponsiveHeaderButtons {...defaultProps} />)
 
       // Simulate rapid prop changes
-      const updatedProps1 = { ...defaultProps, shareText: 'Updated 1' }
+      const updatedProps1 = { ...defaultProps, isEventsLoading: false }
       const updatedProps2 = {
         ...defaultProps,
-        shareText: 'Updated 2',
         isEventsLoading: true,
       }
 
@@ -326,9 +259,7 @@ describe('ResponsiveHeaderButtons Wrapper - Task 11', () => {
 
       // Verify component handles rapid changes gracefully
       expect(
-        screen.getByRole('button', {
-          name: /X（旧Twitter）で勉強会情報を共有する/i,
-        })
+        screen.getByRole('link', { name: /勉強会の登録依頼ページへ移動/i })
       ).toBeInTheDocument()
     })
 
