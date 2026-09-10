@@ -67,18 +67,64 @@ export const batchUpdateMaterials = async (
     }
     logger.info('connpass API key is valid')
 
-    // 4. connpass URLを持つ承認済みイベントを取得
+    // 4. 広島イベント発見処理を実行
+    // 資料更新処理（承認済みイベント数に比例して時間が伸びる）より先に実行することで、
+    // 資料更新処理がLambdaのタイムアウトに達しても新規イベントの発見・登録が阻害されないようにする
+    logger.info('Starting Hiroshima event discovery process')
+    try {
+      const hiroshimaEventDiscoveryService = new HiroshimaEventDiscoveryService(
+        connpassApiService,
+        dynamoDBService,
+        notificationService
+      )
+
+      hiroshimaDiscoveryResult =
+        await hiroshimaEventDiscoveryService.discoverAndRegisterEvents()
+      logger.info('Hiroshima event discovery completed successfully', {
+        totalFound: hiroshimaDiscoveryResult.totalFound,
+        newRegistrations: hiroshimaDiscoveryResult.newRegistrations,
+        duplicatesSkipped: hiroshimaDiscoveryResult.duplicatesSkipped,
+        errors: hiroshimaDiscoveryResult.errors.length,
+      })
+    } catch (hiroshimaError) {
+      // 要件5.2, 6.3, 6.4: 広島イベント発見の失敗が既存処理に影響しないエラーハンドリング
+      const hiroshimaErrorDetails = {
+        operation: 'hiroshimaEventDiscovery',
+        errorType:
+          hiroshimaError instanceof Error
+            ? hiroshimaError.constructor.name
+            : 'Unknown',
+        errorMessage:
+          hiroshimaError instanceof Error
+            ? hiroshimaError.message
+            : 'Unknown error',
+        stack:
+          hiroshimaError instanceof Error ? hiroshimaError.stack : undefined,
+      }
+
+      const errorMessage = `Hiroshima event discovery failed: ${hiroshimaError instanceof Error ? hiroshimaError.message : 'Unknown error'}`
+      logger.error(errorMessage, hiroshimaErrorDetails)
+
+      // 広島イベント発見の失敗は既存の資料更新処理の成功に影響しない
+      hiroshimaDiscoveryResult = {
+        totalFound: 0,
+        newRegistrations: 0,
+        duplicatesSkipped: 0,
+        errors: [errorMessage],
+        registeredEvents: [],
+      }
+    }
+
+    // 5. connpass URLを持つ承認済みイベントを取得
     logger.info('Fetching approved events with connpass URLs')
     const events = await dynamoDBService.getApprovedEventsWithConnpassUrl()
     logger.info(`Found ${events.length} approved events with connpass URLs`)
 
     if (events.length === 0) {
-      logger.info(
-        'No events to process for materials update, continuing with Hiroshima discovery'
-      )
+      logger.info('No events to process for materials update')
     }
 
-    // 5. 各イベントの資料データを更新（イベントがある場合のみ）
+    // 6. 各イベントの資料データを更新（イベントがある場合のみ）
     for (const eventRecord of events) {
       processedCount++
 
@@ -162,53 +208,6 @@ export const batchUpdateMaterials = async (
           await new Promise(resolve => setTimeout(resolve, 1000)) // 1秒待機
         }
         continue
-      }
-    }
-
-    // 6. 広島イベント発見処理を実行
-    // 要件5.1, 5.2: 既存のバッチ処理に広島イベント発見処理を統合
-    logger.info('Starting Hiroshima event discovery process')
-    try {
-      const hiroshimaEventDiscoveryService = new HiroshimaEventDiscoveryService(
-        connpassApiService,
-        dynamoDBService,
-        notificationService
-      )
-
-      hiroshimaDiscoveryResult =
-        await hiroshimaEventDiscoveryService.discoverAndRegisterEvents()
-      logger.info('Hiroshima event discovery completed successfully', {
-        totalFound: hiroshimaDiscoveryResult.totalFound,
-        newRegistrations: hiroshimaDiscoveryResult.newRegistrations,
-        duplicatesSkipped: hiroshimaDiscoveryResult.duplicatesSkipped,
-        errors: hiroshimaDiscoveryResult.errors.length,
-      })
-    } catch (hiroshimaError) {
-      // 要件5.2, 6.3, 6.4: 広島イベント発見の失敗が既存処理に影響しないエラーハンドリング
-      const hiroshimaErrorDetails = {
-        operation: 'hiroshimaEventDiscovery',
-        errorType:
-          hiroshimaError instanceof Error
-            ? hiroshimaError.constructor.name
-            : 'Unknown',
-        errorMessage:
-          hiroshimaError instanceof Error
-            ? hiroshimaError.message
-            : 'Unknown error',
-        stack:
-          hiroshimaError instanceof Error ? hiroshimaError.stack : undefined,
-      }
-
-      const errorMessage = `Hiroshima event discovery failed: ${hiroshimaError instanceof Error ? hiroshimaError.message : 'Unknown error'}`
-      logger.error(errorMessage, hiroshimaErrorDetails)
-
-      // 広島イベント発見の失敗は既存の資料更新処理の成功に影響しない
-      hiroshimaDiscoveryResult = {
-        totalFound: 0,
-        newRegistrations: 0,
-        duplicatesSkipped: 0,
-        errors: [errorMessage],
-        registeredEvents: [],
       }
     }
 
