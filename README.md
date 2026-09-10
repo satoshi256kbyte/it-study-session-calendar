@@ -223,11 +223,19 @@ direnv allow
 aws login --profile private
 ```
 
-### `admin-backend`（Lambda）にはCI/CDが無い
+### `admin-backend`（Lambda）のデプロイ
 
-`.github/workflows/`配下のワークフローは`calendar/**`（エンドユーザー画面・GitHub
-Pages）のみが対象です。
-`admin-backend`・CDKの変更は**GitHubにpushしただけでは本番Lambdaに反映されません**。上記のColima設定・AWSプロファイル設定を済ませたうえで、手動で以下を実行してデプロイする必要があります。
+`.github/workflows/03_deploy_backend.yml`により、`admin-backend/**`・`cdk/**`の変更をmainブランチにpushすると自動でCDKデプロイされる（OIDC経由でAWSにログインする）。
+
+**初回セットアップ**: リポジトリのSecretsに以下を設定する必要がある（未設定の間はワークフローが失敗する）。
+
+| Secret名              | 値                                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------------------- |
+| `AWS_DEPLOY_ROLE_ARN` | GitHub ActionsからAssumeするIAMロールのARN（`arn:aws:iam::965866434342:role/github-actions-oidc-role`） |
+
+このロールの信頼ポリシーには`repo:satoshi256kbyte/it-study-session-calendar:*`を追加済み（既存のAdministratorAccess権限を持つ共有ロールに相乗りしている点に注意。他リポジトリと共用のため、このロール自体はこのリポジトリのIaCでは管理していない）。
+
+手動でデプロイしたい場合は、上記のColima設定・AWSプロファイル設定を済ませたうえで以下を実行する。
 
 ```bash
 cd admin-backend && npm run build

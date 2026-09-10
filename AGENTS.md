@@ -16,7 +16,9 @@
   CLIが呼ばれない。diff/deployの引数が無視され、何も表示せずexit code 0で終わるため気づきにくい。
   `../node_modules/.bin/cdk`を直接指定して実行すること。
 - AWS操作は`AWS_PROFILE=private`を使う（リポジトリの`.envrc`で自動設定）。セッション切れ時は`aws login --profile private`で再認証する。
-- `admin-backend`（Lambda/CDK）にはCI/CDパイプラインが存在しない。GitHubへのpushだけでは本番Lambda関数のコードは更新されないため、コード変更後は手動デプロイが必要。
+- `admin-backend`（Lambda/CDK）は`.github/workflows/03_deploy_backend.yml`によりmainへのpushで自動デプロイされる（OIDC経由、Secret
+  `AWS_DEPLOY_ROLE_ARN`が必要）。手動デプロイする場合は `cd admin-backend && npm run build` →
+  `cd ../cdk && ../node_modules/.bin/cdk deploy <stack> --require-approval never`。
 
 ## 作業原則
 

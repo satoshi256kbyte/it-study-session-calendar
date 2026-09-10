@@ -1,0 +1,53 @@
+name: Deploy Backend (CDK)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'admin-backend/**'
+      - 'cdk/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: "cdk-deploy"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "23.10.0"
+
+      - name: Install root dependencies (workspaces)
+        run: npm ci
+
+      - name: Build admin-backend
+        run: |
+          cd admin-backend
+          npm ci
+          npm run build
+
+      - name: CDK deploy
+        run: |
+          cd cdk
+          # 注意: cdk/package.json 自体が name:"cdk" / bin:{"cdk":"bin/cdk.js"} を
+          # 自己定義しているため、素の `npx cdk` はこのプロジェクトのアプリ定義
+          # (bin/cdk.js) を直接実行してしまい、本物のaws-cdk CLIが呼ばれない。
+          # ルートにホイストされた本物のCLIを直接指定して実行する。
+          ../node_modules/.bin/cdk deploy hiroshima-it-calendar-prod-stack --require-approval never

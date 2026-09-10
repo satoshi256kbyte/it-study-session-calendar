@@ -3,6 +3,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import ResponsiveHeaderButtons from './components/ResponsiveHeaderButtons'
 import MobileRegisterSection from './components/MobileRegisterSection'
+import MonthCalendar from './components/MonthCalendar'
 import LoadingSpinner from './components/LoadingSpinner'
 import { useStudySessionEventsWithDefaults } from './hooks/useStudySessionEvents'
 import { initializePerformanceMonitoring } from './utils/performance'
@@ -14,19 +15,11 @@ import './styles/responsive-header-buttons.css'
 const EventMaterialsList = lazy(() => import('./components/EventMaterialsList'))
 
 export default function Home() {
-  const [calendarUrl, setCalendarUrl] = useState<string>('')
   const [pageUrl, setPageUrl] = useState<string>('')
 
   useEffect(() => {
     // パフォーマンス監視を初期化
     initializePerformanceMonitoring()
-
-    // 環境変数からGoogleカレンダーのURLを取得
-    // 開発時はデフォルトのサンプルURLを使用
-    const url =
-      process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_URL ||
-      'https://calendar.google.com/calendar/embed?src=ja.japanese%23holiday%40group.v.calendar.google.com&ctz=Asia%2FTokyo'
-    setCalendarUrl(url)
 
     // ページURLを設定（シェア機能用）
     const currentPageUrl =
@@ -80,177 +73,18 @@ export default function Home() {
               <p className="text-sm text-gray-600 mb-4">
                 connpassの検索で「広島」でHITしたイベントを掲載しています。
               </p>
-              {calendarUrl ? (
-                <div className="calendar-container calendar-optimized">
-                  <iframe
-                    src={calendarUrl}
-                    title="広島IT勉強会カレンダー"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    aria-label="広島のIT勉強会イベントカレンダー"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
-                  <LoadingSpinner
-                    size="lg"
-                    text="カレンダーを読み込み中..."
-                    centered
-                    ariaLabel="Googleカレンダーを読み込み中"
-                  />
-                </div>
-              )}
+              <MonthCalendar
+                events={events}
+                isLoading={isEventsLoading}
+                error={eventsError}
+                isRetryable={isRetryable}
+                onRetry={retry}
+              />
             </div>
           </div>
 
           {/* Mobile Register Section - positioned below calendar on mobile */}
           <MobileRegisterSection />
-
-          {/* エラー状態とフォールバック表示 */}
-          {eventsError && (
-            <div className="mt-8 bg-white rounded-lg shadow border-l-4 border-yellow-400">
-              <div className="p-6">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-5 w-5 text-yellow-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-3 flex-1">
-                    <h3 className="text-sm font-medium text-yellow-800">
-                      {isFallbackMode
-                        ? '勉強会データの取得に問題があります'
-                        : 'システムエラー'}
-                    </h3>
-                    <div className="mt-2 text-sm text-yellow-700">
-                      <p>
-                        {isFallbackMode
-                          ? '最新の勉強会情報を取得できませんでした。基本的な内容は表示されています。'
-                          : eventsError}
-                      </p>
-                      {isRetryable && (
-                        <p className="mt-2">データの取得を再試行できます。</p>
-                      )}
-                    </div>
-                    {isRetryable && (
-                      <div className="mt-4">
-                        <button
-                          onClick={retry}
-                          disabled={isEventsLoading}
-                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isEventsLoading ? (
-                            <>
-                              <svg
-                                className="animate-spin -ml-1 mr-2 h-4 w-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  className="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                />
-                                <path
-                                  className="opacity-75"
-                                  fill="currentColor"
-                                  d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                />
-                              </svg>
-                              再試行中...
-                            </>
-                          ) : (
-                            <>
-                              <svg
-                                className="w-4 h-4 mr-2"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                />
-                              </svg>
-                              再試行
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 今後のイベントがない場合のメッセージ */}
-          {!eventsError && !isEventsLoading && events.length === 0 && (
-            <div className="mt-8 bg-white rounded-lg shadow">
-              <div className="p-6 text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
-                  <svg
-                    className="h-6 w-6 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3a4 4 0 118 0v4m-4 8a4 4 0 11-8 0v-1a4 4 0 014-4h4a4 4 0 014 4v1a4 4 0 11-8 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  今月の勉強会はありません
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  現在、今月開催予定の勉強会はありません。新しい勉強会の登録をお待ちしています。
-                </p>
-                <div className="mt-6">
-                  <a
-                    href="/register"
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                    勉強会の登録依頼
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* 勉強会情報の表示（デバッグ用・開発時のみ） */}
           {process.env.NODE_ENV === 'development' && shareContentResult && (

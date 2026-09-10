@@ -1,0 +1,442 @@
+{
+  "pbtResults": {
+    "3.2 `convertApiResponseToStudySessionEvent` のプロパティテスト": {
+      "status": "passed",
+      "lastRunTimestamp": 1789016532650
+    },
+    "4.4 `getCurrentYearMonthJst` のプロパティテスト": {
+      "status": "passed",
+      "lastRunTimestamp": 1789016573386
+    }
+  },
+  "executionHistory": {
+    "1. テスト基盤の準備（fast-check 導入）": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380016
+      },
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012390272
+      },
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012595690
+      }
+    ],
+    "2.1 `isDisplayableThumbnailUrl` を実装": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380060
+      },
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012601116
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020669419
+      }
+    ],
+    "2.2 `isDisplayableThumbnailUrl` のプロパティテスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380081
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016451001
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016625190
+      }
+    ],
+    "3.1 `StudySessionApiResponse` / `StudySessionEvent` の型拡張と変換・型ガード更新": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380112
+      },
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012602362
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020670842
+      }
+    ],
+    "3.2 `convertApiResponseToStudySessionEvent` のプロパティテスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380136
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016452392
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016626590
+      }
+    ],
+    "4.1 `calendarMonth.ts` を実装": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380166
+      },
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012603434
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020671805
+      }
+    ],
+    "4.2 `selectEventsForMonth` のプロパティテスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380199
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016453378
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016628015
+      }
+    ],
+    "4.3 `addMonths` のプロパティテスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380220
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016455530
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016628930
+      }
+    ],
+    "4.4 `getCurrentYearMonthJst` のプロパティテスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380238
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016455919
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016630360
+      }
+    ],
+    "4.5 `sortEventsForDisplay` のプロパティテスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380261
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016636343
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016904928
+      }
+    ],
+    "4.6 `groupEventsByJstDate` のプロパティテスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380283
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016905993
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016990603
+      }
+    ],
+    "4.7 `formatYearMonthLabel` のプロパティテスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380303
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789016991755
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789017051658
+      }
+    ],
+    "5. チェックポイント - ユーティリティ・型層のテストを通す": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380324
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789017066993
+      },
+      {
+        "executionId": "4ad0b2a3-675e-4881-9ebd-52f8df7e84db",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789017544465
+      }
+    ],
+    "6.1 `EventThumbnail` を実装": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380344
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020679528
+      }
+    ],
+    "6.2 `EventThumbnail` の例示・RTL テスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380366
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020684070
+      }
+    ],
+    "7.1 `EventListItem` を実装": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380385
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020685138
+      }
+    ],
+    "7.2 `EventListItem` の例示・RTL テスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380403
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020691689
+      }
+    ],
+    "8.1 `EventListView` を実装": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380436
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020690852
+      }
+    ],
+    "8.2 `EventListView` の例示・RTL テスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380454
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020696566
+      }
+    ],
+    "9.1 `MonthCalendar` を実装": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380477
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020697415
+      }
+    ],
+    "9.2 `MonthCalendar` の状態遷移・月移動 RTL テスト": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380495
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020703439
+      }
+    ],
+    "10. チェックポイント - コンポーネント層のテストを通す": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380516
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020712514
+      }
+    ],
+    "11.1 iframe ブロックを `MonthCalendar` へ置き換え": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380537
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020704602
+      }
+    ],
+    "12.1 `page.integration.test.tsx` を新 DOM 構造へ更新": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380560
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020711072
+      }
+    ],
+    "13. 最終チェックポイント - ビルドと全テストを通す": [
+      {
+        "executionId": "2abe5955-d2e0-4a77-af19-ba9fd3dc8361",
+        "chatSessionId": "sess_5bde0d1b-5822-4255-b843-91663766d2c9",
+        "timestamp": 1789012380578
+      },
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020713655
+      }
+    ],
+    "2. サムネイルURL検証ユーティリティ": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020669451
+      }
+    ],
+    "3. フロントエンド型と変換関数の更新": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020670874
+      }
+    ],
+    "4. 月計算・フィルタ・ソート・グルーピングの純粋関数ユーティリティ": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020671845
+      }
+    ],
+    "6. サムネイル表示コンポーネント": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020684097
+      }
+    ],
+    "7. イベント行コンポーネント": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020691791
+      }
+    ],
+    "8. リストビューコンポーネント": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020696613
+      }
+    ],
+    "9. 月カレンダー本体コンポーネント": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020703459
+      }
+    ],
+    "11. `page.tsx` への統合": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020704625
+      }
+    ],
+    "12. 既存統合テストの更新": [
+      {
+        "executionId": "47ff880a-e8c2-4759-aaa3-f36b04d933f3",
+        "chatSessionId": "sess_196bb9a4-3b81-43f3-a859-4ad866f245a8",
+        "timestamp": 1789020711099
+      }
+    ]
+  }
+}

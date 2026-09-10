@@ -38,6 +38,21 @@ export interface StudySessionEvent {
 
   /** 更新日時 (ISO 8601形式) */
   updatedAt?: string
+
+  /** 単一のサムネイルURL（無ければ undefined）（要件7.1, 7.3に対応） */
+  thumbnailUrl?: string
+}
+
+/**
+ * バックエンド Material の部分型（サムネイル参照に必要な範囲のみ）
+ * 各 Material は thumbnailUrl を任意で持つ
+ */
+export interface StudySessionMaterialApiResponse {
+  /** サムネイルURL（オプション） */
+  thumbnailUrl?: string
+
+  // 他フィールド（id/title/url/type など）は本機能では不要のため任意扱い
+  [key: string]: unknown
 }
 
 /**
@@ -71,6 +86,9 @@ export interface StudySessionApiResponse {
 
   /** 連絡先（オプション） */
   contact?: string
+
+  /** 資料配列（存在する場合のみ）。サムネイル派生に使用（要件7.2, 7.3に対応） */
+  materials?: StudySessionMaterialApiResponse[]
 }
 
 /**
@@ -104,7 +122,9 @@ export function isValidStudySessionApiResponse(
     typeof data.createdAt === 'string' &&
     typeof data.updatedAt === 'string' &&
     (data.endDatetime === undefined || typeof data.endDatetime === 'string') &&
-    (data.contact === undefined || typeof data.contact === 'string')
+    (data.contact === undefined || typeof data.contact === 'string') &&
+    // materials は無いか、配列であること（要素の厳密検証はしない）
+    (data.materials === undefined || Array.isArray(data.materials))
   )
 }
 
@@ -135,6 +155,11 @@ export function isValidStudySessionEvent(
 export function convertApiResponseToStudySessionEvent(
   apiResponse: StudySessionApiResponse
 ): StudySessionEvent {
+  // materials の中で thumbnailUrl が非空文字列である最初の要素の値を単一URLとして派生
+  const thumbnailUrl = apiResponse.materials?.find(
+    m => typeof m?.thumbnailUrl === 'string' && m.thumbnailUrl.trim() !== ''
+  )?.thumbnailUrl
+
   return {
     id: apiResponse.id,
     title: apiResponse.title,
@@ -146,6 +171,7 @@ export function convertApiResponseToStudySessionEvent(
     pageUrl: apiResponse.url,
     createdAt: apiResponse.createdAt,
     updatedAt: apiResponse.updatedAt,
+    thumbnailUrl, // 空/空白/無しは undefined 相当（表示側で最終判定）
   }
 }
 

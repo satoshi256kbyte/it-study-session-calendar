@@ -18,8 +18,9 @@
   `bin/cdk.js`＝アプリ定義そのものが実行されてしまっている）→
   `../node_modules/.bin/cdk`を直接指定して実行する
 - AWSは`AWS_PROFILE=private`を使う（`.envrc`で自動設定、セッション切れ時は`aws login --profile private`）
-- `admin-backend`（Lambda/CDK）にはCI/CDが無いため、pushしただけでは本番に反映されない→ 手動で`cd admin-backend && npm run build`
-  → `cd ../cdk && ../node_modules/.bin/cdk deploy <stack> --require-approval never`
+- `admin-backend`（Lambda/CDK）は`.github/workflows/03_deploy_backend.yml`でCI/CDデプロイされる（OIDC、Secretの`AWS_DEPLOY_ROLE_ARN`が必要）。手動デプロイする場合は
+  `cd admin-backend && npm run build` →
+  `cd ../cdk && ../node_modules/.bin/cdk deploy <stack> --require-approval never`
 
 ## 作業時の基本方針
 
