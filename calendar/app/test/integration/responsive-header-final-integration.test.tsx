@@ -2,7 +2,6 @@ import React from 'react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, act, waitFor } from '../test-utils'
 import ResponsiveHeaderButtons from '../../components/ResponsiveHeaderButtons'
-import TwitterShareButton from '../../components/TwitterShareButton'
 import StudySessionRegisterButton from '../../components/StudySessionRegisterButton'
 import MobileRegisterSection from '../../components/MobileRegisterSection'
 
@@ -12,17 +11,11 @@ import MobileRegisterSection from '../../components/MobileRegisterSection'
  */
 describe('Responsive Header Buttons Final Integration', () => {
   const mockProps = {
-    shareText:
-      '📅 今月の広島IT勉強会\n\n01/25 React勉強会\n\n詳細はこちら: https://example.com',
-    calendarUrl: 'https://example.com/calendar',
     isEventsLoading: false,
     eventsError: null,
     isFallbackMode: false,
     isRetryable: false,
     onRetry: vi.fn(),
-    onShareClick: vi.fn(),
-    onTwitterShareError: vi.fn(),
-    onNativeShare: vi.fn(),
   }
 
   // Mock performance monitoring
@@ -68,54 +61,6 @@ describe('Responsive Header Buttons Final Integration', () => {
   })
 
   describe('Complete Responsive Behavior Integration', () => {
-    it('should handle complete mobile to desktop transition smoothly', async () => {
-      // Start with mobile viewport
-      Object.defineProperty(window, 'innerWidth', {
-        writable: true,
-        configurable: true,
-        value: 375,
-      })
-
-      const { container, rerender } = render(
-        <ResponsiveHeaderButtons {...mockProps} />
-      )
-
-      // Verify mobile state
-      const twitterButton = container.querySelector(
-        '.twitter-button-responsive'
-      )
-      expect(twitterButton).toBeTruthy()
-
-      // Check that text is hidden on mobile (CSS-based)
-      const twitterText = container.querySelector('.twitter-button-text')
-      expect(twitterText).toBeTruthy()
-
-      // Transition to desktop
-      Object.defineProperty(window, 'innerWidth', {
-        writable: true,
-        configurable: true,
-        value: 1280,
-      })
-
-      act(() => {
-        fireEvent(window, new Event('resize'))
-      })
-
-      // Wait for transition to complete
-      await waitFor(
-        () => {
-          const headerContainer = container.querySelector(
-            '[data-breakpoint="desktop"]'
-          )
-          expect(headerContainer).toBeTruthy()
-        },
-        { timeout: 1000 }
-      )
-
-      // Verify desktop state
-      expect(twitterText).toBeTruthy()
-    })
-
     it('should maintain accessibility throughout responsive transitions', async () => {
       const { container } = render(<ResponsiveHeaderButtons {...mockProps} />)
 
@@ -226,45 +171,8 @@ describe('Responsive Header Buttons Final Integration', () => {
       expect(totalTime).toBeLessThan(500) // 500ms budget for complete cycle
 
       // Verify no layout shifts occurred
-      const headerContainer = container.querySelector(
-        '.responsive-header-buttons'
-      )
+      const headerContainer = container.querySelector('[data-breakpoint]')
       expect(headerContainer).toBeTruthy()
-    })
-
-    it('should handle concurrent user interactions during transitions', async () => {
-      const { container } = render(<ResponsiveHeaderButtons {...mockProps} />)
-
-      // Start viewport transition
-      Object.defineProperty(window, 'innerWidth', {
-        writable: true,
-        configurable: true,
-        value: 375,
-      })
-
-      act(() => {
-        fireEvent(window, new Event('resize'))
-      })
-
-      // Immediately try to interact with buttons during transition
-      const twitterButton = container.querySelector(
-        '.twitter-button-responsive'
-      )
-      const shareButton = container.querySelector('button[aria-label*="共有"]')
-
-      if (twitterButton) {
-        fireEvent.click(twitterButton)
-        expect(mockProps.onShareClick).toHaveBeenCalled()
-      }
-
-      if (shareButton) {
-        fireEvent.click(shareButton)
-        expect(mockProps.onNativeShare).toHaveBeenCalled()
-      }
-
-      // Interactions should work even during transitions
-      expect(mockProps.onShareClick).toHaveBeenCalled()
-      expect(mockProps.onNativeShare).toHaveBeenCalled()
     })
   })
 
@@ -385,54 +293,17 @@ describe('Responsive Header Buttons Final Integration', () => {
       expect(totalTime).toBeLessThan(200) // 200ms budget
 
       // Component should still be functional
-      const twitterButton = container.querySelector(
-        '.twitter-button-responsive'
-      )
-      expect(twitterButton).toBeTruthy()
-    })
-
-    it('should recover from JavaScript errors gracefully', async () => {
-      // Mock console.error to catch errors
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-      const errorProps = {
-        ...mockProps,
-        onTwitterShareError: vi.fn(() => {
-          throw new Error('Simulated error')
-        }),
-      }
-
-      const { container } = render(<ResponsiveHeaderButtons {...errorProps} />)
-
-      const twitterButton = container.querySelector(
-        '.twitter-button-responsive'
-      )
-
-      // Should not crash the component
-      expect(() => {
-        if (twitterButton) {
-          fireEvent.click(twitterButton)
-        }
-      }).not.toThrow()
-
-      // Component should still be rendered
-      expect(container.querySelector('.responsive-header-buttons')).toBeTruthy()
-
-      consoleSpy.mockRestore()
+      const headerContainer = container.querySelector('[data-breakpoint]')
+      expect(headerContainer).toBeTruthy()
     })
 
     it('should handle missing props gracefully', async () => {
       const minimalProps = {
-        shareText: '',
-        calendarUrl: '',
         isEventsLoading: false,
         eventsError: null,
         isFallbackMode: false,
         isRetryable: false,
         onRetry: vi.fn(),
-        onShareClick: vi.fn(),
-        onTwitterShareError: vi.fn(),
-        onNativeShare: vi.fn(),
       }
 
       expect(() => {
@@ -457,11 +328,11 @@ describe('Responsive Header Buttons Final Integration', () => {
 
       // First interaction performance
       const interactionStart = Date.now()
-      const twitterButton = container.querySelector(
-        '.twitter-button-responsive'
-      )
-      if (twitterButton) {
-        fireEvent.click(twitterButton)
+      const registerLink = screen.queryByRole('link', {
+        name: /勉強会の登録依頼ページへ移動/,
+      })
+      if (registerLink) {
+        fireEvent.click(registerLink)
       }
       metrics.firstInteraction = Date.now() - interactionStart
 
