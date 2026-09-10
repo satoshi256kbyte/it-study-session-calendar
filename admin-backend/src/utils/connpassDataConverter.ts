@@ -95,13 +95,13 @@ export function convertConnpassEventToStudySessionRequest(
 
   try {
     // 必須フィールドの検証
-    if (!eventData.title || !eventData.event_url || !eventData.started_at) {
+    if (!eventData.title || !eventData.url || !eventData.started_at) {
       throw new Error('Missing required fields in connpass event data')
     }
 
     // connpass URLの検証
-    if (!validateConnpassUrl(eventData.event_url)) {
-      throw new Error(`Invalid connpass URL: ${eventData.event_url}`)
+    if (!validateConnpassUrl(eventData.url)) {
+      throw new Error(`Invalid connpass URL: ${eventData.url}`)
     }
 
     // 開始日時の検証と変換
@@ -124,7 +124,7 @@ export function convertConnpassEventToStudySessionRequest(
 
     const request: CreateStudySessionRequest = {
       title: eventData.title,
-      url: eventData.event_url,
+      url: eventData.url,
       datetime: datetime,
       endDatetime: endDatetime,
       // contactは設定しない（connpass APIには含まれない）

@@ -85,9 +85,7 @@ describe('HiroshimaEventDiscoveryService', () => {
       }
 
       // モックの設定
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(false) // 重複なし
       mockDynamoDBService.createStudySessionFromConnpass.mockResolvedValue(
         mockRegisteredEvent
@@ -107,7 +105,7 @@ describe('HiroshimaEventDiscoveryService', () => {
       })
 
       // モックの呼び出し検証
-      expect(mockConnpassApiService.searchEventsByKeyword).toHaveBeenCalledWith(
+      expect(mockConnpassApiService.searchEvents).toHaveBeenCalledWith(
         '広島',
         100
       )
@@ -137,9 +135,7 @@ describe('HiroshimaEventDiscoveryService', () => {
       }
 
       // モックの設定
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(true) // 重複あり
 
       // テスト実行
@@ -169,9 +165,7 @@ describe('HiroshimaEventDiscoveryService', () => {
         events: [],
         totalCount: 0,
       }
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
 
       // テスト実行
       const result = await service.discoverAndRegisterEvents()
@@ -204,9 +198,7 @@ describe('HiroshimaEventDiscoveryService', () => {
       }
 
       // モックの設定
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockRejectedValue(
         new Error('DynamoDB error')
       )
@@ -243,9 +235,7 @@ describe('HiroshimaEventDiscoveryService', () => {
       }
 
       // モックの設定
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(false)
       mockDynamoDBService.createStudySessionFromConnpass.mockRejectedValue(
         new Error('Registration error')
@@ -288,9 +278,7 @@ describe('HiroshimaEventDiscoveryService', () => {
       }
 
       // モックの設定
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(false)
       mockDynamoDBService.createStudySessionFromConnpass.mockResolvedValue(
         mockRegisteredEvent
@@ -351,9 +339,7 @@ describe('HiroshimaEventDiscoveryService', () => {
       }
 
       // モックの設定
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
 
       // イベント1: 新規登録成功
       // イベント2: 重複でスキップ
@@ -397,7 +383,7 @@ describe('HiroshimaEventDiscoveryService', () => {
         401,
         false
       )
-      mockConnpassApiService.searchEventsByKeyword.mockRejectedValue(authError)
+      mockConnpassApiService.searchEvents.mockRejectedValue(authError)
 
       const result = await service.discoverAndRegisterEvents()
 
@@ -415,9 +401,7 @@ describe('HiroshimaEventDiscoveryService', () => {
         429,
         false
       )
-      mockConnpassApiService.searchEventsByKeyword.mockRejectedValue(
-        rateLimitError
-      )
+      mockConnpassApiService.searchEvents.mockRejectedValue(rateLimitError)
 
       const result = await service.discoverAndRegisterEvents()
 
@@ -435,7 +419,7 @@ describe('HiroshimaEventDiscoveryService', () => {
         500,
         false
       )
-      mockConnpassApiService.searchEventsByKeyword.mockRejectedValue(httpError)
+      mockConnpassApiService.searchEvents.mockRejectedValue(httpError)
 
       const result = await service.discoverAndRegisterEvents()
 
@@ -446,9 +430,7 @@ describe('HiroshimaEventDiscoveryService', () => {
     it('should handle non-ConnpassApiError during search', async () => {
       // 予期しないエラーのテスト
       const unexpectedError = new Error('Unexpected error')
-      mockConnpassApiService.searchEventsByKeyword.mockRejectedValue(
-        unexpectedError
-      )
+      mockConnpassApiService.searchEvents.mockRejectedValue(unexpectedError)
 
       await expect(service.discoverAndRegisterEvents()).rejects.toThrow(
         'Unexpected error'
@@ -475,9 +457,7 @@ describe('HiroshimaEventDiscoveryService', () => {
         new Error('DB connection error')
       )
 
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockRejectedValue(dbError)
 
       const result = await service.discoverAndRegisterEvents()
@@ -509,9 +489,7 @@ describe('HiroshimaEventDiscoveryService', () => {
         new Error('DB write error')
       )
 
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(false)
       mockDynamoDBService.createStudySessionFromConnpass.mockRejectedValue(
         dbError
@@ -548,9 +526,7 @@ describe('HiroshimaEventDiscoveryService', () => {
         updatedAt: '2024-02-01T10:00:00Z',
       }
 
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(false)
       mockDynamoDBService.createStudySessionFromConnpass.mockResolvedValue(
         mockRegisteredEvent
@@ -565,7 +541,7 @@ describe('HiroshimaEventDiscoveryService', () => {
       )
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Phase 1: Searching connpass events with keyword "広島"'
+          'Phase 1: Searching connpass events with prefecture "hiroshima"'
         )
       )
       expect(logger.info).toHaveBeenCalledWith(

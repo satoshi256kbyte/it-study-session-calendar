@@ -264,7 +264,7 @@ describe('ConnpassApiService', () => {
     })
   })
 
-  describe('searchEventsByKeyword', () => {
+  describe('searchEvents', () => {
     const mockSearchResponse = {
       results_returned: 2,
       results_available: 10,
@@ -295,8 +295,8 @@ describe('ConnpassApiService', () => {
       } as Response)
     })
 
-    it('should search events by keyword successfully', async () => {
-      const result = await service.searchEventsByKeyword('広島')
+    it('should search events by prefecture successfully', async () => {
+      const result = await service.searchEvents('広島')
 
       expect(result.events).toHaveLength(2)
       expect(result.totalCount).toBe(10)
@@ -309,7 +309,7 @@ describe('ConnpassApiService', () => {
     })
 
     it('should make authenticated request with correct parameters', async () => {
-      await service.searchEventsByKeyword('広島', 50)
+      await service.searchEvents('広島', 50)
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/events/'),
@@ -324,13 +324,13 @@ describe('ConnpassApiService', () => {
       )
 
       const callUrl = mockFetch.mock.calls[0][0] as string
-      expect(callUrl).toContain('keyword=広島')
+      expect(callUrl).toContain('prefecture=hiroshima')
       expect(callUrl).toContain('count=50')
-      expect(callUrl).toContain('order=2')
+      expect(callUrl).toContain('order=3')
     })
 
     it('should use default count of 100 when not specified', async () => {
-      await service.searchEventsByKeyword('広島')
+      await service.searchEvents('prefecture')
 
       const callUrl = mockFetch.mock.calls[0][0] as string
       expect(callUrl).toContain('count=100')
@@ -343,7 +343,7 @@ describe('ConnpassApiService', () => {
         statusText: 'Unauthorized',
       } as Response)
 
-      await expect(service.searchEventsByKeyword('広島')).rejects.toThrow(
+      await expect(service.searchEvents('広島')).rejects.toThrow(
         'connpass API authentication failed: Invalid API key'
       )
     })
@@ -355,7 +355,7 @@ describe('ConnpassApiService', () => {
         statusText: 'Too Many Requests',
       } as Response)
 
-      await expect(service.searchEventsByKeyword('広島')).rejects.toThrow(
+      await expect(service.searchEvents('広島')).rejects.toThrow(
         'connpass API rate limit exceeded'
       )
     })
@@ -371,17 +371,17 @@ describe('ConnpassApiService', () => {
         }),
       } as Response)
 
-      const result = await service.searchEventsByKeyword('nonexistent')
+      const result = await service.searchEvents('nonexistent')
       expect(result.events).toHaveLength(0)
       expect(result.totalCount).toBe(0)
     })
 
     it('should enforce rate limit between search requests', async () => {
       // 最初のリクエスト
-      await service.searchEventsByKeyword('広島')
+      await service.searchEvents('広島')
 
       // 2番目のリクエスト（レート制限により遅延されるはず）
-      const secondRequestPromise = service.searchEventsByKeyword('東京')
+      const secondRequestPromise = service.searchEvents('東京')
 
       // タイマーを進める
       jest.advanceTimersByTime(5000)
@@ -459,7 +459,7 @@ describe('ConnpassApiService', () => {
         json: async () => successResponse,
       } as Response)
 
-      const result = await service.searchEventsByKeyword('test')
+      const result = await service.searchEvents('test')
 
       expect(result.events).toHaveLength(1)
       expect(mockFetch).toHaveBeenCalledTimes(2)
@@ -473,7 +473,7 @@ describe('ConnpassApiService', () => {
         statusText: 'Too Many Requests',
       } as Response)
 
-      await expect(service.searchEventsByKeyword('test')).rejects.toThrow(
+      await expect(service.searchEvents('test')).rejects.toThrow(
         'connpass API rate limit exceeded after retry'
       )
 
@@ -487,7 +487,7 @@ describe('ConnpassApiService', () => {
         statusText: 'Unauthorized',
       } as Response)
 
-      await expect(service.searchEventsByKeyword('test')).rejects.toThrow(
+      await expect(service.searchEvents('test')).rejects.toThrow(
         'connpass API authentication failed: Invalid API key'
       )
 
@@ -501,7 +501,7 @@ describe('ConnpassApiService', () => {
         statusText: 'Internal Server Error',
       } as Response)
 
-      await expect(service.searchEventsByKeyword('test')).rejects.toThrow(
+      await expect(service.searchEvents('test')).rejects.toThrow(
         'connpass API request failed: 500 Internal Server Error'
       )
 
@@ -518,7 +518,7 @@ describe('ConnpassApiService', () => {
       } as Response)
 
       try {
-        await service.searchEventsByKeyword('test')
+        await service.searchEvents('test')
         fail('Expected ConnpassApiError to be thrown')
       } catch (error) {
         expect(error).toBeInstanceOf(ConnpassApiError)
@@ -541,7 +541,7 @@ describe('ConnpassApiService', () => {
       } as Response)
 
       try {
-        await service.searchEventsByKeyword('test')
+        await service.searchEvents('test')
         fail('Expected ConnpassApiError to be thrown')
       } catch (error) {
         expect(error).toBeInstanceOf(ConnpassApiError)
@@ -561,7 +561,7 @@ describe('ConnpassApiService', () => {
       } as Response)
 
       try {
-        await service.searchEventsByKeyword('test')
+        await service.searchEvents('test')
         fail('Expected ConnpassApiError to be thrown')
       } catch (error) {
         expect(error).toBeInstanceOf(ConnpassApiError)

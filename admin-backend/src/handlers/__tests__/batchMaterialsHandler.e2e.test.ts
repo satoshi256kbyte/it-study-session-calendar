@@ -77,7 +77,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
     jest.spyOn(secretsManagerService, 'getConnpassApiKey')
     jest.spyOn(ConnpassApiService.prototype, 'testApiKey')
     jest.spyOn(ConnpassApiService.prototype, 'getPresentations')
-    jest.spyOn(ConnpassApiService.prototype, 'searchEventsByKeyword')
+    jest.spyOn(ConnpassApiService.prototype, 'searchEvents')
     jest.spyOn(ConnpassApiService, 'extractEventIdFromUrl')
     jest.spyOn(notificationService, 'publishStudySessionNotification')
   })
@@ -179,7 +179,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
 
       // 広島イベント発見のモック
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 2,
@@ -222,9 +222,10 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
       expect(
         dynamoDBService.getApprovedEventsWithConnpassUrl
       ).toHaveBeenCalledTimes(1)
-      expect(
-        ConnpassApiService.prototype.searchEventsByKeyword
-      ).toHaveBeenCalledWith('広島', 100)
+      expect(ConnpassApiService.prototype.searchEvents).toHaveBeenCalledWith(
+        '広島',
+        100
+      )
       expect(dynamoDBService.checkEventExists).toHaveBeenCalledTimes(2)
       expect(
         dynamoDBService.createStudySessionFromConnpass
@@ -254,7 +255,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: [],
         totalCount: 0,
@@ -277,9 +278,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
       expect(responseBody.hiroshimaDiscovery!.duplicatesSkipped).toBe(0)
 
       // 必要最小限の呼び出しのみ実行されることを確認
-      expect(
-        ConnpassApiService.prototype.searchEventsByKeyword
-      ).toHaveBeenCalledTimes(1)
+      expect(ConnpassApiService.prototype.searchEvents).toHaveBeenCalledTimes(1)
       expect(dynamoDBService.checkEventExists).not.toHaveBeenCalled()
       expect(
         dynamoDBService.createStudySessionFromConnpass
@@ -343,7 +342,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 3,
@@ -446,7 +445,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 3,
@@ -528,7 +527,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 2,
@@ -583,7 +582,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 1,
@@ -622,7 +621,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockRejectedValue(new Error('connpass API connection failed'))
 
       // E2E実行
@@ -643,9 +642,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
       )
 
       // API検索は試行されるが、その後の処理は実行されない
-      expect(
-        ConnpassApiService.prototype.searchEventsByKeyword
-      ).toHaveBeenCalledTimes(1)
+      expect(ConnpassApiService.prototype.searchEvents).toHaveBeenCalledTimes(1)
       expect(dynamoDBService.checkEventExists).not.toHaveBeenCalled()
     })
 
@@ -711,7 +708,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 3,
@@ -799,7 +796,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 2,
@@ -863,9 +860,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
       )
 
       // クリティカルエラーの場合は後続処理は実行されない
-      expect(
-        ConnpassApiService.prototype.searchEventsByKeyword
-      ).not.toHaveBeenCalled()
+      expect(ConnpassApiService.prototype.searchEvents).not.toHaveBeenCalled()
     })
   })
 
@@ -904,7 +899,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         dynamoDBService.getApprovedEventsWithConnpassUrl as jest.Mock
       ).mockResolvedValue([])
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 1,
@@ -933,9 +928,10 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
       expect(responseBody.hiroshimaDiscovery!.registeredEvents).toHaveLength(1)
 
       // 手動実行でも同じ処理が実行されることを確認
-      expect(
-        ConnpassApiService.prototype.searchEventsByKeyword
-      ).toHaveBeenCalledWith('広島', 100)
+      expect(ConnpassApiService.prototype.searchEvents).toHaveBeenCalledWith(
+        '広島',
+        100
+      )
       expect(
         dynamoDBService.createStudySessionFromConnpass
       ).toHaveBeenCalledWith(hiroshimaEvents[0])
@@ -1020,7 +1016,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
       ])
       ;(dynamoDBService.upsertEventRecord as jest.Mock).mockResolvedValue({})
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 1,
@@ -1061,9 +1057,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         ConnpassApiService.prototype.getPresentations
       ).toHaveBeenCalledTimes(2) // 既存イベント2つ分
       expect(dynamoDBService.upsertEventRecord).toHaveBeenCalledTimes(2) // 既存イベント2つ分
-      expect(
-        ConnpassApiService.prototype.searchEventsByKeyword
-      ).toHaveBeenCalledTimes(1) // 広島検索1回
+      expect(ConnpassApiService.prototype.searchEvents).toHaveBeenCalledTimes(1) // 広島検索1回
       expect(
         dynamoDBService.createStudySessionFromConnpass
       ).toHaveBeenCalledTimes(1) // 広島イベント1つ分
@@ -1126,7 +1120,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
         ConnpassApiService.prototype.getPresentations as jest.Mock
       ).mockRejectedValue(new Error('Materials API failed'))
       ;(
-        ConnpassApiService.prototype.searchEventsByKeyword as jest.Mock
+        ConnpassApiService.prototype.searchEvents as jest.Mock
       ).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 1,
@@ -1162,9 +1156,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests', () => {
       expect(responseBody.hiroshimaDiscovery!.registeredEvents).toHaveLength(1)
 
       // 広島処理は既存処理の失敗に影響されずに実行される
-      expect(
-        ConnpassApiService.prototype.searchEventsByKeyword
-      ).toHaveBeenCalledTimes(1)
+      expect(ConnpassApiService.prototype.searchEvents).toHaveBeenCalledTimes(1)
       expect(
         dynamoDBService.createStudySessionFromConnpass
       ).toHaveBeenCalledTimes(1)

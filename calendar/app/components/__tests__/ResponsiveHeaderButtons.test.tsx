@@ -40,16 +40,11 @@ Object.defineProperty(window, 'alert', {
 
 describe('ResponsiveHeaderButtons', () => {
   const defaultProps = {
-    shareText: 'Test share text',
-    calendarUrl: 'https://example.com/calendar',
     isEventsLoading: false,
     eventsError: null,
     isFallbackMode: false,
     isRetryable: false,
     onRetry: vi.fn(),
-    onShareClick: vi.fn(),
-    onTwitterShareError: vi.fn(),
-    onNativeShare: vi.fn(),
   }
 
   beforeEach(() => {
@@ -59,20 +54,6 @@ describe('ResponsiveHeaderButtons', () => {
   describe('基本的なレンダリング', () => {
     it('すべてのボタンが正しくレンダリングされる', () => {
       render(<ResponsiveHeaderButtons {...defaultProps} />)
-
-      // TwitterShareButton が存在することを確認（より具体的なaria-labelで検索）
-      expect(
-        screen.getByRole('button', {
-          name: /X（旧Twitter）で勉強会情報を共有する/,
-        })
-      ).toBeInTheDocument()
-
-      // Native share button が存在することを確認
-      expect(
-        screen.getByRole('button', {
-          name: /ネイティブ共有機能を使用してページを共有/,
-        })
-      ).toBeInTheDocument()
 
       // Register button が存在することを確認
       expect(
@@ -86,12 +67,7 @@ describe('ResponsiveHeaderButtons', () => {
       )
 
       const wrapper = container.firstChild as HTMLElement
-      expect(wrapper).toHaveClass(
-        'flex',
-        'items-center',
-        'space-x-4',
-        'test-class'
-      )
+      expect(wrapper).toHaveClass('items-center', 'space-x-4', 'test-class')
     })
   })
 
@@ -147,48 +123,11 @@ describe('ResponsiveHeaderButtons', () => {
     })
   })
 
-  describe('ボタンの相互作用', () => {
-    it('ネイティブ共有ボタンをクリックするとonNativeShareが呼ばれる', () => {
-      const onNativeShare = vi.fn()
-      render(
-        <ResponsiveHeaderButtons
-          {...defaultProps}
-          onNativeShare={onNativeShare}
-        />
-      )
-
-      const shareButton = screen.getByRole('button', {
-        name: /ネイティブ共有機能を使用してページを共有/,
-      })
-      fireEvent.click(shareButton)
-
-      expect(onNativeShare).toHaveBeenCalledTimes(1)
-    })
-
-    it('Twitter共有ボタンのプロパティが正しく渡される', () => {
-      render(
-        <ResponsiveHeaderButtons {...defaultProps} isEventsLoading={true} />
-      )
-
-      // Loading状態のTwitterボタンが存在することを確認
-      expect(
-        screen.getByRole('button', {
-          name: /X（旧Twitter）で勉強会情報を共有する/,
-        })
-      ).toBeInTheDocument()
-    })
-  })
-
   describe('レスポンシブ対応', () => {
     it('レスポンシブプロパティが子コンポーネントに正しく渡される', () => {
       render(<ResponsiveHeaderButtons {...defaultProps} />)
 
-      // TwitterShareButtonとStudySessionRegisterButtonが存在することを確認
-      expect(
-        screen.getByRole('button', {
-          name: /X（旧Twitter）で勉強会情報を共有する/,
-        })
-      ).toBeInTheDocument()
+      // StudySessionRegisterButtonが存在することを確認
       expect(
         screen.getByRole('link', { name: /勉強会の登録依頼ページへ移動/ })
       ).toBeInTheDocument()
@@ -204,9 +143,7 @@ describe('ResponsiveHeaderButtons', () => {
 
       // コンポーネントが正常にレンダリングされることを確認
       expect(
-        screen.getByRole('button', {
-          name: /X（旧Twitter）で勉強会情報を共有する/,
-        })
+        screen.getByRole('link', { name: /勉強会の登録依頼ページへ移動/ })
       ).toBeInTheDocument()
     })
   })

@@ -11,7 +11,7 @@ API利用申請後に発行されるAPIキーを、HTTPリクエストヘッダ�
 例：
 
 ```
-curl -X GET "https://connpass.com/api/v2/events/?keyword=python" -H "X-API-Key: CPaVAKNa.6u0RBKOm2F462P4vDHln8IR2MW5PhR493cFH6UbKyE8OqbsBfEk4p6FF"
+curl -X GET "https://connpass.com/api/v2/events/?keyword=hiroshima" -H "X-API-Key: CPaVAKNa.6u0RBKOm2F462P4vDHln8IR2MW5PhR493cFH6UbKyE8OqbsBfEk4p6FF"
 ```
 
 認証に失敗した場合、HTTPステータスコード `401 Unauthorized` が返されます。

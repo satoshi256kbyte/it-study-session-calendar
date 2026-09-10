@@ -147,7 +147,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
       )
 
       // 広島イベント発見のモック
-      mockConnpassApiService.prototype.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassApiService.prototype.searchEvents.mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 1,
       })
@@ -190,7 +190,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
         mockDynamoDBService.prototype.getApprovedEventsWithConnpassUrl
       ).toHaveBeenCalledTimes(1)
       expect(
-        mockConnpassApiService.prototype.searchEventsByKeyword
+        mockConnpassApiService.prototype.searchEvents
       ).toHaveBeenCalledWith('広島', 100)
       expect(
         mockDynamoDBService.prototype.checkEventExists
@@ -221,7 +221,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
       mockDynamoDBService.prototype.getApprovedEventsWithConnpassUrl.mockResolvedValue(
         []
       )
-      mockConnpassApiService.prototype.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassApiService.prototype.searchEvents.mockResolvedValue({
         events: [],
         totalCount: 0,
       })
@@ -242,7 +242,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
 
       // 必要最小限の呼び出しのみ実行されることを確認
       expect(
-        mockConnpassApiService.prototype.searchEventsByKeyword
+        mockConnpassApiService.prototype.searchEvents
       ).toHaveBeenCalledTimes(1)
     })
   })
@@ -301,7 +301,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
       mockDynamoDBService.prototype.getApprovedEventsWithConnpassUrl.mockResolvedValue(
         []
       )
-      mockConnpassApiService.prototype.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassApiService.prototype.searchEvents.mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 2,
       })
@@ -380,7 +380,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
       mockDynamoDBService.prototype.getApprovedEventsWithConnpassUrl.mockResolvedValue(
         []
       )
-      mockConnpassApiService.prototype.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassApiService.prototype.searchEvents.mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 2,
       })
@@ -431,7 +431,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
       mockDynamoDBService.prototype.getApprovedEventsWithConnpassUrl.mockResolvedValue(
         []
       )
-      mockConnpassApiService.prototype.searchEventsByKeyword.mockRejectedValue(
+      mockConnpassApiService.prototype.searchEvents.mockRejectedValue(
         new Error('connpass API connection failed')
       )
 
@@ -452,7 +452,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
 
       // API検索は試行されるが、その後の処理は実行されない
       expect(
-        mockConnpassApiService.prototype.searchEventsByKeyword
+        mockConnpassApiService.prototype.searchEvents
       ).toHaveBeenCalledTimes(1)
       expect(
         mockDynamoDBService.prototype.checkEventExists
@@ -507,7 +507,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
       mockDynamoDBService.prototype.getApprovedEventsWithConnpassUrl.mockResolvedValue(
         []
       )
-      mockConnpassApiService.prototype.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassApiService.prototype.searchEvents.mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 1,
       })
@@ -534,7 +534,7 @@ describe('Hiroshima Event Auto-Registration E2E Tests (Simplified)', () => {
 
       // 手動実行でも同じ処理が実行されることを確認
       expect(
-        mockConnpassApiService.prototype.searchEventsByKeyword
+        mockConnpassApiService.prototype.searchEvents
       ).toHaveBeenCalledWith('広島', 100)
       expect(
         mockDynamoDBService.prototype.createStudySessionFromConnpass

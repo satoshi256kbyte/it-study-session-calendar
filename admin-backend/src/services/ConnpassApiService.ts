@@ -370,11 +370,11 @@ export class ConnpassApiService {
    * キーワードでイベントを検索
    * 要件1.1, 1.3, 1.4, 1.5に対応
    */
-  async searchEventsByKeyword(
-    keyword: string,
+  async searchEvents(
+    prefecture: string,
     count: number = 100
   ): Promise<ConnpassSearchResult> {
-    logger.debug(`Searching connpass events with keyword: ${keyword}`)
+    logger.debug(`Searching connpass events with prefecture: ${prefecture}`)
 
     try {
       // connpass API v2の/events/エンドポイントを使用してキーワード検索
@@ -384,14 +384,31 @@ export class ConnpassApiService {
         results_start: number
         events: ConnpassEventData[]
       }>('/events/', {
-        keyword: keyword,
+        prefecture: prefecture,
         count: count,
-        order: 2, // 開催日時順
+        order: 3, // 新着順
       })
 
       logger.debug(
         `Retrieved ${response.results_returned} events from connpass API (total: ${response.results_available})`
       )
+
+      // APIレスポンスの構造をログ出力
+      logger.debug('Raw connpass API response structure:', {
+        results_returned: response.results_returned,
+        results_available: response.results_available,
+        results_start: response.results_start,
+        events_count: response.events?.length || 0,
+        first_event_sample: response.events?.[0]
+          ? {
+              keys: Object.keys(response.events[0]),
+              id: response.events[0].id,
+              title: response.events[0].title,
+              url: response.events[0].url,
+              event_type: (response.events[0] as any).event_type,
+            }
+          : null,
+      })
 
       // レスポンスをConnpassSearchResult型に変換
       const searchResult: ConnpassSearchResult = {
@@ -407,7 +424,7 @@ export class ConnpassApiService {
     } catch (error) {
       // 要件1.5: 詳細なエラーログとスタックトレース出力を実装
       const errorDetails = {
-        keyword,
+        prefecture,
         count,
         errorType: error instanceof Error ? error.constructor.name : 'Unknown',
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
@@ -416,7 +433,7 @@ export class ConnpassApiService {
       }
 
       logger.error(
-        `Failed to search events with keyword "${keyword}" with detailed context:`,
+        `Failed to search events with prefecture "${prefecture}" with detailed context:`,
         errorDetails
       )
       throw error

@@ -1,15 +1,7 @@
 'use client'
 
-import {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  lazy,
-  Suspense,
-} from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import ResponsiveHeaderButtons from './components/ResponsiveHeaderButtons'
-import CalendarHeaderButtons from './components/CalendarHeaderButtons'
 import MobileRegisterSection from './components/MobileRegisterSection'
 import LoadingSpinner from './components/LoadingSpinner'
 import { useStudySessionEventsWithDefaults } from './hooks/useStudySessionEvents'
@@ -55,52 +47,6 @@ export default function Home() {
     isFallbackMode,
   } = useStudySessionEventsWithDefaults(pageUrl)
 
-  // Memoize share data to prevent unnecessary re-creation
-  const shareData = useMemo(
-    () => ({
-      title: '広島IT勉強会カレンダー',
-      text: '広島のIT関連の勉強会やイベントをカレンダー表示するウェブアプリケーション',
-      url:
-        pageUrl ||
-        'https://satoshi256kbyte.github.io/it-study-session-calendar/',
-    }),
-    [pageUrl]
-  )
-
-  const handleShare = useCallback(async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData)
-      } catch (err) {
-        // Sharing was cancelled or failed - no action needed
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Error sharing:', err)
-        }
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(shareData.url)
-      alert('URLをクリップボードにコピーしました')
-    }
-  }, [shareData])
-
-  // Twitter共有のクリック分析用コールバック（メモ化）
-  const handleTwitterShareClick = useCallback(() => {
-    // 分析やログ記録が必要な場合はここに実装
-    console.log('Twitter共有ボタンがクリックされました', {
-      eventsCount: events.length,
-      shareTextLength: shareText.length,
-      isFallbackMode,
-      timestamp: new Date().toISOString(),
-    })
-  }, [events.length, shareText.length, isFallbackMode])
-
-  // Twitter共有エラー時のコールバック（メモ化）
-  const handleTwitterShareError = useCallback((error: Error) => {
-    console.error('Twitter共有でエラーが発生しました:', error)
-    // エラー分析やログ記録が必要な場合はここに実装
-  }, [])
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
@@ -114,16 +60,11 @@ export default function Home() {
             </div>
             <div className="hidden sm:block">
               <ResponsiveHeaderButtons
-                shareText={shareText}
-                calendarUrl={pageUrl}
                 isEventsLoading={isEventsLoading}
                 eventsError={eventsError}
                 isFallbackMode={isFallbackMode}
                 isRetryable={isRetryable}
                 onRetry={retry}
-                onShareClick={handleTwitterShareClick}
-                onTwitterShareError={handleTwitterShareError}
-                onNativeShare={handleShare}
                 className="header-buttons-container"
               />
             </div>
@@ -135,21 +76,10 @@ export default function Home() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="bg-white rounded-lg shadow">
-            {/* カレンダー上部のボタン（スマホ表示のみ） */}
-            <div className="sm:hidden flex justify-end p-4 pb-0">
-              <CalendarHeaderButtons
-                shareText={shareText}
-                calendarUrl={pageUrl}
-                isEventsLoading={isEventsLoading}
-                eventsError={eventsError}
-                isFallbackMode={isFallbackMode}
-                onShareClick={handleTwitterShareClick}
-                onTwitterShareError={handleTwitterShareError}
-                onNativeShare={handleShare}
-              />
-            </div>
-
             <div className="p-6 sm:pt-6 pt-2">
+              <p className="text-sm text-gray-600 mb-4">
+                connpassの検索で「広島」でHITしたイベントを掲載しています。
+              </p>
               {calendarUrl ? (
                 <div className="calendar-container calendar-optimized">
                   <iframe
@@ -206,7 +136,7 @@ export default function Home() {
                     <div className="mt-2 text-sm text-yellow-700">
                       <p>
                         {isFallbackMode
-                          ? '最新の勉強会情報を取得できませんでしたが、X共有機能は基本的な内容で利用できます。'
+                          ? '最新の勉強会情報を取得できませんでした。基本的な内容は表示されています。'
                           : eventsError}
                       </p>
                       {isRetryable && (

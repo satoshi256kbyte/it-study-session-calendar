@@ -1,7 +1,6 @@
 'use client'
 
-import { useMemo, useCallback, useRef, useEffect } from 'react'
-import TwitterShareButton from './TwitterShareButton'
+import { useCallback, useRef, useEffect } from 'react'
 import StudySessionRegisterButton from './StudySessionRegisterButton'
 import {
   useResponsiveTransitions,
@@ -14,10 +13,6 @@ import {
  * Requirements: 3.1, 3.2, 5.3, 5.4
  */
 export interface ResponsiveHeaderButtonsProps {
-  /** Generated share text for Twitter */
-  shareText: string
-  /** Calendar URL for sharing */
-  calendarUrl: string
   /** Loading state for events */
   isEventsLoading: boolean
   /** Error state for events */
@@ -28,12 +23,6 @@ export interface ResponsiveHeaderButtonsProps {
   isRetryable: boolean
   /** Retry callback function */
   onRetry: () => void
-  /** Share button click callback */
-  onShareClick: () => void
-  /** Twitter share error callback */
-  onTwitterShareError: (error: Error) => void
-  /** Native share callback */
-  onNativeShare: () => void
   /** Additional CSS classes */
   className?: string
 }
@@ -52,16 +41,11 @@ export interface ResponsiveHeaderButtonsProps {
  * - 5.4: Maintain existing functionality without breaking tests
  */
 export default function ResponsiveHeaderButtons({
-  shareText,
-  calendarUrl,
   isEventsLoading,
   eventsError,
   isFallbackMode,
   isRetryable,
   onRetry,
-  onShareClick,
-  onTwitterShareError,
-  onNativeShare,
   className = '',
 }: ResponsiveHeaderButtonsProps) {
   // Responsive transition management
@@ -132,66 +116,6 @@ export default function ResponsiveHeaderButtons({
     transitionState.transitionDuration,
     transitionState,
   ]) // Include all used transitionState properties
-  /**
-   * Memoized button display configuration based on responsive state
-   * Requirements: 3.1, 3.2 - Responsive display logic
-   */
-  const buttonDisplayConfig = useMemo(
-    () => ({
-      twitter: {
-        showText: true, // Will be handled by CSS responsive classes
-        responsive: true, // Enable CSS-based responsive behavior
-      },
-      register: {
-        showInHeader: true, // Will be handled by CSS responsive classes
-        responsive: true, // Enable CSS-based responsive behavior
-      },
-      share: {
-        visible: true, // Always visible
-      },
-    }),
-    []
-  )
-
-  /**
-   * Memoized Twitter button props to prevent unnecessary re-renders
-   * Requirements: 5.3, 5.4 - Performance optimization and state management
-   */
-  const twitterButtonProps = useMemo(
-    () => ({
-      shareText,
-      calendarUrl,
-      isLoading: isEventsLoading,
-      hasError: !!eventsError && !isFallbackMode,
-      disabled: !shareText && !isEventsLoading,
-      onShareClick,
-      onError: onTwitterShareError,
-      displayMode: 'full' as const,
-      responsive: buttonDisplayConfig.twitter.responsive,
-    }),
-    [
-      shareText,
-      calendarUrl,
-      isEventsLoading,
-      eventsError,
-      isFallbackMode,
-      onShareClick,
-      onTwitterShareError,
-      buttonDisplayConfig.twitter.responsive,
-    ]
-  )
-
-  /**
-   * Memoized register button props to prevent unnecessary re-renders
-   * Requirements: 5.3, 5.4 - Performance optimization and state management
-   */
-  const registerButtonProps = useMemo(
-    () => ({
-      displayMode: 'header' as const,
-      responsive: buttonDisplayConfig.register.responsive,
-    }),
-    [buttonDisplayConfig.register.responsive]
-  )
 
   /**
    * Handle retry button click with proper error handling
@@ -206,19 +130,6 @@ export default function ResponsiveHeaderButtons({
     }
   }, [onRetry])
 
-  /**
-   * Handle native share button click with proper error handling
-   * Requirements: 3.1, 3.2 - Coordinate button states
-   */
-  const handleNativeShareClick = useCallback(() => {
-    try {
-      onNativeShare()
-    } catch (error) {
-      console.error('Native share failed:', error)
-      // Error is handled by the parent component
-    }
-  }, [onNativeShare])
-
   return (
     <div
       ref={containerRef}
@@ -227,9 +138,6 @@ export default function ResponsiveHeaderButtons({
       data-transitioning={transitionState.isTransitioning}
       data-reduced-motion={transitionState.prefersReducedMotion}
     >
-      {/* Twitter Share Button - responsive text visibility */}
-      <TwitterShareButton {...twitterButtonProps} />
-
       {/* Error state display and retry button */}
       {eventsError && isRetryable && !isFallbackMode && (
         <div className="flex items-center space-x-2">
@@ -258,31 +166,8 @@ export default function ResponsiveHeaderButtons({
         </div>
       )}
 
-      {/* Native Share Button - always visible */}
-      <button
-        onClick={handleNativeShareClick}
-        className="inline-flex items-center px-3 py-2 sm:px-3 sm:py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 button-optimized transition-colors duration-200"
-        aria-label="ネイティブ共有機能を使用してページを共有"
-      >
-        <svg
-          className="w-4 h-4 sm:mr-2"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
-          />
-        </svg>
-        <span className="hidden sm:inline">シェア</span>
-      </button>
-
       {/* Study Session Register Button - responsive visibility */}
-      <StudySessionRegisterButton {...registerButtonProps} />
+      <StudySessionRegisterButton displayMode="header" responsive={true} />
     </div>
   )
 }

@@ -59,19 +59,15 @@ describe('HiroshimaEventDiscoveryService - Performance Tests', () => {
         totalCount: 0,
       }
 
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
 
       const startTime = Date.now()
       await service.discoverAndRegisterEvents()
       const endTime = Date.now()
 
       // connpass API検索は1回のみ実行されることを確認
-      expect(
-        mockConnpassApiService.searchEventsByKeyword
-      ).toHaveBeenCalledTimes(1)
-      expect(mockConnpassApiService.searchEventsByKeyword).toHaveBeenCalledWith(
+      expect(mockConnpassApiService.searchEvents).toHaveBeenCalledTimes(1)
+      expect(mockConnpassApiService.searchEvents).toHaveBeenCalledWith(
         '広島',
         100
       )
@@ -87,9 +83,7 @@ describe('HiroshimaEventDiscoveryService - Performance Tests', () => {
       rateLimitError.name = 'ConnpassApiError'
       ;(rateLimitError as any).statusCode = 429
 
-      mockConnpassApiService.searchEventsByKeyword.mockRejectedValue(
-        rateLimitError
-      )
+      mockConnpassApiService.searchEvents.mockRejectedValue(rateLimitError)
 
       const startTime = Date.now()
       const result = await service.discoverAndRegisterEvents()
@@ -127,9 +121,7 @@ describe('HiroshimaEventDiscoveryService - Performance Tests', () => {
       }
 
       // 全て新規イベントとして設定
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(false)
 
       // 登録処理のモック設定
@@ -176,9 +168,7 @@ describe('HiroshimaEventDiscoveryService - Performance Tests', () => {
       expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024)
 
       // 各サービスの呼び出し回数を確認
-      expect(
-        mockConnpassApiService.searchEventsByKeyword
-      ).toHaveBeenCalledTimes(1)
+      expect(mockConnpassApiService.searchEvents).toHaveBeenCalledTimes(1)
       expect(mockDynamoDBService.checkEventExists).toHaveBeenCalledTimes(100)
       expect(
         mockDynamoDBService.createStudySessionFromConnpass
@@ -214,9 +204,7 @@ describe('HiroshimaEventDiscoveryService - Performance Tests', () => {
         totalCount: 50,
       }
 
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
 
       // 偶数IDは重複、奇数IDは新規として設定
       mockDynamoDBService.checkEventExists.mockImplementation(async url => {
@@ -285,9 +273,7 @@ describe('HiroshimaEventDiscoveryService - Performance Tests', () => {
         totalCount: 30,
       }
 
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
 
       // エラーパターンを設定
       mockDynamoDBService.checkEventExists.mockImplementation(async url => {
@@ -355,9 +341,7 @@ describe('HiroshimaEventDiscoveryService - Performance Tests', () => {
         totalCount: 10,
       }
 
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(false)
 
       mockDynamoDBService.createStudySessionFromConnpass.mockImplementation(
@@ -427,9 +411,7 @@ describe('HiroshimaEventDiscoveryService - Performance Tests', () => {
         totalCount: 1,
       }
 
-      mockConnpassApiService.searchEventsByKeyword.mockResolvedValue(
-        mockSearchResult
-      )
+      mockConnpassApiService.searchEvents.mockResolvedValue(mockSearchResult)
       mockDynamoDBService.checkEventExists.mockResolvedValue(false)
       mockDynamoDBService.createStudySessionFromConnpass.mockResolvedValue({
         id: 'test-id-1',

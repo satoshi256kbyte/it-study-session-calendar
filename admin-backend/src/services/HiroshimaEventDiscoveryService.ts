@@ -38,7 +38,7 @@ export interface HiroshimaDiscoveryResult {
  * 要件1.1, 2.1, 3.1, 6.1, 6.2に対応
  */
 export class HiroshimaEventDiscoveryService {
-  private static readonly SEARCH_KEYWORD = '広島'
+  private static readonly SEARCH_PREFECTURE = 'hiroshima'
   private static readonly MAX_SEARCH_RESULTS = 100
 
   constructor(
@@ -74,23 +74,23 @@ export class HiroshimaEventDiscoveryService {
     try {
       // フェーズ1: connpass APIでイベント検索
       logger.info(
-        `Phase 1: Searching connpass events with keyword "${HiroshimaEventDiscoveryService.SEARCH_KEYWORD}"`
+        `Phase 1: Searching connpass events with prefecture "${HiroshimaEventDiscoveryService.SEARCH_PREFECTURE}"`
       )
       performanceMonitor.checkpoint('Phase1-Start-API-Search')
 
       let searchResult
       try {
-        searchResult = await this.connpassApiService.searchEventsByKeyword(
-          HiroshimaEventDiscoveryService.SEARCH_KEYWORD,
+        searchResult = await this.connpassApiService.searchEvents(
+          HiroshimaEventDiscoveryService.SEARCH_PREFECTURE,
           HiroshimaEventDiscoveryService.MAX_SEARCH_RESULTS
         )
         performanceMonitor.checkpoint('Phase1-Complete-API-Search')
       } catch (searchError) {
         // 要件1.4, 1.5: connpass APIエラーの分類と対応、詳細なエラーログ
         const searchErrorDetails = {
-          keyword: HiroshimaEventDiscoveryService.SEARCH_KEYWORD,
+          prefecture: HiroshimaEventDiscoveryService.SEARCH_PREFECTURE,
           maxResults: HiroshimaEventDiscoveryService.MAX_SEARCH_RESULTS,
-          operation: 'searchEventsByKeyword',
+          operation: 'searchEvents',
           errorType:
             searchError instanceof Error
               ? searchError.constructor.name
@@ -137,9 +137,27 @@ export class HiroshimaEventDiscoveryService {
         `Found ${result.totalFound} events from connpass API (total available: ${searchResult.totalCount})`
       )
 
+      // 検索結果の詳細ログ
+      if (result.totalFound > 0) {
+        logger.debug('Sample events from search result:', {
+          total_events: result.totalFound,
+          first_3_events: searchResult.events
+            .slice(0, 3)
+            .map((event, index) => ({
+              index,
+              keys: Object.keys(event),
+              id: event.id,
+              title: event.title,
+              url: event.url,
+              started_at: event.started_at,
+              raw_event: event,
+            })),
+        })
+      }
+
       if (result.totalFound === 0) {
         logger.info(
-          'No events found with the search keyword, discovery process completed'
+          'No events found with the search prefecture, discovery process completed'
         )
 
         // パフォーマンス監視の終了
@@ -172,7 +190,7 @@ export class HiroshimaEventDiscoveryService {
         async (event, index) => {
           const eventNumber = index + 1
           logger.debug(
-            `Processing event ${eventNumber}/${result.totalFound}: ID=${event.event_id}, Title="${event.title}"`
+            `Processing event ${eventNumber}/${result.totalFound}: ID=${event.id}, Title="${event.title}"`
           )
 
           await this.processEvent(event, eventNumber, result)
@@ -182,7 +200,7 @@ export class HiroshimaEventDiscoveryService {
       // エラーの集計
       const processingErrors = processingResults.filter(r => r.error)
       processingErrors.forEach(errorResult => {
-        const errorMessage = `Failed to process event ${errorResult.index + 1} (ID: ${errorResult.item.event_id}): ${errorResult.error?.message || 'Unknown error'}`
+        const errorMessage = `Failed to process event ${errorResult.index + 1} (ID: ${errorResult.item.id}): ${errorResult.error?.message || 'Unknown error'}`
         logger.error(errorMessage, errorResult.error)
         result.errors.push(errorMessage)
       })
@@ -322,17 +340,26 @@ export class HiroshimaEventDiscoveryService {
     result: HiroshimaDiscoveryResult
   ): Promise<void> {
     logger.debug(
-      `Processing event ${eventNumber}: "${eventData.title}" (URL: ${eventData.event_url})`
+      `Processing event ${eventNumber}: "${eventData.title}" (URL: ${eventData.url})`
     )
 
+    // urlが存在しない場合はスキップ
+    if (!eventData.url) {
+      logger.warn(
+        `Event ${eventNumber} has no url, skipping: "${eventData.title}"`
+      )
+      result.errors.push(
+        `Event ${eventNumber} has no url: "${eventData.title}"`
+      )
+      return
+    }
+
     // 要件2.1, 2.2, 2.4: 重複チェック
-    logger.debug(
-      `Checking for duplicate event with URL: ${eventData.event_url}`
-    )
+    logger.debug(`Checking for duplicate event with URL: ${eventData.url}`)
 
     try {
       const isDuplicate = await this.dynamoDBService.checkEventExists(
-        eventData.event_url
+        eventData.url
       )
 
       if (isDuplicate) {
@@ -351,9 +378,9 @@ export class HiroshimaEventDiscoveryService {
       const errorDetails = {
         eventNumber,
         eventData: {
-          eventId: eventData.event_id,
+          eventId: eventData.id,
           title: eventData.title,
-          eventUrl: eventData.event_url,
+          eventUrl: eventData.url,
         },
         operation: 'duplicateCheck',
         errorType: error instanceof Error ? error.constructor.name : 'Unknown',
@@ -422,9 +449,9 @@ export class HiroshimaEventDiscoveryService {
       const registrationErrorDetails = {
         eventNumber,
         eventData: {
-          eventId: eventData.event_id,
+          eventId: eventData.id,
           title: eventData.title,
-          eventUrl: eventData.event_url,
+          eventUrl: eventData.url,
         },
         operation: 'registration',
         errorType:

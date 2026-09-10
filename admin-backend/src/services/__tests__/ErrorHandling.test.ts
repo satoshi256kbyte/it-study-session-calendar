@@ -81,12 +81,12 @@ describe('Error Handling Implementation', () => {
         })
       )
 
-      await expect(
-        connpassApiService.searchEventsByKeyword('test')
-      ).rejects.toThrow(ConnpassApiError)
+      await expect(connpassApiService.searchEvents('test')).rejects.toThrow(
+        ConnpassApiError
+      )
 
       await expect(
-        connpassApiService.searchEventsByKeyword('test')
+        connpassApiService.searchEvents('test')
       ).rejects.toMatchObject({
         errorCode: 'AUTHENTICATION_FAILED',
         httpStatus: 401,
@@ -130,7 +130,7 @@ describe('Error Handling Implementation', () => {
         })
       )
 
-      const result = await connpassApiService.searchEventsByKeyword('test')
+      const result = await connpassApiService.searchEvents('test')
 
       expect(result.events).toHaveLength(1)
       expect(mockLogger.warn).toHaveBeenCalledWith(
@@ -151,12 +151,12 @@ describe('Error Handling Implementation', () => {
         })
       )
 
-      await expect(
-        connpassApiService.searchEventsByKeyword('test')
-      ).rejects.toThrow(ConnpassApiError)
+      await expect(connpassApiService.searchEvents('test')).rejects.toThrow(
+        ConnpassApiError
+      )
 
       await expect(
-        connpassApiService.searchEventsByKeyword('test')
+        connpassApiService.searchEvents('test')
       ).rejects.toMatchObject({
         errorCode: 'RATE_LIMIT_EXCEEDED',
         httpStatus: 429,
@@ -172,12 +172,12 @@ describe('Error Handling Implementation', () => {
         })
       )
 
-      await expect(
-        connpassApiService.searchEventsByKeyword('test')
-      ).rejects.toThrow(ConnpassApiError)
+      await expect(connpassApiService.searchEvents('test')).rejects.toThrow(
+        ConnpassApiError
+      )
 
       await expect(
-        connpassApiService.searchEventsByKeyword('test')
+        connpassApiService.searchEvents('test')
       ).rejects.toMatchObject({
         errorCode: 'HTTP_ERROR',
         httpStatus: 500,
@@ -188,16 +188,16 @@ describe('Error Handling Implementation', () => {
     it('should log detailed error context', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-      await expect(
-        connpassApiService.searchEventsByKeyword('test')
-      ).rejects.toThrow('Network error')
+      await expect(connpassApiService.searchEvents('test')).rejects.toThrow(
+        'Network error'
+      )
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Failed to search events with keyword "test" with detailed context:'
+          'Failed to search events with prefecture "hiroshima" with detailed context:'
         ),
         expect.objectContaining({
-          keyword: 'test',
+          prefecture: 'hiroshima',
           errorType: 'Error',
           errorMessage: 'Network error',
           stack: expect.any(String),
@@ -287,7 +287,7 @@ describe('Error Handling Implementation', () => {
 
     beforeEach(() => {
       mockConnpassService = {
-        searchEventsByKeyword: jest.fn(),
+        searchEvents: jest.fn(),
       } as any
 
       mockDynamoDBService = {
@@ -313,7 +313,7 @@ describe('Error Handling Implementation', () => {
         401,
         false
       )
-      mockConnpassService.searchEventsByKeyword.mockRejectedValue(apiError)
+      mockConnpassService.searchEvents.mockRejectedValue(apiError)
 
       const result = await hiroshimaService.discoverAndRegisterEvents()
 
@@ -333,7 +333,7 @@ describe('Error Handling Implementation', () => {
     })
 
     it('should handle duplicate check error and skip event', async () => {
-      mockConnpassService.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassService.searchEvents.mockResolvedValue({
         events: [
           {
             event_id: 123,
@@ -371,7 +371,7 @@ describe('Error Handling Implementation', () => {
     })
 
     it('should handle notification error but continue processing', async () => {
-      mockConnpassService.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassService.searchEvents.mockResolvedValue({
         events: [
           {
             event_id: 123,
@@ -416,7 +416,7 @@ describe('Error Handling Implementation', () => {
     })
 
     it('should handle registration error and skip event', async () => {
-      mockConnpassService.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassService.searchEvents.mockResolvedValue({
         events: [
           {
             event_id: 123,
@@ -458,7 +458,7 @@ describe('Error Handling Implementation', () => {
     })
 
     it('should handle multiple error types in single discovery run', async () => {
-      mockConnpassService.searchEventsByKeyword.mockResolvedValue({
+      mockConnpassService.searchEvents.mockResolvedValue({
         events: [
           {
             event_id: 1,
@@ -533,7 +533,7 @@ describe('Error Handling Implementation', () => {
     it('should handle critical errors in discovery process', async () => {
       // Test unexpected error that should be re-thrown
       const criticalError = new Error('Critical system error')
-      mockConnpassService.searchEventsByKeyword.mockRejectedValue(criticalError)
+      mockConnpassService.searchEvents.mockRejectedValue(criticalError)
 
       const result = await hiroshimaService.discoverAndRegisterEvents()
 
@@ -553,16 +553,16 @@ describe('Error Handling Implementation', () => {
 
     it('should log detailed error context for all error types', async () => {
       const testError = new Error('Test error with stack trace')
-      mockConnpassService.searchEventsByKeyword.mockRejectedValue(testError)
+      mockConnpassService.searchEvents.mockRejectedValue(testError)
 
       await hiroshimaService.discoverAndRegisterEvents()
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('connpass API error during event search'),
         expect.objectContaining({
-          keyword: '広島',
+          prefecture: 'hiroshima',
           maxResults: 100,
-          operation: 'searchEventsByKeyword',
+          operation: 'searchEvents',
           errorType: 'Error',
           errorMessage: 'Test error with stack trace',
           isConnpassApiError: false,

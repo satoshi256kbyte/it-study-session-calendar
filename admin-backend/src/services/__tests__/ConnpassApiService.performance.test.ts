@@ -65,7 +65,7 @@ describe('ConnpassApiService - Performance Tests', () => {
       // 3回連続でAPI呼び出し
       for (let i = 0; i < 3; i++) {
         const callStart = Date.now()
-        await service.searchEventsByKeyword('広島')
+        await service.searchEvents('広島')
         callTimes.push(Date.now() - callStart)
       }
 
@@ -111,7 +111,7 @@ describe('ConnpassApiService - Performance Tests', () => {
       const startTime = Date.now()
 
       // レート制限エラーが発生することを確認
-      await expect(service.searchEventsByKeyword('広島')).rejects.toThrow(
+      await expect(service.searchEvents('hiroshima')).rejects.toThrow(
         ConnpassApiError
       )
 
@@ -150,7 +150,7 @@ describe('ConnpassApiService - Performance Tests', () => {
       // 5回の検索を実行
       for (let i = 0; i < 5; i++) {
         const searchStart = Date.now()
-        const result = await service.searchEventsByKeyword(`keyword${i}`)
+        const result = await service.searchEvents(`keyword${i}`)
         const searchTime = Date.now() - searchStart
 
         searchTimes.push(searchTime)
@@ -215,7 +215,7 @@ describe('ConnpassApiService - Performance Tests', () => {
       const initialMemory = process.memoryUsage()
       const startTime = Date.now()
 
-      const result = await service.searchEventsByKeyword('大規模')
+      const result = await service.searchEvents('大規模')
 
       const endTime = Date.now()
       const finalMemory = process.memoryUsage()
@@ -266,7 +266,7 @@ describe('ConnpassApiService - Performance Tests', () => {
 
       // 10回連続でAPI呼び出し（メモリリークテスト）
       for (let i = 0; i < 10; i++) {
-        await service.searchEventsByKeyword(`test${i}`)
+        await service.searchEvents(`test${i}`)
 
         // ガベージコレクションを促進
         if (global.gc) {
@@ -294,7 +294,7 @@ describe('ConnpassApiService - Performance Tests', () => {
 
       const startTime = Date.now()
 
-      await expect(service.searchEventsByKeyword('test')).rejects.toThrow()
+      await expect(service.searchEvents('test')).rejects.toThrow()
 
       const errorTime = Date.now() - startTime
 
@@ -318,7 +318,7 @@ describe('ConnpassApiService - Performance Tests', () => {
 
       const startTime = Date.now()
 
-      await expect(service.searchEventsByKeyword('test')).rejects.toThrow()
+      await expect(service.searchEvents('test')).rejects.toThrow()
 
       const errorTime = Date.now() - startTime
 

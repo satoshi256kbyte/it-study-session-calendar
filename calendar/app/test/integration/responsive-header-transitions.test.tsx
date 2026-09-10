@@ -6,40 +6,30 @@ import ResponsiveHeaderButtons from '../../components/ResponsiveHeaderButtons'
 
 describe('Responsive Header Transitions Integration', () => {
   const defaultProps = {
-    shareText: 'Test share text',
-    calendarUrl: 'https://example.com',
     isEventsLoading: false,
     eventsError: null,
     isFallbackMode: false,
     isRetryable: false,
     onRetry: () => {},
-    onShareClick: () => {},
-    onTwitterShareError: () => {},
-    onNativeShare: () => {},
   }
 
   it('should render responsive header buttons with transition classes', () => {
     render(<ResponsiveHeaderButtons {...defaultProps} />)
 
     // Check that the component renders
-    const twitterButton = screen.getByRole('button', {
-      name: /X（旧Twitter）で勉強会情報を共有する/i,
+    const registerButton = screen.getByRole('link', {
+      name: /勉強会の登録依頼ページへ移動/i,
     })
-    expect(twitterButton).toBeInTheDocument()
-
-    const shareButton = screen.getByRole('button', {
-      name: /ネイティブ共有機能を使用してページを共有/i,
-    })
-    expect(shareButton).toBeInTheDocument()
+    expect(registerButton).toBeInTheDocument()
   })
 
   it('should apply responsive CSS classes', () => {
     const { container } = render(<ResponsiveHeaderButtons {...defaultProps} />)
 
     // Check that the container has responsive classes
-    const headerContainer = container.querySelector('.flex.items-center')
+    const headerContainer = container.querySelector('[data-breakpoint]')
     expect(headerContainer).toBeInTheDocument()
-    expect(headerContainer).toHaveClass('flex', 'items-center')
+    expect(headerContainer).toHaveClass('items-center', 'space-x-4')
   })
 
   it('should handle error states with transitions', () => {
@@ -61,23 +51,21 @@ describe('Responsive Header Transitions Integration', () => {
   it('should maintain accessibility during responsive changes', () => {
     render(<ResponsiveHeaderButtons {...defaultProps} />)
 
-    const twitterButton = screen.getByRole('button', {
-      name: /X（旧Twitter）で勉強会情報を共有する/i,
+    const registerButton = screen.getByRole('link', {
+      name: /勉強会の登録依頼ページへ移動/i,
     })
-    expect(twitterButton).toHaveAttribute('aria-label')
-    expect(twitterButton).toHaveAttribute('role', 'button')
-    expect(twitterButton).toHaveAttribute('tabIndex', '0')
+    expect(registerButton).toHaveAttribute('aria-label')
   })
 
   it('should apply responsive transition CSS classes', () => {
     const { container } = render(<ResponsiveHeaderButtons {...defaultProps} />)
 
     // Check that responsive CSS is loaded
-    const headerContainer = container.querySelector('.flex.items-center')
+    const headerContainer = container.querySelector('[data-breakpoint]')
     expect(headerContainer).toBeInTheDocument()
 
     // The responsive-header-buttons.css should be loaded
     // We can't directly test CSS loading in jsdom, but we can verify the component structure
-    expect(headerContainer).toHaveClass('flex', 'items-center')
+    expect(headerContainer).toHaveClass('items-center', 'space-x-4')
   })
 })

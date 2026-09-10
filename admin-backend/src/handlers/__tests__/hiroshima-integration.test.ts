@@ -35,7 +35,7 @@ describe('Hiroshima Event Discovery Integration Tests', () => {
     )
 
     // サービスメソッドをモック
-    jest.spyOn(connpassApiService, 'searchEventsByKeyword')
+    jest.spyOn(connpassApiService, 'searchEvents')
     jest.spyOn(dynamoDBService, 'checkEventExists')
     jest.spyOn(dynamoDBService, 'createStudySessionFromConnpass')
     jest.spyOn(notificationService, 'publishStudySessionNotification')
@@ -97,9 +97,7 @@ describe('Hiroshima Event Discovery Integration Tests', () => {
       ]
 
       // モックの設定
-      ;(
-        connpassApiService.searchEventsByKeyword as jest.Mock
-      ).mockResolvedValue({
+      ;(connpassApiService.searchEvents as jest.Mock).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 2,
       })
@@ -123,10 +121,7 @@ describe('Hiroshima Event Discovery Integration Tests', () => {
       expect(result.registeredEvents).toHaveLength(2)
 
       // サービス間の連携を確認
-      expect(connpassApiService.searchEventsByKeyword).toHaveBeenCalledWith(
-        '広島',
-        100
-      )
+      expect(connpassApiService.searchEvents).toHaveBeenCalledWith('広島', 100)
       expect(dynamoDBService.checkEventExists).toHaveBeenCalledTimes(2)
       expect(dynamoDBService.checkEventExists).toHaveBeenCalledWith(
         'https://connpass.com/event/123456/'
@@ -169,9 +164,7 @@ describe('Hiroshima Event Discovery Integration Tests', () => {
       }
 
       // モックの設定
-      ;(
-        connpassApiService.searchEventsByKeyword as jest.Mock
-      ).mockResolvedValue({
+      ;(connpassApiService.searchEvents as jest.Mock).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 1,
       })
@@ -252,9 +245,7 @@ describe('Hiroshima Event Discovery Integration Tests', () => {
       }
 
       // モックの設定（混合成功・失敗シナリオ）
-      ;(
-        connpassApiService.searchEventsByKeyword as jest.Mock
-      ).mockResolvedValue({
+      ;(connpassApiService.searchEvents as jest.Mock).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 3,
       })
@@ -329,9 +320,7 @@ describe('Hiroshima Event Discovery Integration Tests', () => {
       }
 
       // モックの設定
-      ;(
-        connpassApiService.searchEventsByKeyword as jest.Mock
-      ).mockResolvedValue({
+      ;(connpassApiService.searchEvents as jest.Mock).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 1,
       })
@@ -405,9 +394,7 @@ describe('Hiroshima Event Discovery Integration Tests', () => {
       }
 
       // モックの設定
-      ;(
-        connpassApiService.searchEventsByKeyword as jest.Mock
-      ).mockResolvedValue({
+      ;(connpassApiService.searchEvents as jest.Mock).mockResolvedValue({
         events: hiroshimaEvents,
         totalCount: 2,
       })

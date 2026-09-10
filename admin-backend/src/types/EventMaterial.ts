@@ -189,13 +189,13 @@ export interface ConnpassPresentationsResponse {
  */
 export interface ConnpassEventData {
   /** イベントID */
-  event_id: number
+  id: number
 
   /** イベントタイトル */
   title: string
 
   /** イベントURL */
-  event_url: string
+  url: string
 
   /** 開始日時 (ISO 8601形式) */
   started_at: string

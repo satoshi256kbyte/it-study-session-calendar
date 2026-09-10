@@ -463,6 +463,12 @@ export class DynamoDBService {
   async checkEventExists(eventUrl: string): Promise<boolean> {
     logger.debug(`Checking if event exists with URL: ${eventUrl}`)
 
+    // eventUrlが空またはundefinedの場合は存在しないとして扱う
+    if (!eventUrl) {
+      logger.warn(`Event URL is empty or undefined, treating as non-existent`)
+      return false
+    }
+
     try {
       const result = await this.dynamodb.send(
         new ScanCommand({
@@ -526,16 +532,16 @@ export class DynamoDBService {
     eventData: ConnpassEventData
   ): Promise<StudySession> {
     logger.debug('Creating study session from connpass event data:', {
-      eventId: eventData.event_id,
+      eventId: eventData.id,
       title: eventData.title,
-      eventUrl: eventData.event_url,
+      eventUrl: eventData.url,
     })
 
     try {
       // 要件3.5: connpass URLが利用可能な時、システムはそれをurlフィールドに保存する
       const createRequest: CreateStudySessionRequest = {
         title: eventData.title,
-        url: eventData.event_url,
+        url: eventData.url,
         datetime: eventData.started_at,
         endDatetime: eventData.ended_at,
         // contactは設定しない（connpass APIには含まれない）
@@ -583,9 +589,9 @@ export class DynamoDBService {
       // 要件6.3, 6.4: 詳細なエラーログとスタックトレース出力を実装
       const errorDetails = {
         eventData: {
-          eventId: eventData.event_id,
+          eventId: eventData.id,
           title: eventData.title,
-          eventUrl: eventData.event_url,
+          eventUrl: eventData.url,
           startedAt: eventData.started_at,
         },
         tableName: this.tableName,

@@ -85,7 +85,7 @@ interface ConnpassEventData {
 
 // 既存のConnpassApiServiceに追加
 class ConnpassApiService {
-  async searchEventsByKeyword(keyword: string, count?: number): Promise<ConnpassSearchResult>
+  async searchEvents(prefecture: string, count?: number): Promise<ConnpassSearchResult>
 }
 ```
 
