@@ -10,7 +10,6 @@ import {
   selectEventsForMonth,
 } from '../utils/calendarMonth'
 import EventListView from './EventListView'
-import LoadingSpinner from './LoadingSpinner'
 
 /**
  * MonthCalendar の Props
@@ -275,15 +274,18 @@ function MonthCalendar({
     }
 
     // 2) loading（iframe は表示しない）
+    // 下部「イベント資料一覧」のローディング表示に統一（border-b-2 式スピナー）
     if (isLoading) {
       return (
-        <div className="flex items-center justify-center py-12">
-          <LoadingSpinner
-            size="lg"
-            text="勉強会を読み込み中..."
-            centered
-            ariaLabel="勉強会を読み込み中"
-          />
+        <div className="w-full py-8">
+          <div className="text-center">
+            <div
+              className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+              aria-label="勉強会を読み込み中"
+              role="status"
+            ></div>
+            <p className="mt-2 text-gray-600">勉強会を読み込み中...</p>
+          </div>
         </div>
       )
     }

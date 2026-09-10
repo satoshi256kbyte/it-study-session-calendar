@@ -4,7 +4,6 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import ResponsiveHeaderButtons from './components/ResponsiveHeaderButtons'
 import MobileRegisterSection from './components/MobileRegisterSection'
 import MonthCalendar from './components/MonthCalendar'
-import LoadingSpinner from './components/LoadingSpinner'
 import { useStudySessionEventsWithDefaults } from './hooks/useStudySessionEvents'
 import { initializePerformanceMonitoring } from './utils/performance'
 
@@ -133,13 +132,17 @@ export default function Home() {
             <div className="p-6">
               <Suspense
                 fallback={
-                  <div className="h-32">
-                    <LoadingSpinner
-                      size="md"
-                      text="資料一覧を読み込み中..."
-                      centered
-                      ariaLabel="イベント資料一覧を読み込み中"
-                    />
+                  <div className="w-full py-8">
+                    <div className="text-center">
+                      <div
+                        className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+                        aria-label="イベント資料一覧を読み込み中"
+                        role="status"
+                      ></div>
+                      <p className="mt-2 text-gray-600">
+                        資料一覧を読み込み中...
+                      </p>
+                    </div>
                   </div>
                 }
               >
