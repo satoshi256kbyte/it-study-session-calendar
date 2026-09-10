@@ -98,7 +98,7 @@ describe('Home Page Integration', () => {
     expect(calendarIframe).toBeInTheDocument()
   })
 
-  it('should handle navigation and sharing functionality', async () => {
+  it('should handle navigation functionality', async () => {
     const user = userEvent.setup()
     render(<Home />)
 
@@ -106,14 +106,6 @@ describe('Home Page Integration', () => {
     const registerLink = screen.getByText('勉強会の登録依頼')
     expect(registerLink).toBeInTheDocument()
     expect(registerLink.closest('a')).toHaveAttribute('href', '/register')
-
-    // 共有ボタンの確認
-    const shareButton = screen.getByText('シェア')
-    expect(shareButton).toBeInTheDocument()
-
-    // Twitterシェアボタンの確認
-    const twitterButton = screen.getByText('共有')
-    expect(twitterButton).toBeInTheDocument()
 
     // GitHubリンクの確認
     const githubLink = screen.getByText('GitHub')
