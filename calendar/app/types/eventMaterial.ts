@@ -108,9 +108,6 @@ export interface MaterialLinkProps {
 
   /** イベントタイトル（アクセシビリティ用） */
   eventTitle: string
-
-  /** 表示バリアント（カード用の最適化） */
-  variant?: 'default' | 'card'
 }
 
 /**
@@ -199,6 +196,33 @@ export function formatEventDate(dateString: string): string {
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
     return `${year}/${month}/${day}`
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Invalid date format:', dateString, error)
+    }
+    return dateString
+  }
+}
+
+/** 曜日ラベル（日曜始まり） */
+const WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'] as const
+
+/**
+ * ユーティリティ関数: 日付フォーマット（曜日付き）
+ * 上部カレンダー（EventListView）の見出しと表示形式を揃える
+ * 「YYYY年M月D日（曜）」形式
+ */
+export function formatEventDateWithWeekday(dateString: string): string {
+  try {
+    const date = new Date(dateString)
+    if (Number.isNaN(date.getTime())) {
+      return dateString
+    }
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+    const weekday = WEEKDAY_LABELS[date.getDay()]
+    return `${year}年${month}月${day}日（${weekday}）`
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Invalid date format:', dateString, error)

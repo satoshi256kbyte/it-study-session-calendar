@@ -1,40 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { vi } from 'vitest'
 import { StudySessionEvent } from '../../types/studySessionEvent'
-
-/**
- * EventListItem はサムネイル表示を EventThumbnail に委譲し、EventThumbnail は
- * OptimizedThumbnail（next/image + IntersectionObserver）に依存する。
- * 本テストは EventListItem 自身の責務（開始時刻の JST 時分表示・タイトル表示・
- * pageUrl 有無によるリンク表示切替）を決定的に検証するため、
- * EventThumbnail.test.tsx と同様に OptimizedImage を軽量スタブへ差し替える。
- */
-vi.mock('../OptimizedImage', () => {
-  return {
-    OptimizedThumbnail: (props: {
-      src: string
-      alt: string
-      width: number
-      height: number
-      variant?: string
-      responsive?: boolean
-      className?: string
-      onError?: () => void
-    }) => (
-      <img
-        data-testid="optimized-thumbnail"
-        src={props.src}
-        alt={props.alt}
-        width={props.width}
-        height={props.height}
-        data-variant={props.variant}
-        onError={props.onError}
-      />
-    ),
-  }
-})
-
-// モック定義後に import する（vi.mock は巻き上げられる）
 import EventListItem from '../EventListItem'
 
 /**

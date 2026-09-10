@@ -2,7 +2,6 @@
 
 import { memo } from 'react'
 import { StudySessionEvent } from '../types/studySessionEvent'
-import EventThumbnail from './EventThumbnail'
 
 /** JST オフセット（ミリ秒）。UTC+9 = 9 時間 */
 const JST_OFFSET_MS = 9 * 60 * 60 * 1000
@@ -35,46 +34,37 @@ function formatStartTimeJst(date: Date): string {
 /**
  * イベント一覧の単一行。
  *
- * 単一責任として「開始時刻（JST の時分）・タイトル・イベントページリンクの表示」を扱い、
- * サムネイル表示は `EventThumbnail` に委譲する（Requirement 5.2, 5.4）。
+ * 単一責任として「開始時刻（JST の時分）・タイトル・イベントページリンクの表示」を扱う。
  *
  * - 開始時刻は JST の時分で表示（Requirement 5.2）。
  * - `event.pageUrl` があればタイトルをリンク化し、`target="_blank"` と
  *   `rel="noopener noreferrer"` を付与する（Requirement 5.4）。
  *   `pageUrl` が無い場合はテキストのみ表示する。
- * - サムネイルは `EventThumbnail` に委譲（`thumbnailUrl` と `eventTitle` を渡す）。
  */
 function EventListItem({ event }: EventListItemProps) {
   const startTime = formatStartTimeJst(event.startDate)
 
   return (
-    <li className="event-list-item flex items-start gap-3 py-2">
-      <EventThumbnail
-        thumbnailUrl={event.thumbnailUrl}
-        eventTitle={event.title}
-        className="flex-shrink-0"
-      />
-      <div className="flex-1 min-w-0">
-        {startTime !== '' && (
-          <time className="event-list-item-time block text-sm text-gray-500">
-            {startTime}
-          </time>
-        )}
-        {event.pageUrl ? (
-          <a
-            href={event.pageUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="event-list-item-title text-blue-600 hover:underline break-words"
-          >
-            {event.title}
-          </a>
-        ) : (
-          <span className="event-list-item-title text-gray-900 break-words">
-            {event.title}
-          </span>
-        )}
-      </div>
+    <li className="event-list-item min-w-0 py-2">
+      {startTime !== '' && (
+        <time className="event-list-item-time block text-sm text-gray-500">
+          {startTime}
+        </time>
+      )}
+      {event.pageUrl ? (
+        <a
+          href={event.pageUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="event-list-item-title text-blue-600 hover:underline break-words"
+        >
+          {event.title}
+        </a>
+      ) : (
+        <span className="event-list-item-title text-gray-900 break-words">
+          {event.title}
+        </span>
+      )}
     </li>
   )
 }

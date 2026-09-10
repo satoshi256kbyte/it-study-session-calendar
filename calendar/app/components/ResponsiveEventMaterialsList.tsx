@@ -6,6 +6,7 @@ import {
   MaterialType,
   EventWithMaterials,
   Material,
+  formatEventDateWithWeekday,
 } from '../types/eventMaterial'
 import EventMaterialsTable from './EventMaterialsTable'
 import EventMaterialCard from './EventMaterialCard'
@@ -234,110 +235,45 @@ function SimpleEventCard({
       return priorityA - priorityB
     })
   }, [event.materials])
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'short',
-    })
-  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-      {/* イベント日付 */}
-      <div className="flex items-center text-sm text-gray-500 mb-3">
-        <svg
-          className="w-4 h-4 mr-2"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-        <time dateTime={event.eventDate}>{formatDate(event.eventDate)}</time>
-      </div>
+      {/* 開催日（上部カレンダーと同じ形式） */}
+      <time
+        dateTime={event.eventDate}
+        className="block text-sm font-semibold text-gray-700 mb-1"
+      >
+        {formatEventDateWithWeekday(event.eventDate)}
+      </time>
 
-      {/* イベントタイトル */}
-      <h3 className="text-lg font-semibold text-gray-900 mb-3 leading-tight">
-        <a
-          href={event.eventUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 hover:underline block min-h-[44px] py-2"
-          title={`${event.title}のイベントページを開く`}
-        >
-          {event.title}
-        </a>
-      </h3>
+      {/* イベントタイトル（アイコンなし） */}
+      <a
+        href={event.eventUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline break-words"
+        title={`${event.title}のイベントページを開く`}
+      >
+        {event.title}
+      </a>
 
-      {/* connpassリンク */}
-      <div className="mb-4">
-        <a
-          href={event.connpassUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-800 min-h-[44px] py-2"
-          title={`${event.title}のconnpassページを開く`}
-        >
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-            />
-          </svg>
-          connpass
-        </a>
-      </div>
-
-      {/* 資料リスト */}
+      {/* 資料リスト（箇条書き・行間は詰める） */}
       {sortedMaterials && sortedMaterials.length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            資料 ({sortedMaterials.length}件)
-          </h4>
-          <ul className="space-y-2">
-            {sortedMaterials.map((material: Material) => (
-              <li key={material.id}>
-                <a
-                  href={material.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 hover:underline text-sm block min-h-[44px] py-2"
-                  title={`${material.title || material.url}を開く`}
-                >
-                  {material.title || material.url}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul className="mt-1 list-disc pl-5 text-sm marker:text-gray-400">
+          {sortedMaterials.map((material: Material) => (
+            <li key={material.id} className="leading-snug">
+              <a
+                href={material.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline break-words"
+                title={`${material.title || material.url}を開く`}
+              >
+                {material.title || material.url}
+              </a>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )

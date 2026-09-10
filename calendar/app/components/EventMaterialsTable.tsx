@@ -3,18 +3,19 @@
 import { memo, useMemo } from 'react'
 import {
   EventMaterialsTableProps,
-  formatEventDate,
+  formatEventDateWithWeekday,
   MaterialType,
 } from '../types/eventMaterial'
 import MaterialLink from './MaterialLink'
 
 /**
- * イベント資料テーブルコンポーネント
+ * イベント資料一覧コンポーネント（デスクトップ表示）
  * 要件2.1, 2.2, 2.3, 6.2に対応
  *
- * - テーブル形式でのイベント表示機能
- * - イベント名、資料の列を実装
- * - イベント名の下に開催日時（YYYY/MM/DD）を表示
+ * - 上部カレンダー（EventListView）と表示形式を揃える
+ * - 左に開催日（YYYY年M月D日（曜））の見出し、右にイベント名と資料
+ * - イベント名は青リンク（アイコンなし）
+ * - 資料は箇条書き表示
  * - 不要な再レンダリングの防止
  */
 function EventMaterialsTable({
@@ -61,71 +62,48 @@ function EventMaterialsTable({
   }, [events])
 
   return (
-    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-      {/* 要件4.2: 水平スクロール機能の実装 */}
-      {/* 要件4.1: 小画面でのテーブル表示最適化 - スムーズなスクロール */}
-      <div className="overflow-x-auto smooth-scroll contain-layout">
-        <table className="min-w-full sm:min-w-[600px] divide-y divide-gray-300">
-          <thead className="bg-gray-50">
-            <tr>
-              {/* 要件2.1: イベント名、資料の列 */}
-              <th
-                scope="col"
-                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2 lg:w-3/5"
-              >
-                イベント名
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-3 sm:px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2 lg:w-2/5"
-              >
-                資料
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {sortedEvents.map(event => (
-              <tr key={event.id} className="hover:bg-gray-50">
-                {/* イベント名列 - 要件2.2: 元のイベントページへのクリック可能なリンク */}
-                {/* 要件4.1: 小画面でのテーブル表示最適化 */}
-                <td className="px-3 py-4 sm:px-6 min-w-0 max-w-xs lg:max-w-md xl:max-w-lg w-1/2 lg:w-3/5">
-                  <div className="text-sm">
-                    <a
-                      href={event.eventUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 hover:underline font-medium block leading-5 break-words hyphens-auto"
-                      title={`${event.title}のイベントページを開く`}
-                      style={{
-                        wordBreak: 'break-word',
-                        overflowWrap: 'break-word',
-                      }}
-                    >
-                      {event.title}
-                    </a>
-                    {/* 開催日時を表示 */}
-                    <div className="text-xs text-gray-500 mt-1">
-                      開催日時：{formatEventDate(event.eventDate)}
-                    </div>
-                  </div>
-                </td>
+    <div className="relative">
+      {/* 上部カレンダー（EventListView）と揃えた、日付見出し＋本体の横並びレイアウト */}
+      <div className="event-materials-list flex flex-col gap-6">
+        {sortedEvents.map(event => (
+          <section
+            key={event.id}
+            className="event-materials-day flex flex-col md:flex-row md:gap-6"
+          >
+            {/* 開催日の見出し（左） - EventListView と同じ形式・幅 */}
+            <h3 className="event-materials-day-heading text-sm font-semibold text-gray-700 mb-2 md:mb-0 md:w-40 md:flex-shrink-0">
+              {formatEventDateWithWeekday(event.eventDate)}
+            </h3>
 
-                {/* 資料列 - 要件2.4, 2.5: 資料リンクとサムネイル、複数資料対応 */}
-                <td className="px-3 py-4 sm:px-6 min-w-0 w-1/2 lg:w-2/5">
-                  <div className="space-y-2">
-                    {event.materials.map(material => (
+            {/* 本体（右）: イベント名 + 資料 */}
+            <div className="flex-1 min-w-0">
+              {/* イベント名 - 元のイベントページへのリンク（アイコンなし） */}
+              <a
+                href={event.eventUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline break-words"
+                title={`${event.title}のイベントページを開く`}
+              >
+                {event.title}
+              </a>
+
+              {/* 資料リスト（箇条書き・行間は詰める） */}
+              {event.materials.length > 0 && (
+                <ul className="mt-1 list-disc pl-5 text-sm marker:text-gray-400">
+                  {event.materials.map(material => (
+                    <li key={material.id} className="leading-snug">
                       <MaterialLink
-                        key={material.id}
                         material={material}
                         eventTitle={event.title}
                       />
-                    ))}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+        ))}
       </div>
 
       {/* ローディング状態のオーバーレイ */}

@@ -20,13 +20,12 @@ function EventMaterialsList() {
    * SWRを使用したデータ取得とキャッシュ
    * 要件6.2: データキャッシュの実装、不要な再レンダリングの防止
    */
-  const { events, isLoading, error, retry, hasCache, lastUpdated } =
-    useEventMaterials({
-      months: 6,
-      refreshInterval: 5 * 60 * 1000, // 5分間隔で自動更新
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-    })
+  const { events, isLoading, error, retry } = useEventMaterials({
+    months: 6,
+    refreshInterval: 5 * 60 * 1000, // 5分間隔で自動更新
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+  })
 
   /**
    * ローディング状態の表示
@@ -216,33 +215,13 @@ function EventMaterialsList() {
    */
   return (
     <div className="w-full">
-      {/* 更新状態とキャッシュ情報の表示 */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            {lastUpdated && (
-              <p className="text-sm text-gray-600">
-                最終更新: {lastUpdated.toLocaleString('ja-JP')}
-              </p>
-            )}
-          </div>
-
-          {/* バックグラウンド更新中のインジケーター */}
-          {isLoading && events.length > 0 && (
-            <div className="flex items-center text-sm text-gray-500">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-              更新中
-            </div>
-          )}
+      {/* バックグラウンド更新中のインジケーター */}
+      {isLoading && events.length > 0 && (
+        <div className="mb-4 flex items-center justify-end text-sm text-gray-500">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+          更新中
         </div>
-
-        {/* キャッシュ状態の表示（開発時のデバッグ用、本番では非表示） */}
-        {process.env.NODE_ENV === 'development' && hasCache && (
-          <div className="text-xs text-green-600 mt-1">
-            ✓ キャッシュからデータを表示中
-          </div>
-        )}
-      </div>
+      )}
 
       {/* レスポンシブイベント資料一覧コンポーネントを使用 */}
       {/* 要件1.1, 5.1: 既存のローディング・エラー状態の処理を維持し、後方互換性を保った統合 */}
